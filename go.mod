@@ -1,4 +1,4 @@
-module github.com/allusion-be/agent-go
+module github.com/aviate-labs/agent-go
 
 go 1.16
 

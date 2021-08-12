@@ -4,16 +4,6 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-// Status describes various status fields of the Internet Computer.
-type Status struct {
-	// Identifies the interface version supported.
-	Version string
-	// Impl describes the implementation of the Internet Computer.
-	Impl *Implementation
-	// The public key (a DER-encoded BLS key) of the root key of this Internet Computer instance.
-	RootKey []byte
-}
-
 // Implementation identifies the implementation of the Internet Computer.
 type Implementation struct {
 	// Source is the canonical location of the source code.
@@ -22,6 +12,16 @@ type Implementation struct {
 	Version string
 	// Revision is the precise git revision of the implementation.
 	Revision string
+}
+
+// Status describes various status fields of the Internet Computer.
+type Status struct {
+	// Identifies the interface version supported.
+	Version string
+	// Impl describes the implementation of the Internet Computer.
+	Impl *Implementation
+	// The public key (a DER-encoded BLS key) of the root key of this Internet Computer instance.
+	RootKey []byte
 }
 
 func (s *Status) UnmarshalCBOR(data []byte) error {

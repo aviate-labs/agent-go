@@ -9,10 +9,6 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-type ClientConfig struct {
-	Host *url.URL
-}
-
 type Client struct {
 	client http.Client
 	config ClientConfig
@@ -46,4 +42,8 @@ func (c Client) url(p string) string {
 	url := c.config.Host
 	url.Path = path.Join(url.Path, p)
 	return url.String()
+}
+
+type ClientConfig struct {
+	Host *url.URL
 }
