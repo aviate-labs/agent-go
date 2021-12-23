@@ -12,6 +12,23 @@ var (
 	curve = secp256k1.S256()
 )
 
+func RandomPrivateKey() (*secp256k1.PrivateKey, error) {
+	e, err := bip39.NewEntropy(128)
+	if err != nil {
+		return nil, err
+	}
+	m, err := bip39.English.NewMnemonic(e)
+	if err != nil {
+		return nil, err
+	}
+	n, err := New(m, "")
+	if err != nil {
+		return nil, err
+	}
+	priv, _, err := Keys(n)
+	return priv, err
+}
+
 func New(words bip39.Mnemonic, password string) (bip32.Key, error) {
 	seed := bip39.NewSeed(words, password)
 	master, err := bip32.NewMasterKey(seed)
