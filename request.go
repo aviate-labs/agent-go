@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"math/big"
+	"math/rand"
 	"sort"
 
+	"github.com/aviate-labs/candid-go"
 	"github.com/aviate-labs/leb128"
 	"github.com/aviate-labs/principal-go"
 )
@@ -43,6 +45,33 @@ type Request struct {
 	MethodName string `cbor:"method_name"`
 	// Argument to pass to the canister method.
 	Arguments []byte `cbor:"arg"`
+}
+
+func NewRequest(
+	sender principal.Principal,
+	requestType RequestType,
+	canisterId principal.Principal,
+	methodName string,
+	arguments string,
+	effective uint64,
+) (Request, error) {
+	args, err := candid.EncodeValue(arguments)
+	if err != nil {
+		return Request{}, nil
+	}
+	nonce := make([]byte, 32)
+	if _, err := rand.Read(nonce); err != nil {
+		return Request{}, err
+	}
+	return Request{
+		Type:          requestType,
+		Sender:        sender,
+		Nonce:         nonce,
+		IngressExpiry: 1000000000 * (effective + 300),
+		CanisterID:    canisterId,
+		MethodName:    methodName,
+		Arguments:     args,
+	}, nil
 }
 
 type RequestID [32]byte

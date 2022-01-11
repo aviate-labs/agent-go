@@ -2,6 +2,8 @@ github.com/aviate-labs/bip32 v0.1.0 h1:ELu8TSpP6TxlF2ynoQCd67ZXIk3JFtomxU7/kqhkv
 github.com/aviate-labs/bip32 v0.1.0/go.mod h1:ht/F+qCYp6q41ohdHo507b/6BP8V1LS0SABC1g5Y8WI=
 github.com/aviate-labs/bip39 v0.1.0 h1:nbcS3m/7oD0UMpV3DaUQp6hbVdcvqrjcox6/m772jy0=
 github.com/aviate-labs/bip39 v0.1.0/go.mod h1:4awzhFLSSyvOnJy/f3yqGfTx4x/lbssBvfiNH1maSZ0=
+github.com/aviate-labs/candid-go v0.0.0-20211108143920-a3480d02c622 h1:kJIVBqQo2glK3iHexw9KCuWb5i7Y2ehfS2+KALF7iY4=
+github.com/aviate-labs/candid-go v0.0.0-20211108143920-a3480d02c622/go.mod h1:aSwDlnrwlxvHK7v/LfyAI5dCR4CHf5vHfwn/t9xQzgY=
 github.com/aviate-labs/leb128 v0.3.0 h1:s9htRv3OYk8nuHqJu9PiVFJxv1jIUTIcpEeiURa91uQ=
 github.com/aviate-labs/leb128 v0.3.0/go.mod h1:GclhBOjhIKmcDlgHKhj0AEZollzERfZUbcRUKiQVqgY=
 github.com/aviate-labs/principal-go v0.2.0 h1:Xp5V9L90dCmOLsUjTwL96Yhrv4czOSyzMV8fzJunmuM=
@@ -9,6 +11,8 @@ github.com/aviate-labs/principal-go v0.2.0/go.mod h1:OhTpJAFmc7tau1Y8bvUXRzGIHHN
 github.com/aviate-labs/secp256k1 v0.0.0-20211014082924-c3fa52e81193/go.mod h1:C/lr3F9TimrVkdZckG5mz+VU0TrmpeyVKUjzv2YyGwA=
 github.com/aviate-labs/secp256k1 v0.0.0-5e6736a h1:aQkG/D+l8Y7tr809l8pN+KebH2jzacWReSFQmeEKFgM=
 github.com/aviate-labs/secp256k1 v0.0.0-5e6736a/go.mod h1:C/lr3F9TimrVkdZckG5mz+VU0TrmpeyVKUjzv2YyGwA=
+github.com/di-wu/parser v0.3.0 h1:NMOvy5ifswgt4gsdhySVcKOQtvjC43cHZIfViWctqQY=
+github.com/di-wu/parser v0.3.0/go.mod h1:SLp58pW6WamdmznrVRrw2NTyn4wAvT9rrEFynKX7nYo=
 github.com/fxamacker/cbor/v2 v2.3.0 h1:aM45YGMctNakddNNAezPxDUpv38j44Abh+hifNuqXik=
 github.com/fxamacker/cbor/v2 v2.3.0/go.mod h1:TA1xS00nchWmaBnEIxPSE5oHLuJBAVvqrtAnWBwBCVo=
 github.com/x448/float16 v0.8.4 h1:qLwI1I70+NjRFUR3zs1JPUCgaCXSh3SW62uAKT1mSBM=
