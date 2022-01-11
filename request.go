@@ -20,12 +20,11 @@ var (
 	senderKey        = sha256.Sum256([]byte("sender"))
 )
 
-type RequestType = string
-
-const (
-	RequestTypeCall  RequestType = "call"
-	RequestTypeQuery RequestType = "query"
-)
+func encodeLEB128(i uint64) []byte {
+	bi := big.NewInt(int64(i))
+	e, _ := leb128.EncodeUnsigned(bi)
+	return e
+}
 
 // DOCS: https://smartcontracts.org/docs/interface-spec/index.html#http-call
 type Request struct {
@@ -80,8 +79,18 @@ func NewRequestID(req Request) RequestID {
 	return sha256.Sum256(bytes.Join(hashes, nil))
 }
 
-func encodeLEB128(i uint64) []byte {
-	bi := big.NewInt(int64(i))
-	e, _ := leb128.EncodeUnsigned(bi)
-	return e
+func (r RequestID) Sign(id Identity) ([]byte, error) {
+	h := sha256.Sum256(append(
+		// \x0Aic-request
+		[]byte{0x0a, 0x69, 0x63, 0x2d, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74},
+		r[:]...,
+	))
+	return id.Sign(h[:])
 }
+
+type RequestType = string
+
+const (
+	RequestTypeCall  RequestType = "call"
+	RequestTypeQuery RequestType = "query"
+)

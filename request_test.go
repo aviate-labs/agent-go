@@ -8,6 +8,7 @@ import (
 )
 
 func TestNewRequestID(t *testing.T) {
+	// Source: https://smartcontracts.org/docs/interface-spec/index.html#request-id
 	req := agent.Request{
 		Type:       agent.RequestTypeCall,
 		CanisterID: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2},

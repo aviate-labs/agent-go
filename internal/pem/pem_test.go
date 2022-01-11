@@ -1,6 +1,7 @@
 package pem
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/aviate-labs/agent-go/internal/key"
@@ -23,4 +24,5 @@ func TestRandomKey(t *testing.T) {
 		t.Error(key.D)
 		t.Error(d.D)
 	}
+	fmt.Printf("%x\n", []byte("\x0Aic-request"))
 }
