@@ -137,7 +137,7 @@ func hashPaths(paths [][][]byte) [32]byte {
 	return sha256.Sum256(hash)
 }
 
-func (r RequestID) Sign(id identity.Identity) ([]byte, error) {
+func (r RequestID) Sign(id identity.Identity) []byte {
 	return id.Sign(append(
 		// \x0Aic-request
 		[]byte{0x0a, 0x69, 0x63, 0x2d, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74},

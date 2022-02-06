@@ -1,16 +1,9 @@
 package identity
 
-type AnonymousIdentity struct{}
-
-func (id AnonymousIdentity) Sign(msg []byte) ([]byte, error) {
-	return nil, nil
-}
-
-func (id AnonymousIdentity) PublicKey() []byte {
-	return nil
-}
+import "github.com/aviate-labs/principal-go"
 
 type Identity interface {
-	Sign(msg []byte) ([]byte, error)
+	Sender() principal.Principal
+	Sign(msg []byte) []byte
 	PublicKey() []byte
 }
