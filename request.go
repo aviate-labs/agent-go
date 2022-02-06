@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"sort"
 
+	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/candid-go"
 	"github.com/aviate-labs/leb128"
 	"github.com/aviate-labs/principal-go"
@@ -50,7 +51,7 @@ type Request struct {
 func NewRequest(
 	sender principal.Principal,
 	requestType RequestType,
-	canisterId principal.Principal,
+	canisterID principal.Principal,
 	methodName string,
 	arguments string,
 	effective uint64,
@@ -68,7 +69,7 @@ func NewRequest(
 		Sender:        sender,
 		Nonce:         nonce,
 		IngressExpiry: 1000000000 * (effective + 300),
-		CanisterID:    canisterId,
+		CanisterID:    canisterID,
 		MethodName:    methodName,
 		Arguments:     args,
 	}, nil
@@ -108,13 +109,12 @@ func NewRequestID(req Request) RequestID {
 	return sha256.Sum256(bytes.Join(hashes, nil))
 }
 
-func (r RequestID) Sign(id Identity) ([]byte, error) {
-	h := sha256.Sum256(append(
+func (r RequestID) Sign(id identity.Identity) ([]byte, error) {
+	return id.Sign(append(
 		// \x0Aic-request
 		[]byte{0x0a, 0x69, 0x63, 0x2d, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74},
 		r[:]...,
 	))
-	return id.Sign(h[:])
 }
 
 type RequestType = string
