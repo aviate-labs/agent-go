@@ -21,6 +21,7 @@ var (
 	argumentsKey     = sha256.Sum256([]byte("arg"))
 	ingressExpiryKey = sha256.Sum256([]byte("ingress_expiry"))
 	senderKey        = sha256.Sum256([]byte("sender"))
+	pathsKey         = sha256.Sum256([]byte("paths"))
 )
 
 func encodeLEB128(i uint64) []byte {
@@ -46,6 +47,8 @@ type Request struct {
 	MethodName string `cbor:"method_name"`
 	// Argument to pass to the canister method.
 	Arguments []byte `cbor:"arg"`
+	// A list of paths, where a path is itself a sequence of blobs.
+	Paths [][][]byte `cbor:"paths,omitempty"`
 }
 
 func NewRequest(
@@ -85,11 +88,18 @@ func NewRequestID(req Request) RequestID {
 		methodNameHash = sha256.Sum256([]byte(req.MethodName))
 		argumentsHash  = sha256.Sum256(req.Arguments)
 	)
-	hashes := [][]byte{
-		append(typeKey[:], typeHash[:]...),
-		append(canisterIDKey[:], canisterIDHash[:]...),
-		append(methodNameKey[:], methodNameHash[:]...),
-		append(argumentsKey[:], argumentsHash[:]...),
+	var hashes [][]byte
+	if len(req.Type) != 0 {
+		hashes = append(hashes, append(typeKey[:], typeHash[:]...))
+	}
+	if len(req.CanisterID) != 0 {
+		hashes = append(hashes, append(canisterIDKey[:], canisterIDHash[:]...))
+	}
+	if len(req.MethodName) != 0 {
+		hashes = append(hashes, append(methodNameKey[:], methodNameHash[:]...))
+	}
+	if len(req.Arguments) != 0 {
+		hashes = append(hashes, append(argumentsKey[:], argumentsHash[:]...))
 	}
 	if len(req.Sender) != 0 {
 		senderHash := sha256.Sum256(req.Sender)
@@ -103,10 +113,28 @@ func NewRequestID(req Request) RequestID {
 		nonceHash := sha256.Sum256(req.Nonce)
 		hashes = append(hashes, append(nonceKey[:], nonceHash[:]...))
 	}
+	if req.Paths != nil {
+		pathsHash := hashPaths(req.Paths)
+		hashes = append(hashes, append(pathsKey[:], pathsHash[:]...))
+	}
 	sort.Slice(hashes, func(i, j int) bool {
 		return bytes.Compare(hashes[i], hashes[j]) == -1
 	})
 	return sha256.Sum256(bytes.Join(hashes, nil))
+}
+
+func hashPaths(paths [][][]byte) [32]byte {
+	var hash []byte
+	for _, path := range paths {
+		var rawPathHash []byte
+		for _, p := range path {
+			pathBytes := sha256.Sum256(p)
+			rawPathHash = append(rawPathHash, pathBytes[:]...)
+		}
+		pathHash := sha256.Sum256(rawPathHash)
+		hash = append(hash, pathHash[:]...)
+	}
+	return sha256.Sum256(hash)
 }
 
 func (r RequestID) Sign(id identity.Identity) ([]byte, error) {
