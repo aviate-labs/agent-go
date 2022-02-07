@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/aviate-labs/agent-go/identity"
+	"github.com/aviate-labs/candid-go"
 	"github.com/aviate-labs/candid-go/idl"
 	"github.com/aviate-labs/principal-go"
 	"github.com/fxamacker/cbor/v2"
@@ -46,7 +47,15 @@ func (a Agent) query(canisterID principal.Principal, data []byte) (*QueryRespons
 	return queryReponse, cbor.Unmarshal(resp, &queryReponse)
 }
 
-func (a Agent) Query(canisterID principal.Principal, methodName string, args []byte) ([]idl.Type, []interface{}, error) {
+func (a Agent) Query(canisterID principal.Principal, methodName string, args []byte) (string, error) {
+	types, values, err := a.QueryCandid(canisterID, methodName, args)
+	if err != nil {
+		return "", err
+	}
+	return candid.DecodeValues(types, values)
+}
+
+func (a Agent) QueryCandid(canisterID principal.Principal, methodName string, args []byte) ([]idl.Type, []interface{}, error) {
 	_, data, err := a.sign(Request{
 		Type:          RequestTypeQuery,
 		Sender:        a.Sender(),
