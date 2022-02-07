@@ -30,6 +30,20 @@ func encodeLEB128(i uint64) []byte {
 	return e
 }
 
+func hashPaths(paths [][][]byte) [32]byte {
+	var hash []byte
+	for _, path := range paths {
+		var rawPathHash []byte
+		for _, p := range path {
+			pathBytes := sha256.Sum256(p)
+			rawPathHash = append(rawPathHash, pathBytes[:]...)
+		}
+		pathHash := sha256.Sum256(rawPathHash)
+		hash = append(hash, pathHash[:]...)
+	}
+	return sha256.Sum256(hash)
+}
+
 // DOCS: https://smartcontracts.org/docs/interface-spec/index.html#http-call
 type Request struct {
 	Type RequestType `cbor:"request_type"`
@@ -121,20 +135,6 @@ func NewRequestID(req Request) RequestID {
 		return bytes.Compare(hashes[i], hashes[j]) == -1
 	})
 	return sha256.Sum256(bytes.Join(hashes, nil))
-}
-
-func hashPaths(paths [][][]byte) [32]byte {
-	var hash []byte
-	for _, path := range paths {
-		var rawPathHash []byte
-		for _, p := range path {
-			pathBytes := sha256.Sum256(p)
-			rawPathHash = append(rawPathHash, pathBytes[:]...)
-		}
-		pathHash := sha256.Sum256(rawPathHash)
-		hash = append(hash, pathHash[:]...)
-	}
-	return sha256.Sum256(hash)
 }
 
 func (r RequestID) Sign(id identity.Identity) []byte {

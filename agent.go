@@ -30,23 +30,6 @@ func New() Agent {
 	}
 }
 
-func (a Agent) expiryDate() uint64 {
-	return uint64(time.Now().Add(a.ingressExpiry).UnixNano())
-}
-
-func (a Agent) Sender() principal.Principal {
-	return a.identity.Sender()
-}
-
-func (a Agent) query(canisterID principal.Principal, data []byte) (*QueryResponse, error) {
-	resp, err := a.client.query(canisterID, data)
-	if err != nil {
-		return nil, err
-	}
-	queryReponse := new(QueryResponse)
-	return queryReponse, cbor.Unmarshal(resp, &queryReponse)
-}
-
 func (a Agent) Query(canisterID principal.Principal, methodName string, args []byte) (string, error) {
 	types, values, err := a.QueryCandid(canisterID, methodName, args)
 	if err != nil {
@@ -79,6 +62,23 @@ func (a Agent) QueryCandid(canisterID principal.Principal, methodName string, ar
 	default:
 		panic("unreachable")
 	}
+}
+
+func (a Agent) Sender() principal.Principal {
+	return a.identity.Sender()
+}
+
+func (a Agent) expiryDate() uint64 {
+	return uint64(time.Now().Add(a.ingressExpiry).UnixNano())
+}
+
+func (a Agent) query(canisterID principal.Principal, data []byte) (*QueryResponse, error) {
+	resp, err := a.client.query(canisterID, data)
+	if err != nil {
+		return nil, err
+	}
+	queryReponse := new(QueryResponse)
+	return queryReponse, cbor.Unmarshal(resp, &queryReponse)
 }
 
 func (a Agent) sign(request Request) (*RequestID, []byte, error) {
