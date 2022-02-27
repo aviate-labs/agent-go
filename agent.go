@@ -79,6 +79,16 @@ func (a Agent) Sender() principal.Principal {
 	return a.identity.Sender()
 }
 
+func (a Agent) call(canisterID principal.Principal, data []byte) (*QueryResponse, error) {
+	resp, err := a.client.call(canisterID, data)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(string(resp))
+	queryReponse := new(QueryResponse)
+	return queryReponse, cbor.Unmarshal(resp, &queryReponse)
+}
+
 func (a Agent) expiryDate() uint64 {
 	return uint64(time.Now().Add(a.ingressExpiry).UnixNano())
 }
