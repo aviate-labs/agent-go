@@ -69,7 +69,7 @@ func (c Client) readState(canisterID principal.Principal, data []byte) ([]byte, 
 }
 
 func (c Client) url(p string) string {
-	url := c.config.Host
+	url := *c.config.Host
 	url.Path = path.Join(url.Path, p)
 	return url.String()
 }

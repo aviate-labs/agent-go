@@ -96,23 +96,21 @@ type RequestID [32]byte
 
 // DOCS: https://smartcontracts.org/docs/interface-spec/index.html#request-id
 func NewRequestID(req Request) RequestID {
-	var (
-		typeHash       = sha256.Sum256([]byte(req.Type))
-		canisterIDHash = sha256.Sum256(req.CanisterID)
-		methodNameHash = sha256.Sum256([]byte(req.MethodName))
-		argumentsHash  = sha256.Sum256(req.Arguments)
-	)
 	var hashes [][]byte
 	if len(req.Type) != 0 {
+		typeHash := sha256.Sum256([]byte(req.Type))
 		hashes = append(hashes, append(typeKey[:], typeHash[:]...))
 	}
 	if len(req.CanisterID) != 0 {
+		canisterIDHash := sha256.Sum256(req.CanisterID)
 		hashes = append(hashes, append(canisterIDKey[:], canisterIDHash[:]...))
 	}
 	if len(req.MethodName) != 0 {
+		methodNameHash := sha256.Sum256([]byte(req.MethodName))
 		hashes = append(hashes, append(methodNameKey[:], methodNameHash[:]...))
 	}
 	if len(req.Arguments) != 0 {
+		argumentsHash := sha256.Sum256(req.Arguments)
 		hashes = append(hashes, append(argumentsKey[:], argumentsHash[:]...))
 	}
 	if len(req.Sender) != 0 {

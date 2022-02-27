@@ -20,13 +20,24 @@ type Agent struct {
 	ingressExpiry time.Duration
 }
 
-func New() Agent {
+func New(cfg AgentConfig) Agent {
+	if cfg.IngressExpiry == 0 {
+		cfg.IngressExpiry = 10 * time.Second
+	}
+	var id identity.Identity = identity.AnonymousIdentity{}
+	if cfg.Identity != nil {
+		id = *cfg.Identity
+	}
+	ccfg := ClientConfig{
+		Host: ic0,
+	}
+	if cfg.ClientConfig != nil {
+		ccfg = *cfg.ClientConfig
+	}
 	return Agent{
-		client: NewClient(ClientConfig{
-			Host: ic0,
-		}),
-		identity:      identity.AnonymousIdentity{},
-		ingressExpiry: 10 * time.Second,
+		client:        NewClient(ccfg),
+		identity:      id,
+		ingressExpiry: cfg.IngressExpiry,
 	}
 }
 
@@ -83,17 +94,19 @@ func (a Agent) query(canisterID principal.Principal, data []byte) (*QueryRespons
 
 func (a Agent) sign(request Request) (*RequestID, []byte, error) {
 	requestID := NewRequestID(request)
-	data, err := cbor.Marshal(struct {
-		Content         Request `cbor:"content"`
-		SenderPublicKey []byte  `cbor:"sender_pubkey,omitempty"`
-		Signature       []byte  `cbor:"sender_sig,omitempty"`
-	}{
-		Content:         request,
-		SenderPublicKey: a.identity.PublicKey(),
-		Signature:       requestID.Sign(a.identity),
+	data, err := cbor.Marshal(Envelope{
+		Content:      request,
+		SenderPubkey: a.identity.PublicKey(),
+		SenderSig:    requestID.Sign(a.identity),
 	})
 	if err != nil {
 		return nil, nil, err
 	}
 	return &requestID, data, nil
+}
+
+type AgentConfig struct {
+	Identity      *identity.Identity
+	IngressExpiry time.Duration
+	ClientConfig  *ClientConfig
 }
