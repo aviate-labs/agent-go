@@ -146,6 +146,7 @@ func (r RequestID) Sign(id identity.Identity) []byte {
 type RequestType = string
 
 const (
-	RequestTypeCall  RequestType = "call"
-	RequestTypeQuery RequestType = "query"
+	RequestTypeCall      RequestType = "call"
+	RequestTypeQuery     RequestType = "query"
+	RequestTypeReadState RequestType = "read_state"
 )

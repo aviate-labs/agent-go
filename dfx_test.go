@@ -45,6 +45,27 @@ func TestLocalReplica(t *testing.T) {
 			t.Error(resp)
 		}
 	}
+	{
+		ps, err := agent.GetCanisterControllers(canister)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(ps) != 1 {
+			t.Fatal()
+		}
+		if p := ps[0].Encode(); p != "uea77-ug7xt-mi62f-fobao-tkelf-qjqxl-v62ed-rgqfd-oylqe-4l5xa-sae" {
+			t.Error(p)
+		}
+	}
+	{
+		mh, err := agent.GetCanisterModuleHash(canister)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if h := fmt.Sprintf("%x", mh); h != "b3d95eb1b6ddcc240afe7c79a2e05fb8e832f72019273fbc447a38f4ea651d56" {
+			t.Error(h)
+		}
+	}
 }
 
 func startDFX(t *testing.T) *exec.Cmd {
@@ -58,21 +79,20 @@ func startDFX(t *testing.T) *exec.Cmd {
 		t.Fatal(err)
 	}
 	fmt.Println("Starting DFX...")
-	time.Sleep(5 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	deploy := exec.Command(path, "deploy")
 	deploy.Dir = "./testdata"
 	if deploy.Run(); err != nil {
 		t.Fatal(err)
 	}
-	time.Sleep(time.Second)
+	time.Sleep(2 * time.Second)
 
 	controllers := exec.Command(path, "canister", "update-settings", "main",
-		"--controller=\"$(dfx identity get-principal)\"",
-		"--controller=\"uea77-ug7xt-mi62f-fobao-tkelf-qjqxl-v62ed-rgqfd-oylqe-4l5xa-sae\"",
+		"--controller", "uea77-ug7xt-mi62f-fobao-tkelf-qjqxl-v62ed-rgqfd-oylqe-4l5xa-sae",
 	)
 	controllers.Dir = "./testdata"
-	if deploy.Run(); err != nil {
+	if err := controllers.Run(); err != nil {
 		t.Fatal(err)
 	}
 

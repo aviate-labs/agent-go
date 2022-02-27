@@ -8,6 +8,7 @@ import (
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/candid-go"
 	"github.com/aviate-labs/candid-go/idl"
+	cert "github.com/aviate-labs/certificate-go"
 	"github.com/aviate-labs/principal-go"
 	"github.com/fxamacker/cbor/v2"
 )
@@ -39,6 +40,39 @@ func New(cfg AgentConfig) Agent {
 		identity:      id,
 		ingressExpiry: cfg.IngressExpiry,
 	}
+}
+
+func (a Agent) GetCanisterControllers(canisterID principal.Principal) ([]principal.Principal, error) {
+	resp, err := a.GetCanisterInfo(canisterID, "controllers")
+	if err != nil {
+		return nil, err
+	}
+	var m []principal.Principal
+	if err := cbor.Unmarshal(resp, &m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) ([]byte, error) {
+	path := [][]byte{[]byte("canister"), canisterID, []byte(subPath)}
+	c, err := a.readStateCertificate(canisterID, [][][]byte{path})
+	if err != nil {
+		return nil, err
+	}
+	var state map[string]interface{}
+	if err := cbor.Unmarshal(c, &state); err != nil {
+		return nil, err
+	}
+	node, err := cert.DeserializeNode(state["tree"].([]interface{}))
+	if err != nil {
+		return nil, err
+	}
+	return cert.Lookup(path, node), nil
+}
+
+func (a Agent) GetCanisterModuleHash(canisterID principal.Principal) ([]byte, error) {
+	return a.GetCanisterInfo(canisterID, "module_hash")
 }
 
 func (a Agent) Query(canisterID principal.Principal, methodName string, args []byte) (string, error) {
@@ -79,16 +113,6 @@ func (a Agent) Sender() principal.Principal {
 	return a.identity.Sender()
 }
 
-func (a Agent) call(canisterID principal.Principal, data []byte) (*QueryResponse, error) {
-	resp, err := a.client.call(canisterID, data)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(string(resp))
-	queryReponse := new(QueryResponse)
-	return queryReponse, cbor.Unmarshal(resp, &queryReponse)
-}
-
 func (a Agent) expiryDate() uint64 {
 	return uint64(time.Now().Add(a.ingressExpiry).UnixNano())
 }
@@ -100,6 +124,33 @@ func (a Agent) query(canisterID principal.Principal, data []byte) (*QueryRespons
 	}
 	queryReponse := new(QueryResponse)
 	return queryReponse, cbor.Unmarshal(resp, &queryReponse)
+}
+
+func (a Agent) readState(canisterID principal.Principal, data []byte) (map[string][]byte, error) {
+	resp, err := a.client.readState(canisterID, data)
+	if err != nil {
+		return nil, err
+	}
+	var m map[string][]byte
+	return m, cbor.Unmarshal(resp, &m)
+}
+
+func (a Agent) readStateCertificate(canisterID principal.Principal, paths [][][]byte) ([]byte, error) {
+	_, data, err := a.sign(Request{
+		Type:          RequestTypeReadState,
+		Sender:        a.Sender(),
+		Paths:         paths,
+		IngressExpiry: a.expiryDate(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := a.readState(canisterID, data)
+	if err != nil {
+		return nil, err
+	}
+	return resp["certificate"], nil
 }
 
 func (a Agent) sign(request Request) (*RequestID, []byte, error) {
