@@ -1,7 +1,7 @@
 github.com/aviate-labs/candid-go v0.0.0-20220207081439-95cecca37dcd h1:7dyRw30pv6ob7Mldv5jHshl/G95TNTfGSO6ka0cFMtM=
 github.com/aviate-labs/candid-go v0.0.0-20220207081439-95cecca37dcd/go.mod h1:aSwDlnrwlxvHK7v/LfyAI5dCR4CHf5vHfwn/t9xQzgY=
-github.com/aviate-labs/certificate-go v0.0.2-0.20220227153822-3ce38b25fec0 h1:eoCN/x6FLtgSc9RoYdXcobgnJYJR0cdQADfxAVIfMAk=
-github.com/aviate-labs/certificate-go v0.0.2-0.20220227153822-3ce38b25fec0/go.mod h1:O4CwO5bBe+AFpMLGEz7ZgrMms6V3fJ69d3jb+fpe31g=
+github.com/aviate-labs/certificate-go v0.0.2 h1:eohRSsYdANL9n/nykibVO9X0NfyAGl3e5wBcZXBYSqo=
+github.com/aviate-labs/certificate-go v0.0.2/go.mod h1:O4CwO5bBe+AFpMLGEz7ZgrMms6V3fJ69d3jb+fpe31g=
 github.com/aviate-labs/leb128 v0.3.0 h1:s9htRv3OYk8nuHqJu9PiVFJxv1jIUTIcpEeiURa91uQ=
 github.com/aviate-labs/leb128 v0.3.0/go.mod h1:GclhBOjhIKmcDlgHKhj0AEZollzERfZUbcRUKiQVqgY=
 github.com/aviate-labs/principal-go v0.2.0 h1:Xp5V9L90dCmOLsUjTwL96Yhrv4czOSyzMV8fzJunmuM=

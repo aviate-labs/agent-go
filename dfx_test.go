@@ -16,7 +16,7 @@ import (
 
 func TestLocalReplica(t *testing.T) {
 	if _, err := exec.LookPath("dfx"); err != nil {
-		t.Skip()
+		t.Skip("DFX not installed.")
 		return
 	}
 
@@ -36,16 +36,6 @@ func TestLocalReplica(t *testing.T) {
 		},
 	})
 	{
-		args, _ := candid.EncodeValue("()")
-		resp, err := agent.Query(canister, "get", args)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if resp != "(0 : nat)" {
-			t.Error(resp)
-		}
-	}
-	{
 		ps, err := agent.GetCanisterControllers(canister)
 		if err != nil {
 			t.Fatal(err)
@@ -64,6 +54,26 @@ func TestLocalReplica(t *testing.T) {
 		}
 		if h := fmt.Sprintf("%x", mh); h != "b3d95eb1b6ddcc240afe7c79a2e05fb8e832f72019273fbc447a38f4ea651d56" {
 			t.Error(h)
+		}
+	}
+	{
+		args, _ := candid.EncodeValue("()")
+		resp, err := agent.Query(canister, "get", args)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp != "(0 : nat)" {
+			t.Error(resp)
+		}
+	}
+	{
+		args, _ := candid.EncodeValue("( 1 : nat )")
+		resp, err := agent.Call(canister, "add", args)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp != "(1 : nat)" {
+			t.Error(resp)
 		}
 	}
 }

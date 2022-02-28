@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net/url"
 	"time"
@@ -40,6 +41,32 @@ func New(cfg AgentConfig) Agent {
 		identity:      id,
 		ingressExpiry: cfg.IngressExpiry,
 	}
+}
+
+func (a Agent) Call(canisterID principal.Principal, methodName string, args []byte) (string, error) {
+	types, values, err := a.CallCandid(canisterID, methodName, args)
+	if err != nil {
+		return "", err
+	}
+	return candid.DecodeValues(types, values)
+}
+
+func (a Agent) CallCandid(canisterID principal.Principal, methodName string, args []byte) ([]idl.Type, []interface{}, error) {
+	requestID, data, err := a.sign(Request{
+		Type:          RequestTypeCall,
+		Sender:        a.Sender(),
+		CanisterID:    canisterID,
+		MethodName:    methodName,
+		Arguments:     args,
+		IngressExpiry: a.expiryDate(),
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	if _, err := a.call(canisterID, data); err != nil {
+		return nil, nil, err
+	}
+	return a.poll(canisterID, *requestID, time.Second, time.Second*10)
 }
 
 func (a Agent) GetCanisterControllers(canisterID principal.Principal) ([]principal.Principal, error) {
@@ -109,21 +136,71 @@ func (a Agent) QueryCandid(canisterID principal.Principal, methodName string, ar
 	}
 }
 
+func (agent *Agent) RequestStatus(canisterID principal.Principal, requestID RequestID) ([]byte, cert.Node, error) {
+	path := [][]byte{[]byte("request_status"), requestID[:]}
+	c, err := agent.readStateCertificate(canisterID, [][][]byte{path})
+	if err != nil {
+		return nil, nil, err
+	}
+	var state map[string]interface{}
+	if err := cbor.Unmarshal(c, &state); err != nil {
+		return nil, nil, err
+	}
+	node, err := cert.DeserializeNode(state["tree"].([]interface{}))
+	if err != nil {
+		return nil, nil, err
+	}
+	return cert.Lookup(append(path, []byte("status")), node), node, nil
+}
+
 func (a Agent) Sender() principal.Principal {
 	return a.identity.Sender()
+}
+
+func (agent *Agent) call(canisterID principal.Principal, data []byte) ([]byte, error) {
+	return agent.client.call(canisterID, data)
 }
 
 func (a Agent) expiryDate() uint64 {
 	return uint64(time.Now().Add(a.ingressExpiry).UnixNano())
 }
 
-func (a Agent) query(canisterID principal.Principal, data []byte) (*QueryResponse, error) {
+func (a Agent) poll(canisterID principal.Principal, requestID RequestID, delay, timeout time.Duration) ([]idl.Type, []interface{}, error) {
+	ticker := time.NewTicker(delay)
+	timer := time.NewTimer(timeout)
+	for {
+		select {
+		case <-ticker.C:
+			data, node, err := a.RequestStatus(canisterID, requestID)
+			if err != nil {
+				return nil, nil, err
+			}
+			if len(data) != 0 {
+				path := [][]byte{[]byte("request_status"), requestID[:]}
+				switch string(data) {
+				case "rejected":
+					code := cert.Lookup(append(path, []byte("reject_code")), node)
+					reject_message := cert.Lookup(append(path, []byte("reject_message")), node)
+					return nil, nil, fmt.Errorf("(%d) %s", binary.BigEndian.Uint64(code), string(reject_message))
+				case "replied":
+					path := [][]byte{[]byte("request_status"), requestID[:]}
+					reply := cert.Lookup(append(path, []byte("reply")), node)
+					return idl.Decode(reply)
+				}
+			}
+		case <-timer.C:
+			return nil, nil, fmt.Errorf("out of time... waited %d seconds", timeout/time.Second)
+		}
+	}
+}
+
+func (a Agent) query(canisterID principal.Principal, data []byte) (*Response, error) {
 	resp, err := a.client.query(canisterID, data)
 	if err != nil {
 		return nil, err
 	}
-	queryReponse := new(QueryResponse)
-	return queryReponse, cbor.Unmarshal(resp, &queryReponse)
+	queryReponse := new(Response)
+	return queryReponse, cbor.Unmarshal(resp, queryReponse)
 }
 
 func (a Agent) readState(canisterID principal.Principal, data []byte) (map[string][]byte, error) {
