@@ -1,12 +1,12 @@
 module github.com/aviate-labs/agent-go
 
-go 1.17
+go 1.19
 
 require (
-	github.com/aviate-labs/candid-go v0.0.0-20220207081439-95cecca37dcd
+	github.com/aviate-labs/candid-go v0.2.0-beta
 	github.com/aviate-labs/certificate-go v0.0.2
 	github.com/aviate-labs/leb128 v0.3.0
-	github.com/aviate-labs/principal-go v0.2.0
+	github.com/aviate-labs/principal-go v0.3.1
 	github.com/fxamacker/cbor/v2 v2.4.0
 )
 

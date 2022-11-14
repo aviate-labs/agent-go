@@ -74,15 +74,19 @@ func (a Agent) GetCanisterControllers(canisterID principal.Principal) ([]princip
 	if err != nil {
 		return nil, err
 	}
-	var m []principal.Principal
+	var m [][]byte
 	if err := cbor.Unmarshal(resp, &m); err != nil {
 		return nil, err
 	}
-	return m, nil
+	var p []principal.Principal
+	for _, b := range m {
+		p = append(p, principal.Principal{Raw: b})
+	}
+	return p, nil
 }
 
 func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) ([]byte, error) {
-	path := [][]byte{[]byte("canister"), canisterID, []byte(subPath)}
+	path := [][]byte{[]byte("canister"), canisterID.Raw, []byte(subPath)}
 	c, err := a.readStateCertificate(canisterID, [][][]byte{path})
 	if err != nil {
 		return nil, err
@@ -199,8 +203,8 @@ func (a Agent) query(canisterID principal.Principal, data []byte) (*Response, er
 	if err != nil {
 		return nil, err
 	}
-	queryReponse := new(Response)
-	return queryReponse, cbor.Unmarshal(resp, queryReponse)
+	queryResponse := new(Response)
+	return queryResponse, cbor.Unmarshal(resp, queryResponse)
 }
 
 func (a Agent) readState(canisterID principal.Principal, data []byte) (map[string][]byte, error) {

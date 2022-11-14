@@ -5,13 +5,14 @@ import (
 	"testing"
 
 	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/principal-go"
 )
 
 func TestNewRequestID(t *testing.T) {
 	// Source: https://smartcontracts.org/docs/interface-spec/index.html#request-id
 	if h := fmt.Sprintf("%x", agent.NewRequestID(agent.Request{
 		Type:       agent.RequestTypeCall,
-		CanisterID: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2},
+		CanisterID: principal.Principal{Raw: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2}},
 		MethodName: "hello",
 		Arguments:  []byte("DIDL\x00\xFD*"),
 	})); h != "8781291c347db32a9d8c10eb62b710fce5a93be676474c42babc74c51858f94b" {
@@ -19,7 +20,7 @@ func TestNewRequestID(t *testing.T) {
 	}
 
 	if h := fmt.Sprintf("%x", agent.NewRequestID(agent.Request{
-		Sender: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2},
+		Sender: principal.Principal{Raw: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2}},
 		Paths: [][][]byte{
 			{},
 			{[]byte("")},

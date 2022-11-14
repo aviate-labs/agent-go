@@ -56,7 +56,8 @@ func (c Client) post(path string, canisterID principal.Principal, data []byte, s
 		defer resp.Body.Close()
 		return io.ReadAll(resp.Body)
 	default:
-		return nil, fmt.Errorf("(%d) %s", resp.StatusCode, resp.Status)
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("(%d) %s: %s", resp.StatusCode, resp.Status, body)
 	}
 }
 

@@ -1,11 +1,11 @@
-github.com/aviate-labs/candid-go v0.0.0-20220207081439-95cecca37dcd h1:7dyRw30pv6ob7Mldv5jHshl/G95TNTfGSO6ka0cFMtM=
-github.com/aviate-labs/candid-go v0.0.0-20220207081439-95cecca37dcd/go.mod h1:aSwDlnrwlxvHK7v/LfyAI5dCR4CHf5vHfwn/t9xQzgY=
+github.com/aviate-labs/candid-go v0.2.0-beta h1:luXae3hvuh6u2EpkgOQvzDuzNLuTQkseRoDJq9gNDkA=
+github.com/aviate-labs/candid-go v0.2.0-beta/go.mod h1:COuEUHhJsKw5h/cvGguCRazkFVfnA0roqFoxuEx50GM=
 github.com/aviate-labs/certificate-go v0.0.2 h1:eohRSsYdANL9n/nykibVO9X0NfyAGl3e5wBcZXBYSqo=
 github.com/aviate-labs/certificate-go v0.0.2/go.mod h1:O4CwO5bBe+AFpMLGEz7ZgrMms6V3fJ69d3jb+fpe31g=
 github.com/aviate-labs/leb128 v0.3.0 h1:s9htRv3OYk8nuHqJu9PiVFJxv1jIUTIcpEeiURa91uQ=
 github.com/aviate-labs/leb128 v0.3.0/go.mod h1:GclhBOjhIKmcDlgHKhj0AEZollzERfZUbcRUKiQVqgY=
-github.com/aviate-labs/principal-go v0.2.0 h1:Xp5V9L90dCmOLsUjTwL96Yhrv4czOSyzMV8fzJunmuM=
-github.com/aviate-labs/principal-go v0.2.0/go.mod h1:OhTpJAFmc7tau1Y8bvUXRzGIHHNSE3txMnMr/xe15R0=
+github.com/aviate-labs/principal-go v0.3.1 h1:sJSWX2sG968COdsT1uVnfogse4ffDsdM1uuFZzqsy4Y=
+github.com/aviate-labs/principal-go v0.3.1/go.mod h1:OhTpJAFmc7tau1Y8bvUXRzGIHHNSE3txMnMr/xe15R0=
 github.com/di-wu/parser v0.3.0 h1:NMOvy5ifswgt4gsdhySVcKOQtvjC43cHZIfViWctqQY=
 github.com/di-wu/parser v0.3.0/go.mod h1:SLp58pW6WamdmznrVRrw2NTyn4wAvT9rrEFynKX7nYo=
 github.com/fxamacker/cbor/v2 v2.4.0 h1:ri0ArlOR+5XunOP8CRUowT0pSJOwhW098ZCUyskZD88=

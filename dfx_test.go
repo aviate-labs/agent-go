@@ -2,8 +2,8 @@ package agent_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/url"
+	"os"
 	"os/exec"
 	"testing"
 	"time"
@@ -24,9 +24,9 @@ func TestLocalReplica(t *testing.T) {
 	defer stopDFX(cmd, t)
 
 	ic0, _ := url.Parse("http://localhost:8000/")
-	canister, _ := principal.Decode("rrkah-fqaaa-aaaaa-aaaaq-cai")
+	canister, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 
-	data, _ := ioutil.ReadFile("./testdata/test.pem")
+	data, _ := os.ReadFile("./testdata/test.pem")
 	var id identity.Identity
 	id, _ = identity.NewEd25519IdentityFromPEM(data)
 	agent := agent.New(agent.AgentConfig{
@@ -52,7 +52,7 @@ func TestLocalReplica(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if h := fmt.Sprintf("%x", mh); h != "b3d95eb1b6ddcc240afe7c79a2e05fb8e832f72019273fbc447a38f4ea651d56" {
+		if h := fmt.Sprintf("%x", mh); h != "d23e54cb52c9f06777ec2ad7faac239f3d46dbb33c620ab100919a6360a032ce" {
 			t.Error(h)
 		}
 	}
@@ -96,7 +96,6 @@ func startDFX(t *testing.T) *exec.Cmd {
 	if deploy.Run(); err != nil {
 		t.Fatal(err)
 	}
-	time.Sleep(2 * time.Second)
 
 	controllers := exec.Command(path, "canister", "update-settings", "main",
 		"--controller", "uea77-ug7xt-mi62f-fobao-tkelf-qjqxl-v62ed-rgqfd-oylqe-4l5xa-sae",

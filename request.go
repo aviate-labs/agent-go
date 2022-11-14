@@ -11,6 +11,7 @@ import (
 	"github.com/aviate-labs/candid-go"
 	"github.com/aviate-labs/leb128"
 	"github.com/aviate-labs/principal-go"
+	"github.com/fxamacker/cbor/v2"
 )
 
 var (
@@ -46,23 +47,23 @@ func hashPaths(paths [][][]byte) [32]byte {
 
 // DOCS: https://smartcontracts.org/docs/interface-spec/index.html#http-call
 type Request struct {
-	Type RequestType `cbor:"request_type"`
+	Type RequestType
 	// The user who issued the request.
-	Sender principal.Principal `cbor:"sender"`
+	Sender principal.Principal
 	// Arbitrary user-provided data, typically randomly generated. This can be
 	// used to create distinct requests with otherwise identical fields.
-	Nonce []byte `cbor:"nonce"`
+	Nonce []byte
 	// An upper limit on the validity of the request, expressed in nanoseconds
 	// since 1970-01-01 (like ic0.time()).
-	IngressExpiry uint64 `cbor:"ingress_expiry"`
+	IngressExpiry uint64
 	// The principal of the canister to call.
-	CanisterID principal.Principal `cbor:"canister_id"`
+	CanisterID principal.Principal
 	// Name of the canister method to call.
-	MethodName string `cbor:"method_name"`
+	MethodName string
 	// Argument to pass to the canister method.
-	Arguments []byte `cbor:"arg"`
+	Arguments []byte
 	// A list of paths, where a path is itself a sequence of blobs.
-	Paths [][][]byte `cbor:"paths,omitempty"`
+	Paths [][][]byte
 }
 
 func NewRequest(
@@ -92,6 +93,35 @@ func NewRequest(
 	}, nil
 }
 
+func (r Request) MarshalCBOR() ([]byte, error) {
+	return cbor.Marshal(requestRaw{
+		Type:          r.Type,
+		Sender:        r.Sender.Raw,
+		Nonce:         r.Nonce,
+		IngressExpiry: r.IngressExpiry,
+		CanisterID:    r.CanisterID.Raw,
+		MethodName:    r.MethodName,
+		Arguments:     r.Arguments,
+		Paths:         r.Paths,
+	})
+}
+
+func (r *Request) UnmarshalCBOR(data []byte) error {
+	var raw requestRaw
+	if err := cbor.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	r.Type = raw.Type
+	r.Sender = principal.Principal{Raw: raw.Sender}
+	r.Nonce = raw.Nonce
+	r.IngressExpiry = raw.IngressExpiry
+	r.CanisterID = principal.Principal{Raw: raw.CanisterID}
+	r.MethodName = raw.MethodName
+	r.Arguments = raw.Arguments
+	r.Paths = raw.Paths
+	return nil
+}
+
 type RequestID [32]byte
 
 // DOCS: https://smartcontracts.org/docs/interface-spec/index.html#request-id
@@ -101,8 +131,8 @@ func NewRequestID(req Request) RequestID {
 		typeHash := sha256.Sum256([]byte(req.Type))
 		hashes = append(hashes, append(typeKey[:], typeHash[:]...))
 	}
-	if len(req.CanisterID) != 0 {
-		canisterIDHash := sha256.Sum256(req.CanisterID)
+	if len(req.CanisterID.Raw) != 0 {
+		canisterIDHash := sha256.Sum256(req.CanisterID.Raw)
 		hashes = append(hashes, append(canisterIDKey[:], canisterIDHash[:]...))
 	}
 	if len(req.MethodName) != 0 {
@@ -113,8 +143,8 @@ func NewRequestID(req Request) RequestID {
 		argumentsHash := sha256.Sum256(req.Arguments)
 		hashes = append(hashes, append(argumentsKey[:], argumentsHash[:]...))
 	}
-	if len(req.Sender) != 0 {
-		senderHash := sha256.Sum256(req.Sender)
+	if len(req.Sender.Raw) != 0 {
+		senderHash := sha256.Sum256(req.Sender.Raw)
 		hashes = append(hashes, append(senderKey[:], senderHash[:]...))
 	}
 	if req.IngressExpiry != 0 {
@@ -150,3 +180,14 @@ const (
 	RequestTypeQuery     RequestType = "query"
 	RequestTypeReadState RequestType = "read_state"
 )
+
+type requestRaw struct {
+	Type          RequestType `cbor:"request_type"`
+	Sender        []byte      `cbor:"sender"`
+	Nonce         []byte      `cbor:"nonce"`
+	IngressExpiry uint64      `cbor:"ingress_expiry"`
+	CanisterID    []byte      `cbor:"canister_id"`
+	MethodName    string      `cbor:"method_name"`
+	Arguments     []byte      `cbor:"arg"`
+	Paths         [][][]byte  `cbor:"paths,omitempty"`
+}
