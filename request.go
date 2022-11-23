@@ -7,10 +7,10 @@ import (
 	"math/rand"
 	"sort"
 
+	"github.com/aviate-labs/agent-go/candid"
 	"github.com/aviate-labs/agent-go/identity"
-	"github.com/aviate-labs/candid-go"
+	"github.com/aviate-labs/agent-go/principal"
 	"github.com/aviate-labs/leb128"
-	"github.com/aviate-labs/principal-go"
 	"github.com/fxamacker/cbor/v2"
 )
 

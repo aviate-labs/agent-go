@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/principal-go"
+	"github.com/aviate-labs/agent-go/principal"
 )
 
 func TestNewRequestID(t *testing.T) {

@@ -1,0 +1,78 @@
+# CANDID (v0.1.1) github.com/di-wu/candid-go/internal/candid
+
+Prog      <-- (Def (';' Ws Def)*)?     ';'? Ws
+              (Actor (';' Ws Actor)*)? ';'? Ws
+Def        <- Type / Import
+Type      <-- 'type' Sp Id Sp '=' Sp DataType
+Import    <-- 'import' Sp Text
+Actor     <-- 'service' Sp (Id Sp)? ':' Sp (TupType Sp '->' Ws)? (ActorType / Id)
+
+ActorType <-- '{' (Ws MethType (';' Ws MethType)* ';'? Ws)? '}'
+MethType  <-- Name Sp? ':' Sp (FuncType / Id)
+FuncType  <-- TupType (Sp '->' Ws TupType (Sp FuncAnn)?)?
+FuncAnn   <-- 'oneway' / 'query'
+TupType   <-- '(' (ArgType (',' Sp ArgType)*)? ')' / ArgType
+ArgType   <-- (Name Sp? ':' Sp)? DataType
+FieldType <-- ((Nat / Name) Sp? ':' Sp)? DataType / Nat / Name
+DataType  <-- ConsType / RefType / PrimType / Id
+
+PrimType  <-- NumType
+            / 'bool' / 'text' / 'null' / 'reserved' / 'empty'
+NumType    <- 'nat8' / 'nat16' / 'nat32' / 'nat64' / 'nat'
+            / 'int8' / 'int16' / 'int32' / 'int64' / 'int'
+            / 'float32' / 'float64'
+
+ConsType   <- Blob
+            / Opt
+            / Vec
+            / Record
+            / Variant
+
+Blob      <-- 'blob'
+Opt       <-- 'opt' Sp DataType
+Vec       <-- 'vec' Sp DataType
+Record    <-- 'record' Sp '{' Ws Fields? Ws '}'
+Variant   <-- 'variant' Sp '{' Ws Fields? Ws '}'
+Fields     <- FieldType (';' Ws FieldType)* ';'?
+
+RefType    <- Func / Service / Principal
+Func      <-- 'func' Sp FuncType
+Service   <-- 'service' Sp ActorType
+Principal <-- 'principal'
+
+Name   <- Id / Text
+Id    <-- (letter / '_') (letter / digit / '_')*
+Text  <-- '"' Char* '"'
+
+Char    <- Utf
+          / ESC hex{2}
+          / ESC escape
+          / '\u{' HexNum '}'
+Num     <- digit ('_'? digit)*
+HexNum  <- hex   ('_'? hex)*
+Nat    <-- '0x' HexNum / Num
+
+Utf      <- ascii / UtfEnc
+UtfEnc   <- [xC2-xDF] utfcont
+          / xE0 [xA0-xBF] utfcont
+          / xED [x80-x9F] utfcont
+          / [xE1-xEC] utfcont{2}
+          / [xEE-xEF] utfcont{2}
+          / xF0 [x90-xBF] utfcont{2}
+          / xF4 [x80-x8F] utfcont{2}
+          / [xF1-xF3] utfcont{3}
+utfcont  <- [x80-xBF]
+
+ascii    <- [x20-x21] / [x23-x5B] / [x5D-x7E]
+escape   <- 'n' / 'r' / 't'
+          / ESC
+          / x22 # "
+          / x27 # '
+
+letter <- [A-Z] / [a-z]
+digit  <- [0-9]
+hex    <- digit / [A-F] / [a-f]
+
+Ws  <- (Sp / x09 / x0A / x0D / (x0D x0A))*
+Sp  <- ' '+
+ESC <- x5C # \

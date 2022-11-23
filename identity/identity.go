@@ -1,6 +1,6 @@
 package identity
 
-import "github.com/aviate-labs/principal-go"
+import "github.com/aviate-labs/agent-go/principal"
 
 type Identity interface {
 	Sender() principal.Principal

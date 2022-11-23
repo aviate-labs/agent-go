@@ -1,7 +1,7 @@
 package identity
 
 import (
-	"github.com/aviate-labs/principal-go"
+	"github.com/aviate-labs/agent-go/principal"
 )
 
 type AnonymousIdentity struct{}

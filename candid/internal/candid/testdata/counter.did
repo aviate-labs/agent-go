@@ -1,0 +1,8 @@
+type timestamp = nat;
+service counter : {
+  set : (nat) -> ();
+  add : (int) -> (new_val : nat);
+  subtract : (nat, trap_on_underflow : opt bool) -> (new_val : nat);
+  get : () -> (nat, last_change : timestamp) query;
+  subscribe : (func (nat) -> (unregister : opt bool)) -> ();
+};

@@ -1,0 +1,72 @@
+# CANDID-TEST (v0.1.0) github.com/di-wu/candid-go/internal/candidtest
+
+TestData     <-- (Comment / Test / EndLine)+
+
+Comment       <- ('/*' Ws MultiComment Ws '*/') 
+               / ('//' CommentText?)
+                 EndLine
+CommentText  <-- (!EndLine [u0000-u10FFFF])*
+MultiComment  <- (!'*/' CommentText? EndLine)*
+
+Ws          <- (' ' / x09 / EndLine)*
+EndLine     <- x0A / x0D / (x0D x0A)
+
+Test         <-- 'assert ' Input Ws (TestGoodTmpl / TestBadTmpl / TestTest) (' ' Description)? ';'
+TestGoodTmpl  <- ':' Ws TestGood
+TestGood     <-- ValuesBr
+TestBadTmpl   <- '!:' Ws TestBad
+TestBad      <-- ValuesBr
+TestTest     <-- '==' Ws Input Ws ':' Ws ValuesBr
+ValuesBr      <- '()' / '(' Values (', ' Values)* ')'
+Values        <- Null / Bool / Nat / Int / Float / Text / Reserved / Empty / Opt
+
+Null  <-- 'null'
+Bool  <-- 'bool'
+Nat   <-- 'nat' Base?
+Int   <-- 'int' Base?
+Float <-- 'float' Base
+Base  <-- digit+
+Text  <-- 'text'
+Reserved <-- 'reserved'
+Empty    <-- 'empty'
+Opt      <-- 'opt ' Values
+
+Input          <- BlobInputTmpl / TextInputTmpl
+TextInputTmpl  <- '"' TextInput '"'
+TextInput     <-- String
+BlobInputTmpl  <- 'blob "' BlobInput '"'
+BlobInput     <-- String
+
+Description  <-- '"' String '"'
+
+String        <- Char*
+
+# Copy/Pasted from Candid Grammar
+# TODO: use import?
+Char     <- Utf
+          / ESC hex{2}
+          / ESC escape
+          / '\u{' HexNum '}'
+HexNum   <- hex   ('_'? hex)*
+Utf      <- ascii / UtfEnc
+UtfEnc   <- [xC2-xDF] utfcont
+          / xE0 [xA0-xBF] utfcont
+          / xED [x80-x9F] utfcont
+          / [xE1-xEC] utfcont{2}
+          / [xEE-xEF] utfcont{2}
+          / xF0 [x90-xBF] utfcont{2}
+          / xF4 [x80-x8F] utfcont{2}
+          / [xF1-xF3] utfcont{3}
+utfcont  <- [x80-xBF]
+
+ascii    <- [x20-x21] / [x23-x5B] / [x5D-x7E]
+escape   <- 'n' / 'r' / 't'
+          / ESC
+          / x22 # "
+          / x27 # '
+
+letter <- [A-Z] / [a-z]
+digit  <- [0-9]
+hex    <- digit / [A-F] / [a-f]
+
+ESC <- x5C # \

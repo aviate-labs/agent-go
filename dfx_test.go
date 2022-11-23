@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/candid"
 	"github.com/aviate-labs/agent-go/identity"
-	"github.com/aviate-labs/candid-go"
-	"github.com/aviate-labs/principal-go"
+	"github.com/aviate-labs/agent-go/principal"
 )
 
 func TestLocalReplica(t *testing.T) {

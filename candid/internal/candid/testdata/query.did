@@ -1,0 +1,4 @@
+service address_book : {
+  set_address: (name : text, addr : address) -> ();
+  get_address: (name : text) -> (opt address) query;
+};

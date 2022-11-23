@@ -6,11 +6,11 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/aviate-labs/agent-go/candid"
+	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/aviate-labs/agent-go/certificate"
 	"github.com/aviate-labs/agent-go/identity"
-	"github.com/aviate-labs/candid-go"
-	"github.com/aviate-labs/candid-go/idl"
-	cert "github.com/aviate-labs/certificate-go"
-	"github.com/aviate-labs/principal-go"
+	"github.com/aviate-labs/agent-go/principal"
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -95,11 +95,11 @@ func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) (
 	if err := cbor.Unmarshal(c, &state); err != nil {
 		return nil, err
 	}
-	node, err := cert.DeserializeNode(state["tree"].([]interface{}))
+	node, err := certificate.DeserializeNode(state["tree"].([]interface{}))
 	if err != nil {
 		return nil, err
 	}
-	return cert.Lookup(path, node), nil
+	return certificate.Lookup(path, node), nil
 }
 
 func (a Agent) GetCanisterModuleHash(canisterID principal.Principal) ([]byte, error) {
@@ -140,7 +140,7 @@ func (a Agent) QueryCandid(canisterID principal.Principal, methodName string, ar
 	}
 }
 
-func (agent *Agent) RequestStatus(canisterID principal.Principal, requestID RequestID) ([]byte, cert.Node, error) {
+func (agent *Agent) RequestStatus(canisterID principal.Principal, requestID RequestID) ([]byte, certificate.Node, error) {
 	path := [][]byte{[]byte("request_status"), requestID[:]}
 	c, err := agent.readStateCertificate(canisterID, [][][]byte{path})
 	if err != nil {
@@ -150,11 +150,11 @@ func (agent *Agent) RequestStatus(canisterID principal.Principal, requestID Requ
 	if err := cbor.Unmarshal(c, &state); err != nil {
 		return nil, nil, err
 	}
-	node, err := cert.DeserializeNode(state["tree"].([]interface{}))
+	node, err := certificate.DeserializeNode(state["tree"].([]interface{}))
 	if err != nil {
 		return nil, nil, err
 	}
-	return cert.Lookup(append(path, []byte("status")), node), node, nil
+	return certificate.Lookup(append(path, []byte("status")), node), node, nil
 }
 
 func (a Agent) Sender() principal.Principal {
@@ -183,12 +183,12 @@ func (a Agent) poll(canisterID principal.Principal, requestID RequestID, delay, 
 				path := [][]byte{[]byte("request_status"), requestID[:]}
 				switch string(data) {
 				case "rejected":
-					code := cert.Lookup(append(path, []byte("reject_code")), node)
-					reject_message := cert.Lookup(append(path, []byte("reject_message")), node)
+					code := certificate.Lookup(append(path, []byte("reject_code")), node)
+					reject_message := certificate.Lookup(append(path, []byte("reject_message")), node)
 					return nil, nil, fmt.Errorf("(%d) %s", binary.BigEndian.Uint64(code), string(reject_message))
 				case "replied":
 					path := [][]byte{[]byte("request_status"), requestID[:]}
-					reply := cert.Lookup(append(path, []byte("reply")), node)
+					reply := certificate.Lookup(append(path, []byte("reply")), node)
 					return idl.Decode(reply)
 				}
 			}
