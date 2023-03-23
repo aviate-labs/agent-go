@@ -15,30 +15,31 @@ const (
 
 	// CANDID (github.com/di-wu/candid-go/internal/candid)
 
-	ProgT      // 001
-	TypeT      // 002
-	ImportT    // 003
-	ActorT     // 004
-	ActorTypeT // 005
-	MethTypeT  // 006
-	FuncTypeT  // 007
-	FuncAnnT   // 008
-	TupTypeT   // 009
-	ArgTypeT   // 010
-	FieldTypeT // 011
-	DataTypeT  // 012
-	PrimTypeT  // 013
-	BlobT      // 014
-	OptT       // 015
-	VecT       // 016
-	RecordT    // 017
-	VariantT   // 018
-	FuncT      // 019
-	ServiceT   // 020
-	PrincipalT // 021
-	IdT        // 022
-	TextT      // 023
-	NatT       // 024
+	ProgT        // 001
+	TypeT        // 002
+	ImportT      // 003
+	ActorT       // 004
+	ActorTypeT   // 005
+	MethTypeT    // 006
+	FuncTypeT    // 007
+	FuncAnnT     // 008
+	TupTypeT     // 009
+	ArgTypeT     // 010
+	FieldTypeT   // 011
+	DataTypeT    // 012
+	PrimTypeT    // 013
+	BlobT        // 014
+	OptT         // 015
+	VecT         // 016
+	RecordT      // 017
+	VariantT     // 018
+	FuncT        // 019
+	ServiceT     // 020
+	PrincipalT   // 021
+	IdT          // 022
+	TextT        // 023
+	NatT         // 024
+	CommentTextT // 025
 )
 
 // Token Definitions
@@ -77,6 +78,7 @@ var NodeTypes = []string{
 	"Id",
 	"Text",
 	"Nat",
+	"CommentText",
 }
 
 func Actor(p *ast.Parser) (*ast.Node, error) {
@@ -201,6 +203,28 @@ func Char(p *ast.Parser) (*ast.Node, error) {
 				HexNum,
 				'}',
 			},
+		},
+	)
+}
+
+func Comment(p *ast.Parser) (*ast.Node, error) {
+	return p.Expect(
+		op.And{
+			"//",
+			CommentText,
+			Nl,
+		},
+	)
+}
+
+func CommentText(p *ast.Parser) (*ast.Node, error) {
+	return p.Expect(
+		ast.Capture{
+			Type:        CommentTextT,
+			TypeStrings: NodeTypes,
+			Value: op.MinZero(
+				Char,
+			),
 		},
 	)
 }
@@ -434,7 +458,7 @@ func MethType(p *ast.Parser) (*ast.Node, error) {
 					Sp,
 				),
 				':',
-				Sp,
+				Ws,
 				op.Or{
 					FuncType,
 					Id,
@@ -464,6 +488,19 @@ func Nat(p *ast.Parser) (*ast.Node, error) {
 					HexNum,
 				},
 				Num,
+			},
+		},
+	)
+}
+
+func Nl(p *ast.Parser) (*ast.Node, error) {
+	return p.Expect(
+		op.Or{
+			0x000A,
+			0x000D,
+			op.And{
+				0x000D,
+				0x000A,
 			},
 		},
 	)
@@ -553,6 +590,7 @@ func Prog(p *ast.Parser) (*ast.Node, error) {
 			Value: op.And{
 				op.Optional(
 					op.And{
+						Ws,
 						Def,
 						op.MinZero(
 							op.And{
@@ -569,6 +607,7 @@ func Prog(p *ast.Parser) (*ast.Node, error) {
 				Ws,
 				op.Optional(
 					op.And{
+						Ws,
 						Actor,
 						op.MinZero(
 							op.And{
@@ -808,12 +847,8 @@ func Ws(p *ast.Parser) (*ast.Node, error) {
 			op.Or{
 				Sp,
 				0x0009,
-				0x000A,
-				0x000D,
-				op.And{
-					0x000D,
-					0x000A,
-				},
+				Comment,
+				Nl,
 			},
 		),
 	)

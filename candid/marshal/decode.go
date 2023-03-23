@@ -58,11 +58,11 @@ func unmarshal(typ idl.Type, dv any, value any) error {
 				return fmt.Errorf("invalid base: %d, expected 2", t.Base())
 			}
 		case reflect.Uint32:
-			if t.Base() != 2 {
+			if t.Base() != 4 {
 				return fmt.Errorf("invalid base: %d, expected 4", t.Base())
 			}
 		case reflect.Uint64:
-			if t.Base() != 2 {
+			if t.Base() != 8 {
 				return fmt.Errorf("invalid base: %d, expected 8", t.Base())
 			}
 		case reflect.Struct:
@@ -142,9 +142,12 @@ func unmarshal(typ idl.Type, dv any, value any) error {
 		}
 	case *idl.VariantType:
 		switch v.Kind() {
-		case reflect.Map:
-		default:
-			return fmt.Errorf("invalid type match: %s %s", v.Kind(), t)
+		case reflect.Struct:
+			switch v.Type().String() {
+			case "idl.Variant":
+			default:
+				return fmt.Errorf("invalid type match: %s %s", v.Type(), t)
+			}
 		}
 	case *idl.PrincipalType:
 		switch v.Kind() {

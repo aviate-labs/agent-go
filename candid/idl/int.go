@@ -214,7 +214,7 @@ func (n IntType) EncodeValue(v any) ([]byte, error) {
 		}
 		return writeInt(big.NewInt(int64(v)), 1), nil
 	default:
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, intType)
 	}
 }
 

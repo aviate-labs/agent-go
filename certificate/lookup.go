@@ -2,6 +2,7 @@ package certificate
 
 import "bytes"
 
+// Lookup looks up the given path in the certificate tree.
 func Lookup(path [][]byte, node Node) []byte {
 	if len(path) == 0 {
 		switch n := node.(type) {
@@ -18,15 +19,6 @@ func Lookup(path [][]byte, node Node) []byte {
 	}
 	return nil
 }
-
-type LabelResult string
-
-const (
-	Absent   LabelResult = "absent"
-	Continue LabelResult = "continue"
-	Found    LabelResult = "found"
-	Unknown  LabelResult = "unknown"
-)
 
 func findLabel(nodes []Node, label Label) *Node {
 	for _, node := range nodes {

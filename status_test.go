@@ -10,7 +10,7 @@ import (
 var ic0, _ = url.Parse("https://ic0.app/")
 
 func ExampleClient_Status() {
-	c := agent.NewClient(agent.ClientConfig{ic0})
+	c := agent.NewClient(agent.ClientConfig{Host: ic0})
 	status, _ := c.Status()
 	fmt.Println(status.Version)
 	// Output:

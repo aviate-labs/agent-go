@@ -13,7 +13,8 @@ import (
 	"github.com/di-wu/parser/ast"
 )
 
-func DecodeValue(value []byte) (string, error) {
+// DecodeValueString decodes the given value into a candid string.
+func DecodeValueString(value []byte) (string, error) {
 	types, values, err := idl.Decode(value)
 	if err != nil {
 		return "", err
@@ -28,7 +29,8 @@ func DecodeValue(value []byte) (string, error) {
 	return fmt.Sprintf("(%s)", s), nil
 }
 
-func DecodeValues(types []idl.Type, values []any) (string, error) {
+// DecodeValuesString decodes the given values into a candid string.
+func DecodeValuesString(types []idl.Type, values []any) (string, error) {
 	var ss []string
 	if len(types) != len(values) {
 		return "", fmt.Errorf("unequal length")
@@ -43,7 +45,8 @@ func DecodeValues(types []idl.Type, values []any) (string, error) {
 	return fmt.Sprintf("(%s)", strings.Join(ss, "; ")), nil
 }
 
-func EncodeValue(value string) ([]byte, error) {
+// EncodeValueString encodes the given candid string into a byte slice.
+func EncodeValueString(value string) ([]byte, error) {
 	p, err := ast.New([]byte(value))
 	if err != nil {
 		return nil, err

@@ -41,7 +41,7 @@ func (TextType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 func (TextType) EncodeValue(v any) ([]byte, error) {
 	v_, ok := v.(string)
 	if !ok {
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, textType)
 	}
 	bs, err := leb128.EncodeUnsigned(big.NewInt(int64(len(v_))))
 	if err != nil {

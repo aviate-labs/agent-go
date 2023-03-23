@@ -25,6 +25,61 @@ var (
 	principalType int64 = -24 // 0x68
 )
 
+func idlString(typ int64) string {
+	switch typ {
+	case nullType:
+		return "null"
+	case boolType:
+		return "bool"
+	case natType:
+		return "nat"
+	case intType:
+		return "int"
+	case natXType:
+		return "nat8"
+	case natXType - 1:
+		return "nat16"
+	case natXType - 2:
+		return "nat32"
+	case natXType - 3:
+		return "nat64"
+	case intXType:
+		return "int8"
+	case intXType - 1:
+		return "int16"
+	case intXType - 2:
+		return "int32"
+	case intXType - 3:
+		return "int64"
+	case floatXType:
+		return "float32"
+	case floatXType - 1:
+		return "float64"
+	case textType:
+		return "text"
+	case reservedType:
+		return "reserved"
+	case emptyType:
+		return "empty"
+	case optType:
+		return "opt"
+	case vecType:
+		return "vec"
+	case recType:
+		return "rec"
+	case varType:
+		return "var"
+	case funcType:
+		return "func"
+	case serviceType:
+		return "service"
+	case principalType:
+		return "principal"
+	default:
+		return "unknown"
+	}
+}
+
 type PrimType interface {
 	prim()
 }

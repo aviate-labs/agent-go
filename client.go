@@ -12,11 +12,13 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
+// Client is a client for the IC agent.
 type Client struct {
 	client http.Client
 	config ClientConfig
 }
 
+// NewClient creates a new client based on the given configuration.
 func NewClient(cfg ClientConfig) Client {
 	return Client{
 		client: http.Client{},
@@ -24,13 +26,14 @@ func NewClient(cfg ClientConfig) Client {
 	}
 }
 
-func (c Client) Status() (Status, error) {
+// Status returns the status of the IC.
+func (c Client) Status() (*Status, error) {
 	raw, err := c.get("/api/v2/status")
 	if err != nil {
-		return Status{}, err
+		return nil, err
 	}
 	var status Status
-	return status, cbor.Unmarshal(raw, &status)
+	return &status, cbor.Unmarshal(raw, &status)
 }
 
 func (c Client) call(canisterID principal.Principal, data []byte) ([]byte, error) {
@@ -46,14 +49,13 @@ func (c Client) get(path string) ([]byte, error) {
 }
 
 func (c Client) post(path string, canisterID principal.Principal, data []byte, statusCorePass int) ([]byte, error) {
-	url := c.url(fmt.Sprintf("/api/v2/canister/%s/%s", canisterID.Encode(), path))
-	resp, err := c.client.Post(url, "application/cbor", bytes.NewBuffer(data))
+	u := c.url(fmt.Sprintf("/api/v2/canister/%s/%s", canisterID.Encode(), path))
+	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
 	switch resp.StatusCode {
 	case statusCorePass:
-		defer resp.Body.Close()
 		return io.ReadAll(resp.Body)
 	default:
 		body, _ := io.ReadAll(resp.Body)
@@ -70,11 +72,12 @@ func (c Client) readState(canisterID principal.Principal, data []byte) ([]byte, 
 }
 
 func (c Client) url(p string) string {
-	url := *c.config.Host
-	url.Path = path.Join(url.Path, p)
-	return url.String()
+	u := *c.config.Host
+	u.Path = path.Join(u.Path, p)
+	return u.String()
 }
 
+// ClientConfig is the configuration for a client.
 type ClientConfig struct {
 	Host *url.URL
 }

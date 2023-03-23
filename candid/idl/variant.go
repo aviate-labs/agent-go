@@ -96,7 +96,7 @@ func (v VariantType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 func (v VariantType) EncodeValue(value any) ([]byte, error) {
 	fs, ok := value.(Variant)
 	if !ok {
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, varType)
 	}
 	for i, f := range v.Fields {
 		if f.Name == fs.Name {

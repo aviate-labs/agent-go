@@ -2,7 +2,6 @@ package idl
 
 import (
 	"bytes"
-	"fmt"
 	"math/big"
 
 	"github.com/aviate-labs/leb128"
@@ -24,7 +23,7 @@ func (NullType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 
 func (NullType) EncodeValue(v any) ([]byte, error) {
 	if v != nil {
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, nullType)
 	}
 	return []byte{}, nil
 }

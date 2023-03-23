@@ -18,8 +18,8 @@ func NewVectorType(t Type) *VectorType {
 	}
 }
 
-func (v VectorType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
-	if err := v.Type.AddTypeDefinition(tdt); err != nil {
+func (vec VectorType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+	if err := vec.Type.AddTypeDefinition(tdt); err != nil {
 		return err
 	}
 
@@ -27,22 +27,22 @@ func (v VectorType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	if err != nil {
 		return err
 	}
-	v_, err := v.Type.EncodeType(tdt)
+	v_, err := vec.Type.EncodeType(tdt)
 	if err != nil {
 		return err
 	}
-	tdt.Add(v, concat(id, v_))
+	tdt.Add(vec, concat(id, v_))
 	return nil
 }
 
-func (v VectorType) Decode(r *bytes.Reader) (any, error) {
+func (vec VectorType) Decode(r *bytes.Reader) (any, error) {
 	l, err := leb128.DecodeUnsigned(r)
 	if err != nil {
 		return nil, err
 	}
 	var vs []any
 	for i := 0; i < int(l.Int64()); i++ {
-		v_, err := v.Type.Decode(r)
+		v_, err := vec.Type.Decode(r)
 		if err != nil {
 			return nil, err
 		}
@@ -51,18 +51,18 @@ func (v VectorType) Decode(r *bytes.Reader) (any, error) {
 	return vs, nil
 }
 
-func (v VectorType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
-	idx, ok := tdt.Indexes[v.String()]
+func (vec VectorType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
+	idx, ok := tdt.Indexes[vec.String()]
 	if !ok {
-		return nil, fmt.Errorf("missing type index for: %s", v)
+		return nil, fmt.Errorf("missing type index for: %s", vec)
 	}
 	return leb128.EncodeSigned(big.NewInt(int64(idx)))
 }
 
-func (v VectorType) EncodeValue(value any) ([]byte, error) {
-	vs_, ok := value.([]any)
+func (vec VectorType) EncodeValue(v any) ([]byte, error) {
+	vs_, ok := v.([]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, vecType)
 	}
 	l, err := leb128.EncodeSigned(big.NewInt(int64(len(vs_))))
 	if err != nil {
@@ -70,7 +70,7 @@ func (v VectorType) EncodeValue(value any) ([]byte, error) {
 	}
 	var vs []byte
 	for _, value := range vs_ {
-		v_, err := v.Type.EncodeValue(value)
+		v_, err := vec.Type.EncodeValue(value)
 		if err != nil {
 			return nil, err
 		}
@@ -79,6 +79,6 @@ func (v VectorType) EncodeValue(value any) ([]byte, error) {
 	return concat(l, vs), nil
 }
 
-func (v VectorType) String() string {
-	return fmt.Sprintf("vec %s", v.Type)
+func (vec VectorType) String() string {
+	return fmt.Sprintf("vec %s", vec.Type)
 }

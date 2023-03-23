@@ -130,13 +130,6 @@ func ExampleX() {
 	// 1B4FEFF9BEF8131788B0C9DC6DBAD6E81E524249C879E9F10F71CE3749F5A638
 }
 
-func h2b(s string) [32]byte {
-	var bs [32]byte
-	b, _ := hex.DecodeString(s)
-	copy(bs[:], b)
-	return bs
-}
-
 func TestUFT8Leaf(t *testing.T) {
 	// []byte{0x90, 0xe4, 0xcf, 0xfc, 0xda, 0x94, 0x83, 0xec, 0x16} is the unsigned leb128 encoding of 1646079569558762000.
 	// Which is Mon Feb 28 2022 20:19:29 GMT+0000 in nanoseconds unix time.
@@ -149,4 +142,11 @@ func TestUFT8Leaf(t *testing.T) {
 	if s.String() != "some string" {
 		t.Error(l)
 	}
+}
+
+func h2b(s string) [32]byte {
+	var bs [32]byte
+	b, _ := hex.DecodeString(s)
+	copy(bs[:], b)
+	return bs
 }

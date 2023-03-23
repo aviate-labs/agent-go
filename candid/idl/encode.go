@@ -23,7 +23,7 @@ func Encode(argumentTypes []Type, arguments []any) ([]byte, error) {
 		}
 	}
 
-	tdtl, err := leb128.EncodeSigned(big.NewInt(int64(len(tdt.Indexes))))
+	tdtl, err := leb128.EncodeUnsigned(big.NewInt(int64(len(tdt.Types))))
 	if err != nil {
 		return nil, err
 	}

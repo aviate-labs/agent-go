@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"math/big"
-	"math/rand"
 	"sort"
 
-	"github.com/aviate-labs/agent-go/candid"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
 	"github.com/aviate-labs/leb128"
@@ -45,8 +43,10 @@ func hashPaths(paths [][][]byte) [32]byte {
 	return sha256.Sum256(hash)
 }
 
+// Request is the request to the agent.
 // DOCS: https://smartcontracts.org/docs/interface-spec/index.html#http-call
 type Request struct {
+	// The type of the request. This is used to distinguish between query, call and read_state requests.
 	Type RequestType
 	// The user who issued the request.
 	Sender principal.Principal
@@ -66,34 +66,8 @@ type Request struct {
 	Paths [][][]byte
 }
 
-func NewRequest(
-	sender principal.Principal,
-	requestType RequestType,
-	canisterID principal.Principal,
-	methodName string,
-	arguments string,
-	effective uint64,
-) (Request, error) {
-	args, err := candid.EncodeValue(arguments)
-	if err != nil {
-		return Request{}, nil
-	}
-	nonce := make([]byte, 32)
-	if _, err := rand.Read(nonce); err != nil {
-		return Request{}, err
-	}
-	return Request{
-		Type:          requestType,
-		Sender:        sender,
-		Nonce:         nonce,
-		IngressExpiry: 1000000000 * (effective + 300),
-		CanisterID:    canisterID,
-		MethodName:    methodName,
-		Arguments:     args,
-	}, nil
-}
-
-func (r Request) MarshalCBOR() ([]byte, error) {
+// MarshalCBOR implements the CBOR marshaler interface.
+func (r *Request) MarshalCBOR() ([]byte, error) {
 	return cbor.Marshal(requestRaw{
 		Type:          r.Type,
 		Sender:        r.Sender.Raw,
@@ -106,6 +80,7 @@ func (r Request) MarshalCBOR() ([]byte, error) {
 	})
 }
 
+// UnmarshalCBOR implements the CBOR unmarshaler interface.
 func (r *Request) UnmarshalCBOR(data []byte) error {
 	var raw requestRaw
 	if err := cbor.Unmarshal(data, &raw); err != nil {
@@ -122,8 +97,10 @@ func (r *Request) UnmarshalCBOR(data []byte) error {
 	return nil
 }
 
+// RequestID is the request ID.
 type RequestID [32]byte
 
+// NewRequestID creates a new request ID.
 // DOCS: https://smartcontracts.org/docs/interface-spec/index.html#request-id
 func NewRequestID(req Request) RequestID {
 	var hashes [][]byte
@@ -165,6 +142,7 @@ func NewRequestID(req Request) RequestID {
 	return sha256.Sum256(bytes.Join(hashes, nil))
 }
 
+// Sign signs the request ID with the given identity.
 func (r RequestID) Sign(id identity.Identity) []byte {
 	return id.Sign(append(
 		// \x0Aic-request
@@ -173,11 +151,15 @@ func (r RequestID) Sign(id identity.Identity) []byte {
 	))
 }
 
+// RequestType is the type of request.
 type RequestType = string
 
 const (
-	RequestTypeCall      RequestType = "call"
-	RequestTypeQuery     RequestType = "query"
+	// RequestTypeCall is a call request.
+	RequestTypeCall RequestType = "call"
+	// RequestTypeQuery is a query request.
+	RequestTypeQuery RequestType = "query"
+	// RequestTypeReadState is a read state request.
 	RequestTypeReadState RequestType = "read_state"
 )
 

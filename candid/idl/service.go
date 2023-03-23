@@ -104,7 +104,7 @@ func (s Service) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 func (s Service) EncodeValue(v any) ([]byte, error) {
 	p, ok := v.(principal.Principal)
 	if !ok {
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, serviceType)
 	}
 	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(p.Raw))))
 	if err != nil {

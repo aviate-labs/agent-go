@@ -89,7 +89,7 @@ func (r RecordType) EncodeValue(v any) ([]byte, error) {
 	}
 	fs, ok := v.(map[string]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, recType)
 	}
 	var vs_ []any
 	for _, f := range r.Fields {

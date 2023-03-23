@@ -18,7 +18,6 @@ func Decode(bs []byte) ([]Type, []any, error) {
 	r := bytes.NewReader(bs)
 
 	{ // 'DIDL'
-
 		magic := make([]byte, 4)
 		n, err := r.Read(magic)
 		if err != nil {
@@ -83,13 +82,9 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					if err != nil {
 						return nil, nil, err
 					}
-					v, err := getType(tid.Int64(), tds)
-					if err != nil {
-						return nil, nil, err
-					}
 					fields = append(fields, FieldType{
-						Name: h.String(),
-						Type: v,
+						Name:  h.String(),
+						Index: tid.Int64(),
 					})
 				}
 				tds = append(tds, &RecordType{Fields: fields})
@@ -108,13 +103,9 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					if err != nil {
 						return nil, nil, err
 					}
-					v, err := getType(tid.Int64(), tds)
-					if err != nil {
-						return nil, nil, err
-					}
 					fields = append(fields, FieldType{
-						Name: h.String(),
-						Type: v,
+						Name:  h.String(),
+						Index: tid.Int64(),
 					})
 				}
 				tds = append(tds, &VariantType{Fields: fields})
@@ -208,6 +199,26 @@ func Decode(bs []byte) ([]Type, []any, error) {
 				tds = append(tds, &Service{
 					methods: methods,
 				})
+			}
+		}
+		for _, tb := range tds {
+			switch t := tb.(type) {
+			case *VariantType:
+				for i, f := range t.Fields {
+					v, err := getType(f.Index, tds)
+					if err != nil {
+						return nil, nil, err
+					}
+					t.Fields[i].Type = v
+				}
+			case *RecordType:
+				for i, f := range t.Fields {
+					v, err := getType(f.Index, tds)
+					if err != nil {
+						return nil, nil, err
+					}
+					t.Fields[i].Type = v
+				}
 			}
 		}
 	}

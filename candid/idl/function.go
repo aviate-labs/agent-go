@@ -140,7 +140,7 @@ func (f FunctionType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 func (f FunctionType) EncodeValue(v any) ([]byte, error) {
 	pm, ok := v.(PrincipalMethod)
 	if !ok {
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, funcType)
 	}
 	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(pm.Principal.Raw))))
 	if err != nil {

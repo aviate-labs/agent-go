@@ -24,6 +24,7 @@ type Status struct {
 	RootKey []byte
 }
 
+// UnmarshalCBOR implements the CBOR unmarshaler interface.
 func (s *Status) UnmarshalCBOR(data []byte) error {
 	var status struct {
 		APIVersion   string `cbor:"ic_api_version"`

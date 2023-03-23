@@ -14,14 +14,14 @@ type Method struct {
 
 	// Func is a function type describing its signature.
 	Func *Func
-	// Id is a reference to a type definition naming a function reference type.
+	// ID is a reference to a type definition naming a function reference type.
 	// It is NOT possible to have both a function type and a reference.
-	Id *string
+	ID *string
 }
 
 func (m Method) String() string {
 	s := fmt.Sprintf("%s : ", m.Name)
-	if id := m.Id; id != nil {
+	if id := m.ID; id != nil {
 		return s + *id
 	}
 	return s + m.Func.String()
@@ -40,8 +40,8 @@ func (m Method) String() string {
 //		deleteUser : (id : nat64) -> () oneway;
 //	}
 type Service struct {
-	// Id represents the optional name given to the service. This only serves as documentation.
-	Id *string
+	// ID represents the optional name given to the service. This only serves as documentation.
+	ID *string
 
 	// Methods is the list of methods that the service provides.
 	Methods []Method
@@ -56,8 +56,8 @@ func convertService(n *ast.Node) Service {
 		switch n.Type {
 		case candid.IdT:
 			id := n.Value
-			if actor.Id == nil {
-				actor.Id = &id
+			if actor.ID == nil {
+				actor.ID = &id
 				continue
 			}
 			actor.MethodId = &id
@@ -65,6 +65,10 @@ func convertService(n *ast.Node) Service {
 			// TODO: what does this even do?
 		case candid.ActorTypeT:
 			for _, n := range n.Children() {
+				if n.Type == candid.CommentTextT {
+					continue
+				}
+
 				name := n.FirstChild.Value
 				switch n := n.LastChild; n.Type {
 				case candid.FuncTypeT:
@@ -82,7 +86,7 @@ func convertService(n *ast.Node) Service {
 						actor.Methods,
 						Method{
 							Name: name,
-							Id:   &id,
+							ID:   &id,
 						},
 					)
 				default:
@@ -98,7 +102,7 @@ func convertService(n *ast.Node) Service {
 
 func (a Service) String() string {
 	s := "service "
-	if id := a.Id; id != nil {
+	if id := a.ID; id != nil {
 		s += fmt.Sprintf("%s ", *id)
 	}
 	s += ": "

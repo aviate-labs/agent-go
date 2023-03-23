@@ -34,7 +34,7 @@ func (BoolType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 func (BoolType) EncodeValue(v any) ([]byte, error) {
 	v_, ok := v.(bool)
 	if !ok {
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, boolType)
 	}
 	if v_ {
 		return []byte{0x01}, nil

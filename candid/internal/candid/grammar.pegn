@@ -1,14 +1,14 @@
 # CANDID (v0.1.1) github.com/di-wu/candid-go/internal/candid
 
-Prog      <-- (Def (';' Ws Def)*)?     ';'? Ws
-              (Actor (';' Ws Actor)*)? ';'? Ws
+Prog      <-- (Ws Def (';' Ws Def)*)?     ';'? Ws
+              (Ws Actor (';' Ws Actor)*)? ';'? Ws
 Def        <- Type / Import
 Type      <-- 'type' Sp Id Sp '=' Sp DataType
 Import    <-- 'import' Sp Text
 Actor     <-- 'service' Sp (Id Sp)? ':' Sp (TupType Sp '->' Ws)? (ActorType / Id)
 
 ActorType <-- '{' (Ws MethType (';' Ws MethType)* ';'? Ws)? '}'
-MethType  <-- Name Sp? ':' Sp (FuncType / Id)
+MethType  <-- Name Sp? ':' Ws (FuncType / Id)
 FuncType  <-- TupType (Sp '->' Ws TupType (Sp FuncAnn)?)?
 FuncAnn   <-- 'oneway' / 'query'
 TupType   <-- '(' (ArgType (',' Sp ArgType)*)? ')' / ArgType
@@ -73,6 +73,10 @@ letter <- [A-Z] / [a-z]
 digit  <- [0-9]
 hex    <- digit / [A-F] / [a-f]
 
-Ws  <- (Sp / x09 / x0A / x0D / (x0D x0A))*
+CommentText <-- Char*
+Comment      <- '//' CommentText Nl
+
+Nl  <- x0A / x0D / (x0D x0A)
+Ws  <- (Sp / x09 / Comment / Nl)*
 Sp  <- ' '+
 ESC <- x5C # \

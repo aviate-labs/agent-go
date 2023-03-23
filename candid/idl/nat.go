@@ -203,7 +203,7 @@ func (n NatType) EncodeValue(v any) ([]byte, error) {
 		}
 		return []byte{v}, nil
 	default:
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, natType)
 	}
 }
 

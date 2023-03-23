@@ -12,7 +12,7 @@ import (
 )
 
 func ExampleEncodeValue() {
-	e, _ := candid.EncodeValue("0")
+	e, _ := candid.EncodeValueString("0")
 	fmt.Printf("%x\n", e)
 	// Output:
 	// 4449444c00017c00
@@ -74,7 +74,7 @@ func TestDecodeValue(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		d, err := candid.DecodeValue(e)
+		d, err := candid.DecodeValueString(e)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -96,7 +96,7 @@ func TestDecodeValues(t *testing.T) {
 			values: []any{new(big.Int)},
 		},
 	} {
-		d, err := candid.DecodeValues(test.types, test.values)
+		d, err := candid.DecodeValuesString(test.types, test.values)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -150,12 +150,19 @@ func TestEncodeValue(t *testing.T) {
 		{"vec {}", "4449444c016d7f010000"},
 		{"vec { 0; }", "4449444c016d7c01000100"},
 	} {
-		e, err := candid.EncodeValue(test.value)
+		e, err := candid.EncodeValueString(test.value)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if e := fmt.Sprintf("%x", e); e != test.encoded {
 			t.Error(test, e)
 		}
+	}
+}
+
+func TestParseDID(t *testing.T) {
+	raw, _ := os.ReadFile("internal/candid/testdata/ic.did")
+	if _, err := candid.ParseDID(raw); err != nil {
+		t.Error(err)
 	}
 }

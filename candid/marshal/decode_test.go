@@ -3,11 +3,28 @@ package marshal_test
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/aviate-labs/agent-go/principal"
 	"testing"
 
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/candid/marshal"
 )
+
+func ExampleUnmarshal_principal() {
+	var p *principal.Principal
+	data, _ := hex.DecodeString("4449444c0001680100")
+	fmt.Println(marshal.Unmarshal(data, []any{&p}), p)
+	// Output:
+	// <nil> aaaaa-aa
+}
+
+func ExampleUnmarshal_variant() {
+	var v *idl.Variant
+	data, _ := hex.DecodeString("4449444c016b019cc2017d01000000")
+	fmt.Println(marshal.Unmarshal(data, []any{&v}), v)
+	// Output:
+	// <nil> &{0 0 variant {24860:nat}}
+}
 
 func ExampleUnmarshal_optNat() {
 	var optNat idl.Optional

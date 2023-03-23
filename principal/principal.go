@@ -9,18 +9,10 @@ import (
 	"strings"
 )
 
-var encoding = base32.StdEncoding.WithPadding(base32.NoPadding)
-
 // AnonymousID is used for the anonymous caller. It can be used in call and query requests without a signature.
 var AnonymousID = Principal{[]byte{0x04}}
 
-// NewSelfAuthenticating returns a self authenticating principal identifier based on the given public key.
-func NewSelfAuthenticating(pub []byte) Principal {
-	hash := sha256.Sum224(pub)
-	return Principal{
-		Raw: append(hash[:], 0x02),
-	}
-}
+var encoding = base32.StdEncoding.WithPadding(base32.NoPadding)
 
 // Principal are generic identifiers for canisters, users and possibly other concepts in the future.
 type Principal struct {
@@ -44,6 +36,14 @@ func Decode(s string) (Principal, error) {
 	return Principal{b32[4:]}, err
 }
 
+// NewSelfAuthenticating returns a self authenticating principal identifier based on the given public key.
+func NewSelfAuthenticating(pub []byte) Principal {
+	hash := sha256.Sum224(pub)
+	return Principal{
+		Raw: append(hash[:], 0x02),
+	}
+}
+
 // Encode converts the principal to its textual representation.
 func (p Principal) Encode() string {
 	cs := make([]byte, 4)
@@ -60,6 +60,7 @@ func (p Principal) Encode() string {
 	return str
 }
 
+// String implements the Stringer interface.
 func (p Principal) String() string {
 	return p.Encode()
 }

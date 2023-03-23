@@ -43,6 +43,16 @@ func ExampleArgType() {
 	// ["ArgType",[["Id","id"],["PrimType","nat64"]]] <nil>
 }
 
+func ExampleComment() {
+	var example = `// This is a comment.
+`
+	p, _ := ast.New([]byte(example))
+	comment, _ := candid.Comment(p)
+	fmt.Println(comment.FirstChild.Value)
+	// output:
+	// This is a comment.
+}
+
 func ExampleConsType() {
 	for _, record := range []string{
 		"record {\n  num : nat;\n}",

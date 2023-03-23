@@ -2,7 +2,7 @@ package idl
 
 import "math/big"
 
-// Hashes a string to a number.
+// Hash hashes a string to a number.
 // ( Sum_(i=0..k) utf8(id)[i] * 223^(k-i) ) mod 2^32 where k = |utf8(id)|-1
 func Hash(s string) *big.Int {
 	h := big.NewInt(0)
@@ -14,4 +14,8 @@ func Hash(s string) *big.Int {
 		h = h.Mod(h, i)
 	}
 	return h
+}
+
+func HashString(s string) string {
+	return Hash(s).String()
 }

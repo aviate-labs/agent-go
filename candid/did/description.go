@@ -37,6 +37,8 @@ func ConvertDescription(n *ast.Node) Description {
 				desc.Services,
 				convertService(n),
 			)
+		case candid.CommentTextT:
+			// Ignore comments.
 		default:
 			panic(n)
 		}

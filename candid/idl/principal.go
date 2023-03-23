@@ -42,7 +42,7 @@ func (PrincipalType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 func (PrincipalType) EncodeValue(v any) ([]byte, error) {
 	v_, ok := v.(principal.Principal)
 	if !ok {
-		return nil, fmt.Errorf("invalid argument: %v", v)
+		return nil, NewEncodeValueError(v, principalType)
 	}
 	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(v_.Raw))))
 	if err != nil {
