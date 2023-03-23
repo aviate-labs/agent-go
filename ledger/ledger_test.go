@@ -13,23 +13,20 @@ import (
 )
 
 var (
-	//go:embed testdata/.dfx/local/canister_ids.json
-	canisterIdsRaw []byte
-	canisterId     principal.Principal
-	hostRaw        = "http://localhost:8000"
-	host, _        = url.Parse(hostRaw)
+	canisterId principal.Principal
+	hostRaw    = "http://localhost:8000"
+	host, _    = url.Parse(hostRaw)
 )
 
 func init() {
+	canisterIdsRaw, _ := os.ReadFile("testdata/.dfx/local/canister_ids.json")
 	type CanisterIds struct {
 		Example struct {
 			IC string `json:"local"`
 		} `json:"example"`
 	}
 	var canisterIds CanisterIds
-	if err := json.Unmarshal(canisterIdsRaw, &canisterIds); err != nil {
-		panic(err)
-	}
+	_ = json.Unmarshal(canisterIdsRaw, &canisterIds)
 	canisterId, _ = principal.Decode(canisterIds.Example.IC)
 }
 
