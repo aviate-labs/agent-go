@@ -1,5 +1,7 @@
 github.com/aviate-labs/leb128 v0.3.0 h1:s9htRv3OYk8nuHqJu9PiVFJxv1jIUTIcpEeiURa91uQ=
 github.com/aviate-labs/leb128 v0.3.0/go.mod h1:GclhBOjhIKmcDlgHKhj0AEZollzERfZUbcRUKiQVqgY=
+github.com/aviate-labs/secp256k1 v0.0.0-5e6736a h1:aQkG/D+l8Y7tr809l8pN+KebH2jzacWReSFQmeEKFgM=
+github.com/aviate-labs/secp256k1 v0.0.0-5e6736a/go.mod h1:C/lr3F9TimrVkdZckG5mz+VU0TrmpeyVKUjzv2YyGwA=
 github.com/di-wu/parser v0.3.0 h1:NMOvy5ifswgt4gsdhySVcKOQtvjC43cHZIfViWctqQY=
 github.com/di-wu/parser v0.3.0/go.mod h1:SLp58pW6WamdmznrVRrw2NTyn4wAvT9rrEFynKX7nYo=
 github.com/fxamacker/cbor/v2 v2.4.0 h1:ri0ArlOR+5XunOP8CRUowT0pSJOwhW098ZCUyskZD88=

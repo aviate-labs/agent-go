@@ -2,6 +2,7 @@ package identity
 
 import (
 	"crypto/ed25519"
+	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/asn1"
@@ -11,7 +12,7 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
-func derEncodePublicKey(key ed25519.PublicKey) ([]byte, error) {
+func derEncodeEd25519PublicKey(key ed25519.PublicKey) ([]byte, error) {
 	return asn1.Marshal(struct {
 		Algorithm pkix.AlgorithmIdentifier
 		PublicKey asn1.BitString
@@ -34,12 +35,17 @@ type Ed25519Identity struct {
 	publicKey  ed25519.PublicKey
 }
 
+func NewRandomEd25519Identity() (*Ed25519Identity, error) {
+	publicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)
+	return NewEd25519Identity(publicKey, privateKey)
+}
+
 // NewEd25519Identity creates a new identity based on the given key pair.
-func NewEd25519Identity(publicKey ed25519.PublicKey, privateKey ed25519.PrivateKey) Ed25519Identity {
-	return Ed25519Identity{
+func NewEd25519Identity(publicKey ed25519.PublicKey, privateKey ed25519.PrivateKey) (*Ed25519Identity, error) {
+	return &Ed25519Identity{
 		publicKey:  publicKey,
 		privateKey: privateKey,
-	}
+	}, nil
 }
 
 // NewEd25519IdentityFromPEM creates a new identity from the given PEM file.
@@ -65,7 +71,7 @@ func NewEd25519IdentityFromPEM(data []byte) (*Ed25519Identity, error) {
 
 // PublicKey returns the public key of the identity.
 func (id Ed25519Identity) PublicKey() []byte {
-	der, _ := derEncodePublicKey(id.publicKey)
+	der, _ := derEncodeEd25519PublicKey(id.publicKey)
 	return der
 }
 

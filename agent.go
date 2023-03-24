@@ -46,9 +46,9 @@ func New(cfg Config) Agent {
 		cfg.IngressExpiry = 10 * time.Second
 	}
 	// By default, use the anonymous identity.
-	var id identity.Identity = identity.AnonymousIdentity{}
+	var id identity.Identity = new(identity.AnonymousIdentity)
 	if cfg.Identity != nil {
-		id = *cfg.Identity
+		id = cfg.Identity
 	}
 	ccfg := ClientConfig{
 		Host: ic0,
@@ -326,7 +326,7 @@ func (a Agent) sign(request Request) (*RequestID, []byte, error) {
 
 // Config is the configuration for an Agent.
 type Config struct {
-	Identity      *identity.Identity
+	Identity      identity.Identity
 	IngressExpiry time.Duration
 	ClientConfig  *ClientConfig
 }

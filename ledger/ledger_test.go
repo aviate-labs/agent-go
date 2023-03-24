@@ -3,6 +3,7 @@ package ledger_test
 import (
 	_ "embed"
 	"encoding/json"
+	"github.com/aviate-labs/agent-go/identity"
 	"net/url"
 	"os"
 	"testing"
@@ -34,6 +35,34 @@ func TestAgent(t *testing.T) {
 	if os.Getenv("DFX") != "true" {
 		t.SkipNow()
 	}
+
+	t.Run("account_balance ed25519", func(t *testing.T) {
+		id, _ := identity.NewRandomEd25519Identity()
+		a := ledger.NewWithIdentity(canisterId, host, id)
+		tokens, err := a.AccountBalance(ledger.AccountBalanceArgs{
+			Account: principal.AnonymousID.AccountIdentifier(principal.DefaultSubAccount),
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if tokens.E8S != 1 {
+			t.Error(tokens)
+		}
+	})
+
+	t.Run("account_balance secp256k1", func(t *testing.T) {
+		id, _ := identity.NewRandomSecp256k1Identity()
+		a := ledger.NewWithIdentity(canisterId, host, id)
+		tokens, err := a.AccountBalance(ledger.AccountBalanceArgs{
+			Account: principal.AnonymousID.AccountIdentifier(principal.DefaultSubAccount),
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if tokens.E8S != 1 {
+			t.Error(tokens)
+		}
+	})
 
 	a := ledger.New(canisterId, host)
 	t.Run("account_balance", func(t *testing.T) {

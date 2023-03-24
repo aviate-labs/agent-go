@@ -2,14 +2,11 @@ package identity
 
 import (
 	"bytes"
-	"crypto/ed25519"
-	"crypto/rand"
 	"testing"
 )
 
 func TestNewEd25519Identity(t *testing.T) {
-	publicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)
-	id := NewEd25519Identity(publicKey, privateKey)
+	id, _ := NewRandomEd25519Identity()
 	data, err := id.ToPEM()
 	if err != nil {
 		t.Fatal(err)

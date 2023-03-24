@@ -3,6 +3,7 @@ package ledger
 import (
 	"fmt"
 	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/aviate-labs/agent-go/identity"
 	"net/url"
 	"strconv"
 
@@ -18,6 +19,16 @@ type Agent struct {
 func New(canisterId principal.Principal, host *url.URL) Agent {
 	return Agent{
 		a: agent.New(agent.Config{
+			ClientConfig: &agent.ClientConfig{Host: host},
+		}),
+		canisterId: canisterId,
+	}
+}
+
+func NewWithIdentity(canisterId principal.Principal, host *url.URL, identity identity.Identity) Agent {
+	return Agent{
+		a: agent.New(agent.Config{
+			Identity:     identity,
 			ClientConfig: &agent.ClientConfig{Host: host},
 		}),
 		canisterId: canisterId,
