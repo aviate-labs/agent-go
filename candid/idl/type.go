@@ -25,6 +25,11 @@ var (
 	principalType int64 = -24 // 0x68
 )
 
+// EqualIDLs returns true if the two types are equal.
+func EqualIDLs(a, b Type) bool {
+	return a.String() == b.String()
+}
+
 func idlString(typ int64) string {
 	switch typ {
 	case nullType:
@@ -88,13 +93,13 @@ type Type interface {
 	// AddTypeDefinition adds itself to the definition table if it is not a primitive type.
 	AddTypeDefinition(*TypeDefinitionTable) error
 
-	// Decodes the value from the reader.
+	// Decode decodes the value from the reader.
 	Decode(*bytes.Reader) (any, error)
 
-	// Encodes the type.
+	// EncodeType encodes the type.
 	EncodeType(*TypeDefinitionTable) ([]byte, error)
 
-	// Encodes the value.
+	// EncodeValue encodes the value.
 	EncodeValue(v any) ([]byte, error)
 
 	fmt.Stringer

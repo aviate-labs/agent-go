@@ -4,11 +4,28 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+	"reflect"
 	"sort"
 	"strings"
 
 	"github.com/aviate-labs/leb128"
 )
+
+func StructToMap(value any) (map[string]any, error) {
+	v := reflect.ValueOf(value)
+	switch v.Kind() {
+	case reflect.Struct:
+		m := make(map[string]any)
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Type().Field(i)
+			tag := parseTags(field)
+			m[tag.name] = v.Field(i).Interface()
+		}
+		return m, nil
+	default:
+		return nil, fmt.Errorf("invalid value kind: %s", v.Kind())
+	}
+}
 
 type RecordType struct {
 	Fields []FieldType
@@ -89,7 +106,10 @@ func (r RecordType) EncodeValue(v any) ([]byte, error) {
 	}
 	fs, ok := v.(map[string]any)
 	if !ok {
-		return nil, NewEncodeValueError(v, recType)
+		var err error
+		if fs, err = StructToMap(v); err != nil {
+			return nil, NewEncodeValueError(v, recType)
+		}
 	}
 	var vs_ []any
 	for _, f := range r.Fields {

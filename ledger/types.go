@@ -2,7 +2,6 @@ package ledger
 
 import (
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/marshal"
 	"github.com/aviate-labs/agent-go/principal"
 )
 
@@ -24,13 +23,7 @@ func subAccountIdToVec(accountId principal.SubAccount) []any {
 
 // AccountBalanceArgs is an argument to the `account_balance` method.
 type AccountBalanceArgs struct {
-	Account AccountIdentifier
-}
-
-func (args AccountBalanceArgs) encode() ([]byte, error) {
-	m := make(map[string]any)
-	m["account"] = accountIdToVec(args.Account)
-	return marshal.Marshal([]any{m})
+	Account AccountIdentifier `ic:"account"`
 }
 
 // AccountIdentifier is a 32-byte array.
@@ -51,18 +44,12 @@ type SubAccount = principal.SubAccount
 
 // TimeStamp is the number of nanoseconds from the UNIX epoch in UTC timezone.
 type TimeStamp struct {
-	TimestampNanos uint64
-}
-
-func (t TimeStamp) toMap() map[string]any {
-	m := make(map[string]any)
-	m["timestamp_nanos"] = t.TimestampNanos
-	return m
+	TimestampNanos uint64 `ic:"timestamp_nanos"`
 }
 
 // Tokens is the amount of tokens, measured in 10^-8 of a token.
 type Tokens struct {
-	E8S uint64
+	E8S uint64 `ic:"e8s"`
 }
 
 func recordTokens(m map[string]any) (*Tokens, bool) {
@@ -74,47 +61,26 @@ func recordTokens(m map[string]any) (*Tokens, bool) {
 	return nil, false
 }
 
-func (t Tokens) toMap() map[string]any {
-	m := make(map[string]any)
-	m["e8s"] = t.E8S
-	return m
-}
-
 // TransferArgs is an argument to the `transfer` method.
 type TransferArgs struct {
 	// Transaction memo.
 	// See comments for the `Memo` type.
-	Memo Memo
+	Memo Memo `ic:"memo"`
 	// The amount that the caller wants to transfer to the destination address.
-	Amount Tokens
+	Amount Tokens `ic:"amount"`
 	// The amount that the caller pays for the transaction.
 	// Must be 10000 e8s.
-	Fee Tokens
+	Fee Tokens `ic:"fee"`
 	// The sub-account from which the caller wants to transfer funds.
 	// If null, the ledger uses the default (all zeros) subaccount to compute the source address.
 	// See comments for the `SubAccount` type.
-	FromSubAccount *SubAccount
+	FromSubAccount *SubAccount `ic:"from_subaccount,omitempty"`
 	// The destination account.
 	// If the transfer is successful, the balance of this address increases by `amount`.
-	To AccountIdentifier
+	To AccountIdentifier `ic:"to"`
 	// The point in time when the caller created this request.
 	// If null, the ledger uses current IC time as the timestamp.
-	CreatedAtTime *TimeStamp
-}
-
-func (args TransferArgs) encode() ([]byte, error) {
-	m := make(map[string]any)
-	m["memo"] = args.Memo
-	m["amount"] = args.Amount.toMap()
-	m["fee"] = args.Fee.toMap()
-	if args.FromSubAccount != nil {
-		m["from_subaccount"] = subAccountIdToVec(*args.FromSubAccount)
-	}
-	m["to"] = accountIdToVec(args.To)
-	if args.CreatedAtTime != nil {
-		m["created_at_time"] = args.CreatedAtTime.toMap()
-	}
-	return marshal.Marshal([]any{m})
+	CreatedAtTime *TimeStamp `ic:"created_at_time,omitempty"`
 }
 
 // TransferError is an error returned by the `transfer` method.

@@ -47,8 +47,8 @@ func TestTypeDefinitionTable(t *testing.T) {
 					}
 					in = b
 				case candidtest.TestBadT,
-					candidtest.TestGoodT, // TODO
-					candidtest.TestTestT: // TODO
+					candidtest.TestGoodT,
+					candidtest.TestTestT:
 					test = n
 				case candidtest.DescriptionT:
 					desc = n.Value

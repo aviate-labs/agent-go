@@ -46,7 +46,7 @@ func ExampleMarshal_principal() {
 	fmt.Println(marshal.Marshal([]any{&p}))
 	fmt.Println(marshal.Marshal([]any{p}))
 	// Output:
-	// [68 73 68 76 0 1 104 1 0] <nil>
+	// [68 73 68 76 1 110 104 1 0 1 1 0] <nil>
 	// [68 73 68 76 0 1 104 1 0] <nil>
 }
 
@@ -73,4 +73,16 @@ func ExampleMarshal_reserved() {
 	fmt.Println(marshal.Marshal([]any{idl.Reserved{}}))
 	// Output:
 	// [68 73 68 76 0 1 112] <nil>
+}
+
+func ExampleMarshal_struct() {
+	fmt.Println(marshal.Marshal([]any{struct {
+		Foo string  `ic:"foo"`
+		Bar idl.Int `ic:"bar"`
+	}{
+		Foo: "baz",
+		Bar: idl.NewInt(42),
+	}}))
+	// Output:
+	// [68 73 68 76 1 108 2 211 227 170 2 124 134 142 183 2 113 1 0 42 3 98 97 122] <nil>
 }

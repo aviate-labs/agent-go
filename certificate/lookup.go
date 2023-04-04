@@ -20,6 +20,15 @@ func Lookup(path [][]byte, node Node) []byte {
 	return nil
 }
 
+// LookupPath returns a path from the given labels.
+func LookupPath(p ...string) [][]byte {
+	var path [][]byte
+	for _, p := range p {
+		path = append(path, []byte(p))
+	}
+	return path
+}
+
 func findLabel(nodes []Node, label Label) *Node {
 	for _, node := range nodes {
 		switch n := node.(type) {

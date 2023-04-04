@@ -3,6 +3,7 @@ package ledger
 import (
 	"fmt"
 	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/aviate-labs/agent-go/candid/marshal"
 	"github.com/aviate-labs/agent-go/identity"
 	"net/url"
 	"strconv"
@@ -36,7 +37,7 @@ func NewWithIdentity(canisterId principal.Principal, host *url.URL, identity ide
 }
 
 func (a Agent) AccountBalance(accountBalanceArgs AccountBalanceArgs) (*Tokens, error) {
-	args, err := accountBalanceArgs.encode()
+	args, err := marshal.Marshal([]any{accountBalanceArgs})
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +58,7 @@ func (a Agent) AccountBalance(accountBalanceArgs AccountBalanceArgs) (*Tokens, e
 }
 
 func (a Agent) Transfer(transferArgs TransferArgs) (*BlockIndex, error) {
-	args, err := transferArgs.encode()
+	args, err := marshal.Marshal([]any{transferArgs})
 	if err != nil {
 		return nil, err
 	}

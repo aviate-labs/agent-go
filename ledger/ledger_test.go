@@ -19,18 +19,6 @@ var (
 	host, _    = url.Parse(hostRaw)
 )
 
-func init() {
-	canisterIdsRaw, _ := os.ReadFile("testdata/.dfx/local/canister_ids.json")
-	type CanisterIds struct {
-		Example struct {
-			IC string `json:"local"`
-		} `json:"example"`
-	}
-	var canisterIds CanisterIds
-	_ = json.Unmarshal(canisterIdsRaw, &canisterIds)
-	canisterId, _ = principal.Decode(canisterIds.Example.IC)
-}
-
 func TestAgent(t *testing.T) {
 	if os.Getenv("DFX") != "true" {
 		t.SkipNow()
@@ -101,4 +89,16 @@ func TestAgent(t *testing.T) {
 			t.Error(tokens)
 		}
 	})
+}
+
+func init() {
+	canisterIdsRaw, _ := os.ReadFile("testdata/.dfx/local/canister_ids.json")
+	type CanisterIds struct {
+		Example struct {
+			IC string `json:"local"`
+		} `json:"example"`
+	}
+	var canisterIds CanisterIds
+	_ = json.Unmarshal(canisterIdsRaw, &canisterIds)
+	canisterId, _ = principal.Decode(canisterIds.Example.IC)
 }

@@ -10,10 +10,12 @@ import (
 	"github.com/aviate-labs/leb128"
 )
 
+// TextType is the type of a text value.
 type TextType struct {
 	primType
 }
 
+// Decode decodes the value from the given reader into a string.
 func (TextType) Decode(r *bytes.Reader) (any, error) {
 	n, err := leb128.DecodeUnsigned(r)
 	if err != nil {
@@ -34,10 +36,12 @@ func (TextType) Decode(r *bytes.Reader) (any, error) {
 	return string(bs), nil
 }
 
+// EncodeType encodes the type into a byte slice.
 func (TextType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 	return leb128.EncodeSigned(big.NewInt(textType))
 }
 
+// EncodeValue encodes the value into a byte slice.
 func (TextType) EncodeValue(v any) ([]byte, error) {
 	v_, ok := v.(string)
 	if !ok {
@@ -50,6 +54,7 @@ func (TextType) EncodeValue(v any) ([]byte, error) {
 	return append(bs, []byte(v_)...), nil
 }
 
+// String returns the string representation of the type.
 func (TextType) String() string {
 	return "text"
 }

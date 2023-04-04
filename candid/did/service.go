@@ -62,7 +62,6 @@ func convertService(n *ast.Node) Service {
 			}
 			actor.MethodId = &id
 		case candid.TupTypeT:
-			// TODO: what does this even do?
 		case candid.ActorTypeT:
 			for _, n := range n.Children() {
 				if n.Type == candid.CommentTextT {

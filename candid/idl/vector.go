@@ -3,9 +3,9 @@ package idl
 import (
 	"bytes"
 	"fmt"
-	"math/big"
-
 	"github.com/aviate-labs/leb128"
+	"math/big"
+	"reflect"
 )
 
 type VectorType struct {
@@ -62,7 +62,14 @@ func (vec VectorType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 func (vec VectorType) EncodeValue(v any) ([]byte, error) {
 	vs_, ok := v.([]any)
 	if !ok {
-		return nil, NewEncodeValueError(v, vecType)
+		v_ := reflect.ValueOf(v)
+		if v_.Kind() == reflect.Array || v_.Kind() == reflect.Slice {
+			for i := 0; i < v_.Len(); i++ {
+				vs_ = append(vs_, v_.Index(i).Interface())
+			}
+		} else {
+			return nil, NewEncodeValueError(v, vecType)
+		}
 	}
 	l, err := leb128.EncodeSigned(big.NewInt(int64(len(vs_))))
 	if err != nil {

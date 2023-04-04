@@ -27,7 +27,7 @@ func uint64FromBytes(raw []byte) uint64 {
 	case 4:
 		return uint64(binary.BigEndian.Uint32(raw))
 	case 8:
-		return uint64(binary.BigEndian.Uint64(raw))
+		return binary.BigEndian.Uint64(raw)
 	default:
 		panic(raw)
 	}
@@ -227,6 +227,17 @@ func (a Agent) RequestStatus(canisterID principal.Principal, requestID RequestID
 	if err := cbor.Unmarshal(c, &state); err != nil {
 		return nil, nil, err
 	}
+	status, err := a.client.Status() // TODO: fetch status once.
+	if err != nil {
+		return nil, nil, err
+	}
+	cert, err := certificate.New(canisterID, status.RootKey[len(status.RootKey)-96:], c)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := cert.Verify(); err != nil {
+		return nil, nil, err
+	}
 	node, err := certificate.DeserializeNode(state["tree"].([]interface{}))
 	if err != nil {
 		return nil, nil, err
@@ -262,8 +273,8 @@ func (a Agent) poll(canisterID principal.Principal, requestID RequestID, delay, 
 				switch string(data) {
 				case "rejected":
 					code := certificate.Lookup(append(path, []byte("reject_code")), node)
-					reject_message := certificate.Lookup(append(path, []byte("reject_message")), node)
-					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(code), string(reject_message))
+					rejectMessage := certificate.Lookup(append(path, []byte("reject_message")), node)
+					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(code), string(rejectMessage))
 				case "replied":
 					path := [][]byte{[]byte("request_status"), requestID[:]}
 					return certificate.Lookup(append(path, []byte("reply")), node), nil

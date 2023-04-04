@@ -10,22 +10,6 @@ import (
 	"github.com/aviate-labs/agent-go/candid/marshal"
 )
 
-func ExampleUnmarshal_principal() {
-	var p *principal.Principal
-	data, _ := hex.DecodeString("4449444c0001680100")
-	fmt.Println(marshal.Unmarshal(data, []any{&p}), p)
-	// Output:
-	// <nil> aaaaa-aa
-}
-
-func ExampleUnmarshal_variant() {
-	var v *idl.Variant
-	data, _ := hex.DecodeString("4449444c016b019cc2017d01000000")
-	fmt.Println(marshal.Unmarshal(data, []any{&v}), v)
-	// Output:
-	// <nil> &{0 0 variant {24860:nat}}
-}
-
 func ExampleUnmarshal_optNat() {
 	var optNat idl.Optional
 	data, _ := hex.DecodeString("4449444c016e7d01000101")
@@ -34,12 +18,28 @@ func ExampleUnmarshal_optNat() {
 	// <nil> {1 nat}
 }
 
+func ExampleUnmarshal_principal() {
+	var p *principal.Principal
+	data, _ := hex.DecodeString("4449444c0001680100")
+	fmt.Println(marshal.Unmarshal(data, []any{&p}), p)
+	// Output:
+	// <nil> aaaaa-aa
+}
+
 func ExampleUnmarshal_record() {
 	record := make(map[string]any)
 	data, _ := hex.DecodeString("4449444c016c02d3e3aa027c868eb7027101002a04f09f92a9")
 	fmt.Println(marshal.Unmarshal(data, []any{&record}), record)
 	// Output:
 	// <nil> map[4895187:42 5097222:💩]
+}
+
+func ExampleUnmarshal_variant() {
+	var v *idl.Variant
+	data, _ := hex.DecodeString("4449444c016b019cc2017d01000000")
+	fmt.Println(marshal.Unmarshal(data, []any{&v}), v)
+	// Output:
+	// <nil> &{0 0 variant {24860:nat}}
 }
 
 func ExampleUnmarshal_vector() {

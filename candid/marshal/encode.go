@@ -32,7 +32,15 @@ func encode(v reflect.Value, tdt *idl.TypeDefinitionTable) ([]byte, []byte, erro
 	}
 	switch v.Kind() {
 	case reflect.Ptr:
-		return encode(v.Elem(), tdt)
+		v := v.Elem().Interface()
+		typ, err := idl.TypeOf(v)
+		if err != nil {
+			return nil, nil, err
+		}
+		return EncodeCons(idl.Optional{
+			V: v,
+			T: typ,
+		}, tdt)
 	case reflect.Bool:
 		return EncodeBool(v.Bool())
 	case reflect.Uint:
@@ -46,7 +54,7 @@ func encode(v reflect.Value, tdt *idl.TypeDefinitionTable) ([]byte, []byte, erro
 	case reflect.Uint32:
 		return EncodeNat32(uint32(v.Uint()))
 	case reflect.Uint64:
-		return EncodeNat64(uint64(v.Uint()))
+		return EncodeNat64(v.Uint())
 	case reflect.Int8:
 		return EncodeInt8(int8(v.Uint()))
 	case reflect.Int16:
@@ -94,6 +102,9 @@ func encode(v reflect.Value, tdt *idl.TypeDefinitionTable) ([]byte, []byte, erro
 		case "principal.Principal":
 			p := v.Interface().(principal.Principal)
 			return EncodePrincipal(p)
+		}
+		if m, err := idl.StructToMap(v.Interface()); err == nil {
+			return EncodeCons(m, tdt)
 		}
 		return nil, nil, fmt.Errorf("invalid struct type: %s", v.Type())
 	default:

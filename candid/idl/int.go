@@ -9,6 +9,8 @@ import (
 	"github.com/aviate-labs/leb128"
 )
 
+// encodeInt16 convert the given value to an int16.
+// Accepts: `int8`, `int16`.
 func encodeInt16(v any) (int16, error) {
 	if v, ok := v.(int16); ok {
 		return v, nil
@@ -17,6 +19,8 @@ func encodeInt16(v any) (int16, error) {
 	return int16(v_), err
 }
 
+// encodeInt32 convert the given value to an int32.
+// Accepts: `int8`, `int16`, `int32`.
 func encodeInt32(v any) (int32, error) {
 	if v, ok := v.(int32); ok {
 		return v, nil
@@ -25,6 +29,8 @@ func encodeInt32(v any) (int32, error) {
 	return int32(v_), err
 }
 
+// encodeInt64 convert the given value to an int64.
+// Accepts: `int8`, `int16`, `int32`, `int64`.
 func encodeInt64(v any) (int64, error) {
 	if v, ok := v.(int); ok {
 		return int64(v), nil
@@ -36,6 +42,8 @@ func encodeInt64(v any) (int64, error) {
 	return int64(v_), err
 }
 
+// encodeInt8 convert the given value to an int8.
+// Accepts: `int8`.
 func encodeInt8(v any) (int8, error) {
 	if v, ok := v.(int8); ok {
 		return v, nil
@@ -43,18 +51,22 @@ func encodeInt8(v any) (int8, error) {
 	return 0, fmt.Errorf("invalid value: %v", v)
 }
 
+// Int represents an unbounded integer.
 type Int struct {
 	i *big.Int
 }
 
+// NewBigInt creates a new Int from a big.Int.
 func NewBigInt(bi *big.Int) Int {
 	return Int{bi}
 }
 
+// NewInt creates a new Int from any integer.
 func NewInt[number Integer](i number) Int {
 	return Int{i: big.NewInt(int64(i))}
 }
 
+// NewIntFromString creates a new Int from a string.
 func NewIntFromString(n string) Int {
 	bi, ok := new(big.Int).SetString(n, 10)
 	if !ok {
@@ -63,47 +75,56 @@ func NewIntFromString(n string) Int {
 	return Int{bi}
 }
 
+// BigInt returns the underlying big.Int.
 func (i Int) BigInt() *big.Int {
 	return i.i
 }
 
+// String returns the string representation of the Int.
 func (i Int) String() string {
 	return i.i.String()
 }
 
+// IntType is either a type of int8, int16, int32, int64, or int.
 type IntType struct {
 	size uint8
 	primType
 }
 
+// Int16Type returns a type of int16.
 func Int16Type() *IntType {
 	return &IntType{
 		size: 2,
 	}
 }
 
+// Int32Type returns a type of int32.
 func Int32Type() *IntType {
 	return &IntType{
 		size: 4,
 	}
 }
 
+// Int64Type returns a type of int64.
 func Int64Type() *IntType {
 	return &IntType{
 		size: 8,
 	}
 }
 
+// Int8Type returns a type of int8.
 func Int8Type() *IntType {
 	return &IntType{
 		size: 1,
 	}
 }
 
+// Base returns the base type of the IntType.
 func (n IntType) Base() uint {
 	return uint(n.size)
 }
 
+// Decode decodes an integer from the given reader.
 func (n IntType) Decode(r *bytes.Reader) (any, error) {
 	switch n.size {
 	case 0:
@@ -169,6 +190,7 @@ func (n IntType) Decode(r *bytes.Reader) (any, error) {
 	}
 }
 
+// EncodeType returns the leb128 encoding of the IntType.
 func (n IntType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 	if n.size == 0 {
 		return leb128.EncodeSigned(big.NewInt(intType))
@@ -181,6 +203,8 @@ func (n IntType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 	return leb128.EncodeSigned(intXType)
 }
 
+// EncodeValue encodes an int value.
+// Accepted types are: `int`, `int8`, `int16`, `int32`, `int64`, `Int`.
 func (n IntType) EncodeValue(v any) ([]byte, error) {
 	switch n.size {
 	case 0:
@@ -218,6 +242,7 @@ func (n IntType) EncodeValue(v any) ([]byte, error) {
 	}
 }
 
+// String returns the string representation of the type.
 func (n IntType) String() string {
 	if n.size == 0 {
 		return "int"
@@ -225,6 +250,7 @@ func (n IntType) String() string {
 	return fmt.Sprintf("int%d", n.size*8)
 }
 
+// Integer contains all integer types.
 type Integer interface {
 	int | int64 | int32 | int16 | int8
 }

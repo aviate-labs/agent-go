@@ -14,26 +14,6 @@ import (
 
 var secp256k1OID = asn1.ObjectIdentifier{1, 3, 132, 0, 10}
 
-type ecPrivateKey struct {
-	Version       int
-	PrivateKey    []byte
-	NamedCurveOID asn1.ObjectIdentifier `asn1:"optional,explicit,tag:0"`
-	PublicKey     asn1.BitString        `asn1:"optional,explicit,tag:1"`
-}
-
-type ecPublicKey struct {
-	Metadata  []asn1.ObjectIdentifier
-	PublicKey asn1.BitString
-}
-
-func NewRandomSecp256k1Identity() (*Secp256k1Identity, error) {
-	privateKey, err := secp256k1.NewPrivateKey(secp256k1.S256())
-	if err != nil {
-		return nil, err
-	}
-	return NewSecp256k1Identity(privateKey)
-}
-
 func derEncodeSecp256k1PublicKey(key *secp256k1.PublicKey) ([]byte, error) {
 	point := key.ToECDSA()
 	return asn1.Marshal(ecPublicKey{
@@ -56,6 +36,21 @@ type Secp256k1Identity struct {
 	publicKey  *secp256k1.PublicKey
 }
 
+func NewRandomSecp256k1Identity() (*Secp256k1Identity, error) {
+	privateKey, err := secp256k1.NewPrivateKey(secp256k1.S256())
+	if err != nil {
+		return nil, err
+	}
+	return NewSecp256k1Identity(privateKey)
+}
+
+func NewSecp256k1Identity(privateKey *secp256k1.PrivateKey) (*Secp256k1Identity, error) {
+	return &Secp256k1Identity{
+		privateKey: privateKey,
+		publicKey:  privateKey.PubKey(),
+	}, nil
+}
+
 func NewSecp256k1IdentityFromPEM(data []byte) (*Secp256k1Identity, error) {
 	blockParams, remainder := pem.Decode(data)
 	if blockParams.Type != "EC PARAMETERS" {
@@ -76,11 +71,9 @@ func NewSecp256k1IdentityFromPEM(data []byte) (*Secp256k1Identity, error) {
 	return NewSecp256k1Identity(privateKey)
 }
 
-func NewSecp256k1Identity(privateKey *secp256k1.PrivateKey) (*Secp256k1Identity, error) {
-	return &Secp256k1Identity{
-		privateKey: privateKey,
-		publicKey:  privateKey.PubKey(),
-	}, nil
+func (id Secp256k1Identity) PublicKey() []byte {
+	der, _ := derEncodeSecp256k1PublicKey(id.publicKey)
+	return der
 }
 
 func (id Secp256k1Identity) Sender() principal.Principal {
@@ -98,11 +91,6 @@ func (id Secp256k1Identity) Sign(msg []byte) []byte {
 	copy(buffer[(32-len(r)):], r)
 	copy(buffer[(64-len(s)):], s)
 	return buffer[:]
-}
-
-func (id Secp256k1Identity) PublicKey() []byte {
-	der, _ := derEncodeSecp256k1PublicKey(id.publicKey)
-	return der
 }
 
 func (id Secp256k1Identity) ToPEM() ([]byte, error) {
@@ -132,4 +120,16 @@ func (id Secp256k1Identity) ToPEM() ([]byte, error) {
 			Bytes: der2,
 		})...,
 	), nil
+}
+
+type ecPrivateKey struct {
+	Version       int
+	PrivateKey    []byte
+	NamedCurveOID asn1.ObjectIdentifier `asn1:"optional,explicit,tag:0"`
+	PublicKey     asn1.BitString        `asn1:"optional,explicit,tag:1"`
+}
+
+type ecPublicKey struct {
+	Metadata  []asn1.ObjectIdentifier
+	PublicKey asn1.BitString
 }

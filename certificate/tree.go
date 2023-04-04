@@ -14,3 +14,18 @@ func NewHashTree(root Node) HashTree {
 func (t HashTree) Digest() [32]byte {
 	return t.root.Reconstruct()
 }
+
+// MarshalCBOR marshals a hash tree.
+func (t HashTree) MarshalCBOR() ([]byte, error) {
+	return Serialize(t.root)
+}
+
+// UnmarshalCBOR unmarshals a hash tree.
+func (t *HashTree) UnmarshalCBOR(bytes []byte) error {
+	root, err := Deserialize(bytes)
+	if err != nil {
+		return err
+	}
+	t.root = root
+	return nil
+}

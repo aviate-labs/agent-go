@@ -5,6 +5,7 @@ import (
 	"encoding/base32"
 	"encoding/binary"
 	"fmt"
+	"github.com/fxamacker/cbor/v2"
 	"hash/crc32"
 	"strings"
 )
@@ -60,7 +61,17 @@ func (p Principal) Encode() string {
 	return str
 }
 
+// MarshalCBOR converts the principal to its CBOR representation.
+func (p Principal) MarshalCBOR() ([]byte, error) {
+	return cbor.Marshal(p.Raw)
+}
+
 // String implements the Stringer interface.
 func (p Principal) String() string {
 	return p.Encode()
+}
+
+// UnmarshalCBOR converts a CBOR representation into a principal.
+func (p *Principal) UnmarshalCBOR(bytes []byte) error {
+	return cbor.Unmarshal(bytes, &p.Raw)
 }

@@ -44,6 +44,25 @@ func TestTypeOf_customOptionalType(t *testing.T) {
 	}
 }
 
+func TestTypeOf_nil(t *testing.T) {
+	if typ, err := idl.TypeOf(nil); err != nil {
+		t.Fatal(err)
+	} else {
+		if typ.String() != "null" {
+			t.Error(typ)
+		}
+	}
+
+	var x *int
+	typ, err := idl.TypeOf(x)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if typ.String() != "opt int64" {
+		t.Error(typ)
+	}
+}
+
 func TestTypeOf_nonInterfaceSlice(t *testing.T) {
 	typ, err := idl.TypeOf([]idl.Nat{})
 	if err != nil {
@@ -58,7 +77,7 @@ type ONat struct {
 	V *idl.Nat
 }
 
-func (n ONat) SubType() idl.Type {
+func (n ONat) Subtype() idl.Type {
 	return new(idl.NatType)
 }
 

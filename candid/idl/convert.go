@@ -137,7 +137,7 @@ func TypeOf(v any) (Type, error) {
 	case Empty:
 		return new(EmptyType), nil
 	case Optional:
-		return NewOptionalType(v.SubType()), nil
+		return NewOptionalType(v.Subtype()), nil
 	case []any:
 		typ, err := TypeOf(v[0])
 		if err != nil {
@@ -161,25 +161,48 @@ func TypeOf(v any) (Type, error) {
 			return nil, err
 		}
 		fields[v.Name] = typ
-		// TODO: what about other fields?
 		return NewVariantType(fields), nil
-	case principal.Principal, *principal.Principal:
+	case principal.Principal:
 		return new(PrincipalType), nil
 	default:
+		if v == nil {
+			return new(NullType), nil
+		}
+
 		// Optional interface.
 		if o, ok := v.(OptionalValue); ok {
-			return NewOptionalType(o.SubType()), nil
+			return NewOptionalType(o.Subtype()), nil
 		}
 
 		// Specific slices.
-		if t := reflect.TypeOf(v); t.Kind() == reflect.Slice {
+		switch t := reflect.TypeOf(v); t.Kind() {
+		case reflect.Slice, reflect.Array:
 			typ, err := TypeOf(reflect.New(t.Elem()).Elem().Interface())
 			if err != nil {
 				return nil, err
 			}
 			return NewVectorType(typ), nil
+		case reflect.Struct:
+			m, err := StructToMap(v)
+			if err != nil {
+				return nil, err
+			}
+			return TypeOf(m)
+		case reflect.Ptr:
+			indirect := reflect.Indirect(reflect.ValueOf(v))
+			if !indirect.IsValid() {
+				indirect = reflect.New(reflect.TypeOf(v).Elem())
+				return TypeOf(indirect.Interface())
+			}
+			typ, err := TypeOf(indirect.Interface())
+			if err != nil {
+				return nil, err
+			}
+			return NewOptionalType(typ), nil
+		default:
+			fmt.Println(reflect.TypeOf(v).Kind(), reflect.Struct)
+			return nil, UnknownValueTypeError{Value: v}
 		}
-		return nil, UnknownValueTypeError{Value: v}
 	}
 }
 

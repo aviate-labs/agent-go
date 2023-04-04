@@ -19,29 +19,29 @@ func domainSeparator(t string) []byte {
 	)
 }
 
-func serialize(node Node) []interface{} {
+func serialize(node Node) []any {
 	switch n := node.(type) {
 	case Empty:
-		return []interface{}{0x00}
+		return []any{0x00}
 	case Fork:
-		return []interface{}{
+		return []any{
 			0x01,
 			serialize(n.LeftTree),
 			serialize(n.RightTree),
 		}
 	case Labeled:
-		return []interface{}{
+		return []any{
 			0x02,
 			[]byte(n.Label),
 			serialize(n.Tree),
 		}
 	case Leaf:
-		return []interface{}{
+		return []any{
 			0x03,
 			[]byte(n),
 		}
 	case Pruned:
-		return []interface{}{
+		return []any{
 			0x04,
 			n,
 		}
@@ -122,14 +122,14 @@ type Node interface {
 }
 
 func Deserialize(data []byte) (Node, error) {
-	var s []interface{}
+	var s []any
 	if err := cbor.Unmarshal(data, &s); err != nil {
 		return nil, err
 	}
 	return DeserializeNode(s)
 }
 
-func DeserializeNode(s []interface{}) (Node, error) {
+func DeserializeNode(s []any) (Node, error) {
 	tag, ok := s[0].(uint64)
 	if !ok {
 		return nil, fmt.Errorf("unknown tag: %v", s[0])
@@ -144,7 +144,7 @@ func DeserializeNode(s []interface{}) (Node, error) {
 		if l := len(s); l != 3 {
 			return nil, fmt.Errorf("invalid len: %d", l)
 		}
-		lt, ok := s[1].([]interface{})
+		lt, ok := s[1].([]any)
 		if !ok {
 			return nil, fmt.Errorf("unknown value: %v", s[1])
 		}
@@ -152,7 +152,7 @@ func DeserializeNode(s []interface{}) (Node, error) {
 		if err != nil {
 			return nil, err
 		}
-		rt, ok := s[2].([]interface{})
+		rt, ok := s[2].([]any)
 		if !ok {
 			return nil, fmt.Errorf("unknown value: %v", s[2])
 		}
@@ -172,7 +172,7 @@ func DeserializeNode(s []interface{}) (Node, error) {
 		if !ok {
 			return nil, fmt.Errorf("unknown value: %v", s[1])
 		}
-		rt, ok := s[2].([]interface{})
+		rt, ok := s[2].([]any)
 		if !ok {
 			return nil, fmt.Errorf("unknown value: %v", s[2])
 		}

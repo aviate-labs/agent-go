@@ -9,6 +9,8 @@ import (
 	"github.com/aviate-labs/leb128"
 )
 
+// encodeNat16 convert the given value to an uint16.
+// Accepts: `uint8`, `uint16`.
 func encodeNat16(v any) (uint16, error) {
 	if v, ok := v.(uint16); ok {
 		return v, nil
@@ -17,6 +19,8 @@ func encodeNat16(v any) (uint16, error) {
 	return uint16(v_), err
 }
 
+// encodeNat32 convert the given value to an uint32.
+// Accepts: `uint8`, `uint16`, `uint32`.
 func encodeNat32(v any) (uint32, error) {
 	if v, ok := v.(uint32); ok {
 		return v, nil
@@ -25,6 +29,8 @@ func encodeNat32(v any) (uint32, error) {
 	return uint32(v_), err
 }
 
+// encodeNat64 convert the given value to an uint64.
+// Accepts: `uint8`, `uint16`, `uint32`, `uint64`.
 func encodeNat64(v any) (uint64, error) {
 	if v, ok := v.(uint); ok {
 		return uint64(v), nil
@@ -36,6 +42,8 @@ func encodeNat64(v any) (uint64, error) {
 	return uint64(v_), err
 }
 
+// encodeNat8 convert the given value to an uint8.
+// Accepts: `uint8`.
 func encodeNat8(v any) (uint8, error) {
 	if v, ok := v.(uint8); ok {
 		return v, nil
@@ -43,18 +51,22 @@ func encodeNat8(v any) (uint8, error) {
 	return 0, fmt.Errorf("invalid value: %v", v)
 }
 
+// Nat represents an unbounded natural number.
 type Nat struct {
 	n *big.Int
 }
 
+// NewBigNat creates a new Nat from a big.Int.
 func NewBigNat(bi *big.Int) Nat {
 	return Nat{bi}
 }
 
+// NewNat creates a new Nat from any unsigned integer.
 func NewNat[number Natural](n number) Nat {
 	return Nat{new(big.Int).SetUint64(uint64(n))}
 }
 
+// NewNatFromString creates a new Nat from a string.
 func NewNatFromString(n string) Nat {
 	bi, ok := new(big.Int).SetString(n, 10)
 	if !ok {
@@ -66,47 +78,56 @@ func NewNatFromString(n string) Nat {
 	return Nat{bi}
 }
 
+// BigInt returns the underlying big.Int.
 func (n Nat) BigInt() *big.Int {
 	return n.n
 }
 
+// String returns the string representation of the Nat.
 func (n Nat) String() string {
 	return n.n.String()
 }
 
+// NatType is either a type of nat8, nat16, nat32, nat64, or nat.
 type NatType struct {
 	size uint8
 	primType
 }
 
+// Nat16Type returns a type of nat16.
 func Nat16Type() *NatType {
 	return &NatType{
 		size: 2,
 	}
 }
 
+// Nat32Type returns a type of nat32.
 func Nat32Type() *NatType {
 	return &NatType{
 		size: 4,
 	}
 }
 
+// Nat64Type returns a type of nat64.
 func Nat64Type() *NatType {
 	return &NatType{
 		size: 8,
 	}
 }
 
+// Nat8Type returns a type of nat8.
 func Nat8Type() *NatType {
 	return &NatType{
 		size: 1,
 	}
 }
 
+// Base returns the base type of the NatType.
 func (n NatType) Base() uint {
 	return uint(n.size)
 }
 
+// Decode decodes an unsigned integer from the given reader.
 func (n NatType) Decode(r *bytes.Reader) (any, error) {
 	switch n.size {
 	case 0:
@@ -152,6 +173,7 @@ func (n NatType) Decode(r *bytes.Reader) (any, error) {
 	}
 }
 
+// EncodeType returns the leb128 encoding of the NatType.
 func (n NatType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 	if n.size == 0 {
 		return leb128.EncodeSigned(big.NewInt(natType))
@@ -164,6 +186,8 @@ func (n NatType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 	return leb128.EncodeSigned(natXType)
 }
 
+// EncodeValue encodes an nat value.
+// Accepts: `uint`, `uint8`, `uint16`, `uint32`, `uint64`, `Nat`.
 func (n NatType) EncodeValue(v any) ([]byte, error) {
 	switch n.size {
 	case 0:
@@ -207,6 +231,7 @@ func (n NatType) EncodeValue(v any) ([]byte, error) {
 	}
 }
 
+// String returns the string representation of the NatType.
 func (n NatType) String() string {
 	if n.size == 0 {
 		return "nat"
@@ -214,6 +239,7 @@ func (n NatType) String() string {
 	return fmt.Sprintf("nat%d", n.size*8)
 }
 
+// Natural contains all unsigned integer types.
 type Natural interface {
 	uint | uint64 | uint32 | uint16 | uint8
 }

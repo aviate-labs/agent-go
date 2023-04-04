@@ -35,11 +35,6 @@ type Ed25519Identity struct {
 	publicKey  ed25519.PublicKey
 }
 
-func NewRandomEd25519Identity() (*Ed25519Identity, error) {
-	publicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)
-	return NewEd25519Identity(publicKey, privateKey)
-}
-
 // NewEd25519Identity creates a new identity based on the given key pair.
 func NewEd25519Identity(publicKey ed25519.PublicKey, privateKey ed25519.PrivateKey) (*Ed25519Identity, error) {
 	return &Ed25519Identity{
@@ -67,6 +62,11 @@ func NewEd25519IdentityFromPEM(data []byte) (*Ed25519Identity, error) {
 	default:
 		return nil, fmt.Errorf("unknown key type")
 	}
+}
+
+func NewRandomEd25519Identity() (*Ed25519Identity, error) {
+	publicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)
+	return NewEd25519Identity(publicKey, privateKey)
 }
 
 // PublicKey returns the public key of the identity.
