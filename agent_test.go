@@ -4,7 +4,6 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"fmt"
-
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid"
 	"github.com/aviate-labs/agent-go/identity"

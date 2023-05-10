@@ -105,6 +105,13 @@ func ConvertValues(n *ast.Node) ([]idl.Type, []any, error) {
 			args = append(args, arg[0])
 		}
 		return []idl.Type{idl.NewVectorType(types)}, []any{args}, nil
+	case candidvalue.BlobT:
+		rawBlob := strings.TrimPrefix(strings.TrimSuffix(n.Value, "\""), "blob \"")
+		var blob []any
+		for _, c := range rawBlob {
+			blob = append(blob, byte(c))
+		}
+		return []idl.Type{idl.NewVectorType(idl.Nat8Type())}, append([]any{}, blob), nil
 	default:
 		panic(n)
 	}

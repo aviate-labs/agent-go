@@ -11,11 +11,18 @@ import (
 	"github.com/aviate-labs/agent-go/candid/idl"
 )
 
-func ExampleEncodeValue() {
+func ExampleEncodeValueString() {
 	e, _ := candid.EncodeValueString("0")
 	fmt.Printf("%x\n", e)
 	// Output:
 	// 4449444c00017c00
+}
+
+func ExampleEncodeValueString_blob() {
+	e, _ := candid.EncodeValueString("(blob \"deadbeef\")")
+	fmt.Printf("%x\n", e)
+	// Output:
+	// 4449444c016d7b0100086465616462656566
 }
 
 func ExampleParseDID() {

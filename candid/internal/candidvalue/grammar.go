@@ -21,15 +21,16 @@ const (
 	NumValueT    // 004
 	NumTypeT     // 005
 	BoolValueT   // 006
-	NullT        // 007
-	PrincipalT   // 008
-	TextT        // 009
-	TextValueT   // 010
-	RecordT      // 011
-	RecordFieldT // 012
-	VariantT     // 013
-	VecT         // 014
-	IdT          // 015
+	BlobT        // 007
+	NullT        // 008
+	PrincipalT   // 009
+	TextT        // 010
+	TextValueT   // 011
+	RecordT      // 012
+	RecordFieldT // 013
+	VariantT     // 014
+	VecT         // 015
+	IdT          // 016
 )
 
 // Token Definitions
@@ -50,6 +51,7 @@ var NodeTypes = []string{
 	"NumValue",
 	"NumType",
 	"BoolValue",
+	"Blob",
 	"Null",
 	"Principal",
 	"Text",
@@ -67,6 +69,26 @@ func Ascii(p *parser.Parser) (*parser.Cursor, bool) {
 		parser.CheckRuneRange(0x0023, 0x005B),
 		parser.CheckRuneRange(0x005D, 0x007E),
 	})
+}
+
+func Blob(p *ast.Parser) (*ast.Node, error) {
+	return p.Expect(
+		ast.Capture{
+			Type:        BlobT,
+			TypeStrings: NodeTypes,
+			Value: op.And{
+				"blob",
+				Spp,
+				'"',
+				op.MinZero(
+					op.Repeat(2,
+						Hex,
+					),
+				),
+				'"',
+			},
+		},
+	)
 }
 
 func Bool(p *ast.Parser) (*ast.Node, error) {
@@ -296,6 +318,7 @@ func OptValue(p *ast.Parser) (*ast.Node, error) {
 					Variant,
 					Principal,
 					Vec,
+					Blob,
 				},
 			},
 		},
@@ -503,6 +526,7 @@ func Value(p *ast.Parser) (*ast.Node, error) {
 			Variant,
 			Principal,
 			Vec,
+			Blob,
 		},
 	)
 }
