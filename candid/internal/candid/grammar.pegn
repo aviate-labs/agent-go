@@ -5,13 +5,13 @@ Prog      <-- (Ws Def (';' Ws Def)*)?     ';'? Ws
 Def        <- Type / Import
 Type      <-- 'type' Sp Id Sp '=' Sp DataType
 Import    <-- 'import' Sp Text
-Actor     <-- 'service' Sp (Id Sp)? ':' Sp (TupType Sp '->' Ws)? (ActorType / Id)
+Actor     <-- 'service' Sp? (Id Sp)? ':' Sp (TupType Sp '->' Ws)? (ActorType / Id)
 
 ActorType <-- '{' (Ws MethType (';' Ws MethType)* ';'? Ws)? '}'
 MethType  <-- Name Sp? ':' Ws (FuncType / Id)
 FuncType  <-- TupType (Sp '->' Ws TupType (Sp FuncAnn)?)?
 FuncAnn   <-- 'oneway' / 'query'
-TupType   <-- '(' (ArgType (',' Sp ArgType)*)? ')' / ArgType
+TupType   <-- '(' (ArgType (',' Sp ArgType)*)? Sp? ')' / ArgType
 ArgType   <-- (Name Sp? ':' Sp)? DataType
 FieldType <-- ((Nat / Name) Sp? ':' Sp)? DataType / Nat / Name
 DataType  <-- ConsType / RefType / PrimType / Id
@@ -73,7 +73,7 @@ letter <- [A-Z] / [a-z]
 digit  <- [0-9]
 hex    <- digit / [A-F] / [a-f]
 
-CommentText <-- Char*
+CommentText <-- (ascii / x22 / x27 / x60)* # " ' `
 Comment      <- '//' CommentText Nl
 
 Nl  <- x0A / x0D / (x0D x0A)

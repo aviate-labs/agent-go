@@ -11,6 +11,27 @@ import (
 	"github.com/aviate-labs/leb128"
 )
 
+func RecordMapToStruct(r *RecordType, m map[string]any, value any) error {
+	v := reflect.ValueOf(value).Elem()
+	if !v.CanAddr() {
+		return fmt.Errorf("can not address struct value")
+	}
+
+	fieldNameToIndex := make(map[string]int)
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		tag := parseTags(field)
+		fieldNameToIndex[HashString(tag.name)] = i
+	}
+
+	for _, f := range r.Fields {
+		value := m[f.Name]
+		i := fieldNameToIndex[f.Name]
+		v.Field(i).Set(reflect.ValueOf(value))
+	}
+	return nil
+}
+
 func StructToMap(value any) (map[string]any, error) {
 	v := reflect.ValueOf(value)
 	switch v.Kind() {

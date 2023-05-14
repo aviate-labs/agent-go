@@ -51,6 +51,9 @@ func convertData(n *ast.Node) Data {
 	case candid.RecordT:
 		var record Record
 		for _, n := range n.Children() {
+			if n.Type == candid.CommentTextT {
+				continue
+			}
 			record = append(
 				record,
 				convertField(n),
@@ -60,6 +63,9 @@ func convertData(n *ast.Node) Data {
 	case candid.VariantT:
 		var variant Variant
 		for _, n := range n.Children() {
+			if n.Type == candid.CommentTextT {
+				continue
+			}
 			variant = append(
 				variant,
 				convertField(n),

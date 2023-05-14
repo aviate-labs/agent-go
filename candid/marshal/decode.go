@@ -137,6 +137,8 @@ func unmarshal(typ idl.Type, dv any, value any) error {
 	case *idl.RecordType:
 		switch v.Kind() {
 		case reflect.Map:
+		case reflect.Struct:
+			return idl.RecordMapToStruct(t, dv.(map[string]any), value)
 		default:
 			return fmt.Errorf("invalid type match: %s %s", v.Kind(), t)
 		}
@@ -146,7 +148,7 @@ func unmarshal(typ idl.Type, dv any, value any) error {
 			switch v.Type().String() {
 			case "idl.Variant":
 			default:
-				return fmt.Errorf("invalid type match: %s %s", v.Type(), t)
+				return idl.VariantToStruct(t, dv.(*idl.Variant), value)
 			}
 		}
 	case *idl.PrincipalType:

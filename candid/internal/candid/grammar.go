@@ -88,7 +88,9 @@ func Actor(p *ast.Parser) (*ast.Node, error) {
 			TypeStrings: NodeTypes,
 			Value: op.And{
 				"service",
-				Sp,
+				op.Optional(
+					Sp,
+				),
 				op.Optional(
 					op.And{
 						Id,
@@ -223,7 +225,12 @@ func CommentText(p *ast.Parser) (*ast.Node, error) {
 			Type:        CommentTextT,
 			TypeStrings: NodeTypes,
 			Value: op.MinZero(
-				Char,
+				op.Or{
+					Ascii,
+					0x0022,
+					0x0027,
+					0x0060,
+				},
 			),
 		},
 	)
@@ -714,6 +721,9 @@ func TupType(p *ast.Parser) (*ast.Node, error) {
 								},
 							),
 						},
+					),
+					op.Optional(
+						Sp,
 					),
 					')',
 				},
