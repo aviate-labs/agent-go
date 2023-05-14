@@ -15,8 +15,11 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-// ic0 is the default host for the Internet Computer.
-var ic0, _ = url.Parse("https://ic0.app/")
+// ic0 is the old (default) host for the Internet Computer.
+// var ic0, _ = url.Parse("https://ic0.app/")
+
+// icp0 is the default host for the Internet Computer.
+var icp0, _ = url.Parse("https://icp0.io/")
 
 func uint64FromBytes(raw []byte) uint64 {
 	switch len(raw) {
@@ -51,7 +54,7 @@ func New(cfg Config) Agent {
 		id = cfg.Identity
 	}
 	ccfg := ClientConfig{
-		Host: ic0,
+		Host: icp0,
 	}
 	if cfg.ClientConfig != nil {
 		ccfg = *cfg.ClientConfig

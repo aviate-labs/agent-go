@@ -4,11 +4,32 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+	"reflect"
 	"sort"
 	"strings"
 
 	"github.com/aviate-labs/leb128"
 )
+
+func VariantToStruct(r *VariantType, variant *Variant, value any) error {
+	v := reflect.ValueOf(value).Elem()
+	if !v.CanAddr() {
+		return fmt.Errorf("can not address struct value")
+	}
+
+	fieldNameToIndex := make(map[string]int)
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		tag := parseTags(field)
+		fieldNameToIndex[HashString(tag.name)] = i
+	}
+
+	i := fieldNameToIndex[r.Fields[0].Name]
+	ptrValue := reflect.New(reflect.TypeOf(variant.Value))
+	ptrValue.Elem().Set(reflect.ValueOf(variant.Value))
+	v.Field(i).Set(ptrValue)
+	return nil
+}
 
 type Variant struct {
 	Name  string

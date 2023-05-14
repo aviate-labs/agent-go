@@ -113,9 +113,9 @@ func BoolValue(p *ast.Parser) (*ast.Node, error) {
 			Type:        BoolValueT,
 			TypeStrings: NodeTypes,
 			Value: op.Or{
-	"true",
-	"false",
-},
+				"true",
+				"false",
+			},
 		},
 	)
 }

@@ -1,9 +1,20 @@
-.PHONY: test
+.PHONY: test test-ledger gen gen-ic fmt
 
 test:
 	go test -v ./...
 	
 test-ledger:
-	cd ledger; dfx start --background --clean
-	cd ledger/testdata; dfx deploy --no-wallet
-	cd ledger; DFX=true go test -v ./...; dfx stop
+	cd ic; dfx start --background --clean
+	cd ic/testdata; dfx deploy --no-wallet
+	cd ic; DFX=true go test -v icpledger_test.go; dfx stop
+
+gen:
+	cd candid && go generate
+
+gen-ic:
+	go run ic/testdata/gen.go
+
+fmt:
+	go mod tidy
+	gofmt -s -w .
+	goarrange run -r .

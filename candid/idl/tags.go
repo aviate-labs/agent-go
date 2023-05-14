@@ -16,7 +16,9 @@ func lowerFirstCharacter(s string) string {
 
 type tag struct {
 	// Name is the name of the field in the struct.
-	name string
+	name        string
+	omitEmpty   bool
+	variantType bool
 }
 
 func parseTags(field reflect.StructField) tag {
@@ -26,8 +28,16 @@ func parseTags(field reflect.StructField) tag {
 		tags := strings.Split(icTag, ",")
 		if len(tags) != 0 {
 			t.name = tags[0]
-			options := tags[1:]
-			_ = options // No options are supported yet.
+			for _, option := range tags[1:] {
+				switch option {
+				case "omitempty":
+					t.omitEmpty = true
+				case "variant":
+					t.variantType = true
+				default:
+					// ignore unknown options
+				}
+			}
 		}
 		return t
 	}
