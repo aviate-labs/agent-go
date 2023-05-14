@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/ic"
 	"github.com/aviate-labs/agent-go/ic/icpledger"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
@@ -20,9 +21,8 @@ var (
 )
 
 func Example_accountBalance() {
-	id, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	host, _ := url.Parse("https://icp0.io")
-	a := icpledger.NewAgent(id, agent.Config{
+	a := icpledger.NewAgent(ic.LEDGER_PRINCIPAL, agent.Config{
 		ClientConfig: &agent.ClientConfig{Host: host},
 	})
 	name, _ := a.Name()
