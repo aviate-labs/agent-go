@@ -22,7 +22,137 @@ var (
 	templates map[string]*template.Template
 )
 
-func dataToString(data did.Data) string {
+func funcName(name string) string {
+	if strings.HasPrefix(name, "\"") {
+		name = name[1 : len(name)-1]
+	}
+	var str string
+	for _, p := range strings.Split(name, "_") {
+		str += strings.ToUpper(string(p[0])) + p[1:]
+	}
+	return str
+}
+
+func init() {
+	if templates == nil {
+		templates = make(map[string]*template.Template)
+	}
+	tmplFiles, err := fs.ReadDir(files, templatesDir)
+	if err != nil {
+		panic(err)
+	}
+
+	for _, tmpl := range tmplFiles {
+		if tmpl.IsDir() {
+			continue
+		}
+
+		pt, err := template.ParseFS(files, templatesDir+"/"+tmpl.Name())
+		if err != nil {
+			panic(err)
+		}
+
+		templates[strings.TrimSuffix(tmpl.Name(), ".gotmpl")] = pt
+	}
+}
+
+func rawName(name string) string {
+	if strings.HasPrefix(name, "\"") {
+		return name[1 : len(name)-1]
+	}
+	return name
+}
+
+// Generator is a generator for a given service description.
+type Generator struct {
+	CanisterName       string
+	PackageName        string
+	ServiceDescription did.Description
+	usedIDL            bool
+}
+
+// NewGenerator creates a new generator for the given service description.
+func NewGenerator(canisterName, packageName string, rawDID []byte) (*Generator, error) {
+	desc, err := candid.ParseDID(rawDID)
+	if err != nil {
+		return nil, err
+	}
+	return &Generator{
+		CanisterName:       canisterName,
+		PackageName:        packageName,
+		ServiceDescription: desc,
+	}, nil
+}
+
+func (g *Generator) Generate() ([]byte, error) {
+	var definitions []agentArgsDefinition
+	for _, definition := range g.ServiceDescription.Definitions {
+		switch definition := definition.(type) {
+		case did.Type:
+			definitions = append(definitions, agentArgsDefinition{
+				Name: funcName(definition.Id),
+				Type: g.dataToString(definition.Data),
+			})
+		}
+	}
+
+	var methods []agentArgsMethod
+	for _, service := range g.ServiceDescription.Services {
+		for _, method := range service.Methods {
+			name := rawName(method.Name)
+			f := method.Func
+
+			var argumentTypes []agentArgsMethodArgument
+			for i, t := range f.ArgTypes {
+				var n string
+				if (t.Name != nil) && (*t.Name != "") {
+					n = *t.Name
+				} else {
+					n = fmt.Sprintf("arg%d", i)
+				}
+				argumentTypes = append(argumentTypes, agentArgsMethodArgument{
+					Name: n,
+					Type: g.dataToString(t.Data),
+				})
+			}
+
+			var returnTypes []string
+			for _, t := range f.ResTypes {
+				returnTypes = append(returnTypes, g.dataToString(t.Data))
+			}
+
+			typ := "Call"
+			if f.Annotation != nil && *f.Annotation == did.AnnQuery {
+				typ = "Query"
+			}
+
+			methods = append(methods, agentArgsMethod{
+				RawName:       name,
+				Name:          funcName(name),
+				Type:          typ,
+				ArgumentTypes: argumentTypes,
+				ReturnTypes:   returnTypes,
+			})
+		}
+	}
+	t, ok := templates["agent"]
+	if !ok {
+		return nil, fmt.Errorf("template not found")
+	}
+	var tmpl bytes.Buffer
+	if err := t.Execute(&tmpl, agentArgs{
+		CanisterName: g.CanisterName,
+		PackageName:  g.PackageName,
+		UsedIDL:      g.usedIDL,
+		Definitions:  definitions,
+		Methods:      methods,
+	}); err != nil {
+		return nil, err
+	}
+	return io.ReadAll(&tmpl)
+}
+
+func (g *Generator) dataToString(data did.Data) string {
 	switch t := data.(type) {
 	case did.Blob:
 		return "[]byte"
@@ -31,16 +161,18 @@ func dataToString(data did.Data) string {
 	case did.Func:
 		return "struct { /* NOT SUPPORTED */ }"
 	case did.Optional:
-		return fmt.Sprintf("*%s", dataToString(t.Data))
+		return fmt.Sprintf("*%s", g.dataToString(t.Data))
 	case did.Primitive:
 		switch t {
 		case "nat8", "nat16", "nat32", "nat64":
 			return strings.ReplaceAll(data.String(), "nat", "uint")
-		case "bool", "int8", "int16", "int32", "int64":
+		case "bool", "float64", "int8", "int16", "int32", "int64":
 			return data.String()
 		case "int":
+			g.usedIDL = true
 			return "idl.Int"
 		case "nat":
+			g.usedIDL = true
 			return "idl.Nat"
 		case "text":
 			return "string"
@@ -71,7 +203,7 @@ func dataToString(data did.Data) string {
 			}
 			var typ string
 			if field.Data != nil {
-				typ = dataToString(*field.Data)
+				typ = g.dataToString(*field.Data)
 			} else {
 				typ = funcName(*field.NameData)
 			}
@@ -128,7 +260,7 @@ func dataToString(data did.Data) string {
 				}
 				var typ string
 				if field.Data != nil {
-					typ = dataToString(*field.Data)
+					typ = g.dataToString(*field.Data)
 				} else {
 					typ = funcName(*field.NameData)
 				}
@@ -154,133 +286,16 @@ func dataToString(data did.Data) string {
 		}
 		return fmt.Sprintf("struct {\n%s}", record)
 	case did.Vector:
-		return fmt.Sprintf("[]%s", dataToString(t.Data))
+		return fmt.Sprintf("[]%s", g.dataToString(t.Data))
 	default:
 		panic(fmt.Sprintf("unknown type: %T", t))
 	}
 }
 
-func funcName(name string) string {
-	var str string
-	for _, p := range strings.Split(name, "_") {
-		str += strings.ToUpper(string(p[0])) + p[1:]
-	}
-	return str
-}
-
-func init() {
-	if templates == nil {
-		templates = make(map[string]*template.Template)
-	}
-	tmplFiles, err := fs.ReadDir(files, templatesDir)
-	if err != nil {
-		panic(err)
-	}
-
-	for _, tmpl := range tmplFiles {
-		if tmpl.IsDir() {
-			continue
-		}
-
-		pt, err := template.ParseFS(files, templatesDir+"/"+tmpl.Name())
-		if err != nil {
-			panic(err)
-		}
-
-		templates[strings.TrimSuffix(tmpl.Name(), ".gotmpl")] = pt
-	}
-}
-
-// Generator is a generator for a given service description.
-type Generator struct {
-	CanisterName       string
-	PackageName        string
-	ServiceDescription did.Description
-}
-
-// NewGenerator creates a new generator for the given service description.
-func NewGenerator(canisterName, packageName string, rawDID []byte) (*Generator, error) {
-	desc, err := candid.ParseDID(rawDID)
-	if err != nil {
-		return nil, err
-	}
-	return &Generator{
-		CanisterName:       canisterName,
-		PackageName:        packageName,
-		ServiceDescription: desc,
-	}, nil
-}
-
-func (g *Generator) Generate() ([]byte, error) {
-	var definitions []agentArgsDefinition
-	for _, definition := range g.ServiceDescription.Definitions {
-		switch definition := definition.(type) {
-		case did.Type:
-			definitions = append(definitions, agentArgsDefinition{
-				Name: funcName(definition.Id),
-				Type: dataToString(definition.Data),
-			})
-		}
-	}
-
-	var methods []agentArgsMethod
-	for _, service := range g.ServiceDescription.Services {
-		for _, method := range service.Methods {
-			name := method.Name
-			f := method.Func
-
-			var argumentTypes []agentArgsMethodArgument
-			for i, t := range f.ArgTypes {
-				var n string
-				if (t.Name != nil) && (*t.Name != "") {
-					n = *t.Name
-				} else {
-					n = fmt.Sprintf("arg%d", i)
-				}
-				argumentTypes = append(argumentTypes, agentArgsMethodArgument{
-					Name: n,
-					Type: dataToString(t.Data),
-				})
-			}
-
-			var returnTypes []string
-			for _, t := range f.ResTypes {
-				returnTypes = append(returnTypes, dataToString(t.Data))
-			}
-
-			typ := "Call"
-			if f.Annotation != nil && *f.Annotation == did.AnnQuery {
-				typ = "Query"
-			}
-
-			methods = append(methods, agentArgsMethod{
-				RawName:       name,
-				Name:          funcName(name),
-				Type:          typ,
-				ArgumentTypes: argumentTypes,
-				ReturnTypes:   returnTypes,
-			})
-		}
-	}
-	t, ok := templates["agent"]
-	if !ok {
-		return nil, fmt.Errorf("template not found")
-	}
-	var tmpl bytes.Buffer
-	if err := t.Execute(&tmpl, agentArgs{
-		CanisterName: g.CanisterName,
-		PackageName:  g.PackageName,
-		Definitions:  definitions,
-		Methods:      methods,
-	}); err != nil {
-		return nil, err
-	}
-	return io.ReadAll(&tmpl)
-}
-
 type agentArgs struct {
 	CanisterName string
 	PackageName  string
+	UsedIDL      bool
 	Definitions  []agentArgsDefinition
 	Methods      []agentArgsMethod
 }
