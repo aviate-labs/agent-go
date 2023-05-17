@@ -1,7 +1,7 @@
 .PHONY: test test-ledger gen gen-ic fmt
 
 test:
-	go test -v ./...
+	go test -v -cover ./...
 	
 test-ledger:
 	cd ic; dfx start --background --clean

@@ -710,6 +710,7 @@ func TupType(p *ast.Parser) (*ast.Node, error) {
 			Value: op.Or{
 				op.And{
 					'(',
+					Ws,
 					op.Optional(
 						op.And{
 							ArgType,
@@ -718,6 +719,12 @@ func TupType(p *ast.Parser) (*ast.Node, error) {
 									',',
 									Sp,
 									ArgType,
+								},
+							),
+							op.Optional(
+								op.And{
+									',',
+									Ws,
 								},
 							),
 						},
