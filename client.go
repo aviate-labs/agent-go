@@ -37,7 +37,25 @@ func (c Client) Status() (*Status, error) {
 }
 
 func (c Client) call(canisterID principal.Principal, data []byte) ([]byte, error) {
-	return c.post("call", canisterID, data, 202)
+	u := c.url(fmt.Sprintf("/api/v2/canister/%s/call", canisterID.Encode()))
+	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+	switch resp.StatusCode {
+	case http.StatusAccepted:
+		return io.ReadAll(resp.Body)
+	case http.StatusOK:
+		body, _ := io.ReadAll(resp.Body)
+		var err preprocessingError
+		if err := cbor.Unmarshal(body, &err); err != nil {
+			return nil, err
+		}
+		return nil, fmt.Errorf("(%d) %s: %s", err.RejectCode, err.Message, err.ErrorCode)
+	default:
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("(%d) %s: %s", resp.StatusCode, resp.Status, body)
+	}
 }
 
 func (c Client) get(path string) ([]byte, error) {
@@ -48,14 +66,14 @@ func (c Client) get(path string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func (c Client) post(path string, canisterID principal.Principal, data []byte, statusCorePass int) ([]byte, error) {
+func (c Client) post(path string, canisterID principal.Principal, data []byte) ([]byte, error) {
 	u := c.url(fmt.Sprintf("/api/v2/canister/%s/%s", canisterID.Encode(), path))
 	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
 	switch resp.StatusCode {
-	case statusCorePass:
+	case http.StatusOK:
 		return io.ReadAll(resp.Body)
 	default:
 		body, _ := io.ReadAll(resp.Body)
@@ -64,11 +82,11 @@ func (c Client) post(path string, canisterID principal.Principal, data []byte, s
 }
 
 func (c Client) query(canisterID principal.Principal, data []byte) ([]byte, error) {
-	return c.post("query", canisterID, data, 200)
+	return c.post("query", canisterID, data)
 }
 
 func (c Client) readState(canisterID principal.Principal, data []byte) ([]byte, error) {
-	return c.post("read_state", canisterID, data, 200)
+	return c.post("read_state", canisterID, data)
 }
 
 func (c Client) url(p string) string {
@@ -80,4 +98,13 @@ func (c Client) url(p string) string {
 // ClientConfig is the configuration for a client.
 type ClientConfig struct {
 	Host *url.URL
+}
+
+type preprocessingError struct {
+	// The reject code.
+	RejectCode uint64 `cbor:"reject_code"`
+	// A textual diagnostic message.
+	Message string `cbor:"reject_message"`
+	// An optional implementation-specific textual error code.
+	ErrorCode string `cbor:"error_code"`
 }

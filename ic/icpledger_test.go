@@ -22,8 +22,9 @@ var (
 
 func Example_accountBalance() {
 	host, _ := url.Parse("https://icp0.io")
-	a := icpledger.NewAgent(ic.LEDGER_PRINCIPAL, agent.Config{
+	a, _ := icpledger.NewAgent(ic.LEDGER_PRINCIPAL, agent.Config{
 		ClientConfig: &agent.ClientConfig{Host: host},
+		FetchRootKey: true,
 	})
 	name, _ := a.Name()
 	fmt.Println(name.Name)
@@ -41,11 +42,12 @@ func TestAgent(t *testing.T) {
 
 	t.Run("account_balance ed25519", func(t *testing.T) {
 		id, _ := identity.NewRandomEd25519Identity()
-		a := icpledger.NewAgent(canisterId, agent.Config{
+		a, _ := icpledger.NewAgent(canisterId, agent.Config{
 			Identity: id,
 			ClientConfig: &agent.ClientConfig{
 				Host: host,
 			},
+			FetchRootKey: true,
 		})
 		tokens, err := a.AccountBalance(icpledger.AccountBalanceArgs{
 			Account: defaultAccount[:],
@@ -60,11 +62,12 @@ func TestAgent(t *testing.T) {
 
 	t.Run("account_balance secp256k1", func(t *testing.T) {
 		id, _ := identity.NewRandomSecp256k1Identity()
-		a := icpledger.NewAgent(canisterId, agent.Config{
+		a, _ := icpledger.NewAgent(canisterId, agent.Config{
 			Identity: id,
 			ClientConfig: &agent.ClientConfig{
 				Host: host,
 			},
+			FetchRootKey: true,
 		})
 		tokens, err := a.AccountBalance(icpledger.AccountBalanceArgs{
 			Account: defaultAccount[:],
@@ -77,10 +80,11 @@ func TestAgent(t *testing.T) {
 		}
 	})
 
-	a := icpledger.NewAgent(canisterId, agent.Config{
+	a, _ := icpledger.NewAgent(canisterId, agent.Config{
 		ClientConfig: &agent.ClientConfig{
 			Host: host,
 		},
+		FetchRootKey: true,
 	})
 	t.Run("account_balance", func(t *testing.T) {
 		tokens, err := a.AccountBalance(icpledger.AccountBalanceArgs{

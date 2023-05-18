@@ -2,6 +2,7 @@ package agent
 
 import (
 	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"net/url"
 	"time"
@@ -41,10 +42,11 @@ type Agent struct {
 	client        Client
 	identity      identity.Identity
 	ingressExpiry time.Duration
+	rootKey       []byte
 }
 
 // New returns a new Agent based on the given configuration.
-func New(cfg Config) Agent {
+func New(cfg Config) (*Agent, error) {
 	if cfg.IngressExpiry == 0 {
 		cfg.IngressExpiry = 10 * time.Second
 	}
@@ -59,11 +61,21 @@ func New(cfg Config) Agent {
 	if cfg.ClientConfig != nil {
 		ccfg = *cfg.ClientConfig
 	}
-	return Agent{
-		client:        NewClient(ccfg),
+	client := NewClient(ccfg)
+	rootKey, _ := hex.DecodeString(certificate.RootKey)
+	if cfg.FetchRootKey {
+		status, err := client.Status()
+		if err != nil {
+			return nil, err
+		}
+		rootKey = status.RootKey
+	}
+	return &Agent{
+		client:        client,
 		identity:      id,
 		ingressExpiry: cfg.IngressExpiry,
-	}
+		rootKey:       rootKey,
+	}, nil
 }
 
 // Call calls a method on a canister and unmarshals the result into the given values.
@@ -230,18 +242,14 @@ func (a Agent) RequestStatus(canisterID principal.Principal, requestID RequestID
 	if err := cbor.Unmarshal(c, &state); err != nil {
 		return nil, nil, err
 	}
-	status, err := a.client.Status() // TODO: fetch status once.
-	if err != nil {
-		return nil, nil, err
-	}
-	cert, err := certificate.New(canisterID, status.RootKey[len(status.RootKey)-96:], c)
+	cert, err := certificate.New(canisterID, a.rootKey[len(a.rootKey)-96:], c)
 	if err != nil {
 		return nil, nil, err
 	}
 	if err := cert.Verify(); err != nil {
 		return nil, nil, err
 	}
-	node, err := certificate.DeserializeNode(state["tree"].([]interface{}))
+	node, err := certificate.DeserializeNode(state["tree"].([]any))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -343,4 +351,5 @@ type Config struct {
 	Identity      identity.Identity
 	IngressExpiry time.Duration
 	ClientConfig  *ClientConfig
+	FetchRootKey  bool
 }

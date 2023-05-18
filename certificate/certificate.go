@@ -1,7 +1,6 @@
 package certificate
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/aviate-labs/agent-go/certificate/bls"
 	"github.com/aviate-labs/agent-go/principal"
@@ -42,7 +41,7 @@ func New(canisterID principal.Principal, rootKey []byte, certificate []byte) (*C
 
 // Verify verifies the certificate.
 func (c Certificate) Verify() error {
-	signature, err := bls.SignatureFromHexString(hex.EncodeToString(c.cert.Signature))
+	signature, err := bls.SignatureFromBytes(c.cert.Signature)
 	if err != nil {
 		return err
 	}
@@ -51,7 +50,7 @@ func (c Certificate) Verify() error {
 		return err
 	}
 	rootHash := c.cert.Tree.Digest()
-	message := append(domainSeparator("ic-state-root"), rootHash[:]...)
+	message := append(DomainSeparator("ic-state-root"), rootHash[:]...)
 	if !signature.Verify(publicKey, string(message)) {
 		return fmt.Errorf("signature verification failed")
 	}

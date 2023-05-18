@@ -24,6 +24,19 @@ type Status struct {
 	RootKey []byte
 }
 
+func (s *Status) MarshalCBOR() ([]byte, error) {
+	m := map[string]any{
+		"ic_api_version": s.Version,
+		"root_key":       s.RootKey,
+	}
+	if s.Impl != nil {
+		m["impl_source"] = s.Impl.Source
+		m["impl_version"] = s.Impl.Version
+		m["impl_revision"] = s.Impl.Revision
+	}
+	return cbor.Marshal(m)
+}
+
 // UnmarshalCBOR implements the CBOR unmarshaler interface.
 func (s *Status) UnmarshalCBOR(data []byte) error {
 	var status struct {
