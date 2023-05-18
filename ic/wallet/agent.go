@@ -11,16 +11,20 @@ import (
 
 // Agent is a client for the "wallet" canister.
 type Agent struct {
-	a          agent.Agent
+	a          *agent.Agent
 	canisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "wallet" canister.
-func NewAgent(canisterId principal.Principal, config agent.Config) Agent {
-	return Agent{
-		a:          agent.New(config),
-		canisterId: canisterId,
+func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, error) {
+	a, err := agent.New(config)
+	if err != nil {
+		return nil, err
 	}
+	return &Agent{
+		a:          a,
+		canisterId: canisterId,
+	}, nil
 }
 
 // ApiVersion calls the "api_version" method on the "wallet" canister.

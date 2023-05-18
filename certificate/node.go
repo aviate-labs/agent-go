@@ -8,15 +8,15 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-func Serialize(node Node) ([]byte, error) {
-	return cbor.Marshal(serialize(node))
-}
-
-func domainSeparator(t string) []byte {
+func DomainSeparator(t string) []byte {
 	return append(
 		[]byte{uint8(len(t))},
 		[]byte(t)...,
 	)
+}
+
+func Serialize(node Node) ([]byte, error) {
+	return cbor.Marshal(serialize(node))
 }
 
 func serialize(node Node) []any {
@@ -52,7 +52,7 @@ func serialize(node Node) []any {
 type Empty struct{}
 
 func (e Empty) Reconstruct() [32]byte {
-	return sha256.Sum256(domainSeparator("ic-hashtree-empty"))
+	return sha256.Sum256(DomainSeparator("ic-hashtree-empty"))
 }
 
 func (e Empty) String() string {
@@ -68,7 +68,7 @@ func (f Fork) Reconstruct() [32]byte {
 	l := f.LeftTree.Reconstruct()
 	r := f.RightTree.Reconstruct()
 	return sha256.Sum256(append(
-		domainSeparator("ic-hashtree-fork"),
+		DomainSeparator("ic-hashtree-fork"),
 		append(l[:], r[:]...)...,
 	))
 }
@@ -91,7 +91,7 @@ type Labeled struct {
 func (l Labeled) Reconstruct() [32]byte {
 	t := l.Tree.Reconstruct()
 	return sha256.Sum256(append(
-		domainSeparator("ic-hashtree-labeled"),
+		DomainSeparator("ic-hashtree-labeled"),
 		append(l.Label, t[:]...)...,
 	))
 }
@@ -104,7 +104,7 @@ type Leaf []byte
 
 func (l Leaf) Reconstruct() [32]byte {
 	return sha256.Sum256(append(
-		domainSeparator("ic-hashtree-leaf"),
+		DomainSeparator("ic-hashtree-leaf"),
 		l...,
 	))
 }
