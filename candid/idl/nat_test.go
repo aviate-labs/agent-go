@@ -2,6 +2,7 @@ package idl_test
 
 import (
 	"math/big"
+	"testing"
 
 	"github.com/aviate-labs/agent-go/candid/idl"
 )
@@ -65,4 +66,133 @@ func ExampleNatType() {
 	// 4449444c00017d2a
 	// 4449444c00017dd285d8cc04
 	// 4449444c00017d808098f4e9b5ca6a
+}
+
+func TestNatType_UnmarshalGo(t *testing.T) {
+	expectErr := func(t *testing.T, err error) {
+		if err == nil {
+			t.Fatal("expected error")
+		} else {
+			_, ok := err.(*idl.UnmarshalGoError)
+			if !ok {
+				t.Fatal("expected UnmarshalGoError")
+			}
+		}
+	}
+
+	t.Run("nat", func(t *testing.T) {
+		var nt idl.NatType
+
+		var n idl.Nat
+		for i, v := range []any{
+			idl.NewNat(uint(0)),
+			uint(1), uint64(2), uint32(3), uint16(4), uint8(5),
+		} {
+			if err := nt.UnmarshalGo(v, &n); err != nil {
+				t.Fatal(err)
+			}
+			if n.BigInt().Int64() != int64(i) {
+				t.Error(n)
+			}
+		}
+
+		var a any
+		expectErr(t, nt.UnmarshalGo(0, &a))
+	})
+	t.Run("nat64", func(t *testing.T) {
+		nt := idl.Nat64Type()
+
+		var n uint64
+		for i, v := range []any{
+			uint64(0), uint32(1), uint16(2), uint8(3),
+		} {
+			if err := nt.UnmarshalGo(v, &n); err != nil {
+				t.Fatal(err)
+			}
+			if n != uint64(i) {
+				t.Error(n)
+			}
+		}
+
+		for _, v := range []any{
+			idl.NewNat(uint(0)), uint(0),
+		} {
+			expectErr(t, nt.UnmarshalGo(v, &n))
+		}
+
+		var a any
+		expectErr(t, nt.UnmarshalGo(0, &a))
+	})
+	t.Run("nat32", func(t *testing.T) {
+		nt := idl.Nat32Type()
+
+		var n uint32
+		for i, v := range []any{
+			uint32(0), uint16(1), uint8(2),
+		} {
+			if err := nt.UnmarshalGo(v, &n); err != nil {
+				t.Fatal(err)
+			}
+			if n != uint32(i) {
+				t.Error(n)
+			}
+		}
+
+		for _, v := range []any{
+			idl.NewNat(uint(0)), uint(0), uint64(0),
+		} {
+			expectErr(t, nt.UnmarshalGo(v, &n))
+		}
+
+		var a any
+		expectErr(t, nt.UnmarshalGo(0, &a))
+	})
+	t.Run("nat16", func(t *testing.T) {
+		nt := idl.Nat16Type()
+
+		var n uint16
+		for i, v := range []any{
+			uint16(0), uint8(1),
+		} {
+			if err := nt.UnmarshalGo(v, &n); err != nil {
+				t.Fatal(err)
+			}
+			if n != uint16(i) {
+				t.Error(n)
+			}
+		}
+
+		for _, v := range []any{
+			idl.NewNat(uint(0)), uint(0), uint64(0), uint32(0),
+		} {
+			expectErr(t, nt.UnmarshalGo(v, &n))
+		}
+
+		var a any
+		expectErr(t, nt.UnmarshalGo(0, &a))
+	})
+	t.Run("nat8", func(t *testing.T) {
+		nt := idl.Nat8Type()
+
+		var n uint8
+		for i, v := range []any{
+			uint8(0),
+		} {
+			if err := nt.UnmarshalGo(v, &n); err != nil {
+				t.Fatal(err)
+			}
+			if n != uint8(i) {
+				t.Error(n)
+			}
+		}
+
+		for _, v := range []any{
+			idl.NewNat(uint(0)), uint(0), uint64(0), uint32(0), uint16(0),
+		} {
+			expectErr(t, nt.UnmarshalGo(v, &n))
+		}
+
+		var a any
+		expectErr(t, nt.UnmarshalGo(0, &a))
+	})
 }

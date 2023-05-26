@@ -9,35 +9,6 @@ import (
 	"os"
 )
 
-func fetchDID(canisterId principal.Principal) ([]byte, error) {
-	a, err := agent.New(agent.Config{})
-	if err != nil {
-		return nil, err
-	}
-	var did string
-	if err := a.Query(canisterId, "__get_candid_interface_tmp_hack", nil, []any{&did}); err != nil {
-		return nil, err
-	}
-	return []byte(did), nil
-}
-
-func writeDID(canisterName, packageName, outputPath string, rawDID []byte) error {
-	g, err := gen.NewGenerator(canisterName, packageName, rawDID)
-	if err != nil {
-		return err
-	}
-	raw, err := g.Generate()
-	if err != nil {
-		return err
-	}
-
-	if outputPath != "" {
-		return os.WriteFile(outputPath, raw, os.ModePerm)
-	}
-	fmt.Println(string(raw))
-	return nil
-}
-
 var root = cmd.NewCommandFork(
 	"agent-go",
 	"agent-go is a CLI tool for creating a Go agent.",
@@ -153,9 +124,38 @@ var root = cmd.NewCommandFork(
 	),
 )
 
+func fetchDID(canisterId principal.Principal) ([]byte, error) {
+	a, err := agent.New(agent.Config{})
+	if err != nil {
+		return nil, err
+	}
+	var did string
+	if err := a.Query(canisterId, "__get_candid_interface_tmp_hack", nil, []any{&did}); err != nil {
+		return nil, err
+	}
+	return []byte(did), nil
+}
+
 func main() {
 	if err := root.Call(os.Args[1:]...); err != nil {
 		fmt.Printf("ERROR: %s\n", err)
 		os.Exit(1)
 	}
+}
+
+func writeDID(canisterName, packageName, outputPath string, rawDID []byte) error {
+	g, err := gen.NewGenerator(canisterName, packageName, rawDID)
+	if err != nil {
+		return err
+	}
+	raw, err := g.Generate()
+	if err != nil {
+		return err
+	}
+
+	if outputPath != "" {
+		return os.WriteFile(outputPath, raw, os.ModePerm)
+	}
+	fmt.Println(string(raw))
+	return nil
 }

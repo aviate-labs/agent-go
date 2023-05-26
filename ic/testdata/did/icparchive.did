@@ -1,0 +1,86 @@
+// SOURCE: https://github.com/dfinity/ic/blob/a1f503d20b7846375c74ce5f7d0f8f6620ab7511/rs/rosetta-api/icp_ledger/ledger_archive.did
+
+type BlockIndex = nat64;
+type Memo = nat64;
+type AccountIdentifier = blob;
+type Tokens = record { e8s : nat64 };
+type Timestamp = record { timestamp_nanos : nat64 };
+
+type Operation = variant {
+    Mint : record {
+        to : AccountIdentifier;
+        amount : Tokens;
+    };
+    Burn : record {
+        from : AccountIdentifier;
+        amount : Tokens;
+    };
+    Transfer : record {
+        from : AccountIdentifier;
+        to : AccountIdentifier;
+        amount : Tokens;
+        fee : Tokens;
+    };
+    Approve : record {
+        from : AccountIdentifier;
+        spender : AccountIdentifier;
+        allowance_e8s : int;
+        fee : Tokens;
+        expires_at : opt Timestamp;
+    };
+    TransferFrom : record {
+        from : AccountIdentifier;
+        to : AccountIdentifier;
+        spender : AccountIdentifier;
+        amount : Tokens;
+        fee : Tokens;
+    };
+};
+
+type Transaction = record {
+    memo : Memo;
+    icrc1_memo : opt blob;
+    // Optional to support potential future variant extensions.
+    operation : opt Operation;
+    created_at_time : Timestamp;
+};
+
+type Block = record {
+    parent_hash : opt blob;
+    transaction : Transaction;
+    timestamp : Timestamp;
+};
+
+type GetBlocksArgs = record {
+    start : BlockIndex;
+    length : nat64;
+};
+
+type BlockRange = record {
+    blocks : vec Block;
+};
+
+type GetBlocksError = variant {
+
+    /// The [GetBlocksArgs.start] is below the first block that
+    /// archive node stores.
+    BadFirstBlockIndex : record {
+        requested_index : BlockIndex;
+        first_valid_index : BlockIndex;
+    };
+
+    /// Reserved for future use.
+    Other : record {
+        error_code : nat64;
+        error_message : text;
+    };
+};
+
+type GetBlocksResult = variant {
+    Ok : BlockRange;
+    Err : GetBlocksError;
+};
+
+service : {
+    get_blocks : (GetBlocksArgs) -> (GetBlocksResult) query;
+}

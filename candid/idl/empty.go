@@ -35,3 +35,7 @@ func (EmptyType) EncodeValue(_ any) ([]byte, error) {
 func (EmptyType) String() string {
 	return "empty"
 }
+
+func (EmptyType) UnmarshalGo(raw any, _v any) error {
+	return NewUnmarshalGoError(raw, _v)
+}

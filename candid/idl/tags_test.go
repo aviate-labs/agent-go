@@ -12,9 +12,9 @@ func TestParseTags(t *testing.T) {
 			Name string
 		}
 		field := reflect.TypeOf(custom{}).Field(0)
-		tag := parseTags(field)
-		if tag.name != "name" {
-			t.Errorf("got %q, want %q", tag.name, "name")
+		tag := ParseTags(field)
+		if tag.Name != "name" {
+			t.Errorf("got %q, want %q", tag.Name, "name")
 		}
 	})
 
@@ -23,9 +23,9 @@ func TestParseTags(t *testing.T) {
 			Name string `ic:"anotherName"`
 		}
 		field := reflect.TypeOf(custom{}).Field(0)
-		tag := parseTags(field)
-		if tag.name != "anotherName" {
-			t.Errorf("got %q, want %q", tag.name, "name")
+		tag := ParseTags(field)
+		if tag.Name != "anotherName" {
+			t.Errorf("got %q, want %q", tag.Name, "name")
 		}
 	})
 
@@ -54,9 +54,9 @@ func TestParseTags(t *testing.T) {
 				Tag:  reflect.StructTag("ic:" + test.ic),
 				Type: reflect.TypeOf(""),
 			}
-			tag := parseTags(field)
-			if test.ic != "" && tag.name != strings.Split(test.ic, ",")[0] {
-				t.Errorf("got %q, want %q", tag.name, test.ic)
+			tag := ParseTags(field)
+			if test.ic != "" && tag.Name != strings.Split(test.ic, ",")[0] {
+				t.Errorf("got %q, want %q", tag.Name, test.ic)
 			}
 		})
 	}

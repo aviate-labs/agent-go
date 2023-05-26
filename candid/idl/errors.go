@@ -36,3 +36,19 @@ type FormatError struct {
 func (e FormatError) Error() string {
 	return fmt.Sprintf("() %s", e.Description)
 }
+
+type UnmarshalGoError struct {
+	Raw any
+	V   any
+}
+
+func NewUnmarshalGoError(raw any, v any) *UnmarshalGoError {
+	return &UnmarshalGoError{
+		Raw: raw,
+		V:   v,
+	}
+}
+
+func (e UnmarshalGoError) Error() string {
+	return fmt.Sprintf("cannot unmarshal %v into Go value of type %T", e.Raw, e.V)
+}

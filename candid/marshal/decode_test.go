@@ -10,16 +10,32 @@ import (
 	"github.com/aviate-labs/agent-go/candid/marshal"
 )
 
-func ExampleUnmarshal_optNat() {
-	var optNat idl.Optional
-	data, _ := hex.DecodeString("4449444c016e7d01000101")
-	fmt.Println(marshal.Unmarshal(data, []any{&optNat}), optNat)
+func ExampleUnmarshal_null() {
+	var null idl.Null
+	data, _ := hex.DecodeString("4449444c00017f")
+	fmt.Println(marshal.Unmarshal(data, []any{&null}), null)
 	// Output:
-	// <nil> {1 nat}
+	// <nil> {}
+}
+
+func ExampleUnmarshal_optNat() {
+	{ // 1
+		var optNat *idl.Nat
+		data, _ := hex.DecodeString("4449444c016e7d01000101")
+		fmt.Println(marshal.Unmarshal(data, []any{&optNat}), optNat)
+	}
+	{ // null
+		var optNat *idl.Nat
+		data, _ := hex.DecodeString("4449444c016e7f010000")
+		fmt.Println(marshal.Unmarshal(data, []any{&optNat}), optNat)
+	}
+	// Output:
+	// <nil> 1
+	// <nil> <nil>
 }
 
 func ExampleUnmarshal_principal() {
-	var p *principal.Principal
+	var p principal.Principal
 	data, _ := hex.DecodeString("4449444c0001680100")
 	fmt.Println(marshal.Unmarshal(data, []any{&p}), p)
 	// Output:
@@ -32,6 +48,17 @@ func ExampleUnmarshal_record() {
 	fmt.Println(marshal.Unmarshal(data, []any{&record}), record)
 	// Output:
 	// <nil> map[4895187:42 5097222:💩]
+}
+
+func ExampleUnmarshal_struct() {
+	var s struct {
+		Foo string
+		Bar idl.Int
+	}
+	data, _ := hex.DecodeString("4449444c016c02d3e3aa027c868eb7027101002a04f09f92a9")
+	fmt.Println(marshal.Unmarshal(data, []any{&s}), s)
+	// Output:
+	// <nil> {💩 42}
 }
 
 func ExampleUnmarshal_variant() {
@@ -79,12 +106,12 @@ func TestUnmarshal_nat(t *testing.T) {
 }
 
 func TestUnmarshal_opt(t *testing.T) {
-	var optNat idl.Optional
+	var optNat *idl.Nat
 	data, _ := hex.DecodeString("4449444c016e7d010000")
 	if err := marshal.Unmarshal(data, []any{&optNat}); err != nil {
 		t.Fatal(err)
 	}
-	if optNat.V != nil {
+	if optNat != nil {
 		t.Error(optNat)
 	}
 }

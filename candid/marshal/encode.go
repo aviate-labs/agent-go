@@ -33,14 +33,7 @@ func encode(v reflect.Value, tdt *idl.TypeDefinitionTable) ([]byte, []byte, erro
 	switch v.Kind() {
 	case reflect.Ptr:
 		v := v.Elem().Interface()
-		typ, err := idl.TypeOf(v)
-		if err != nil {
-			return nil, nil, err
-		}
-		return EncodeCons(idl.Optional{
-			V: v,
-			T: typ,
-		}, tdt)
+		return EncodeCons(&v, tdt)
 	case reflect.Bool:
 		return EncodeBool(v.Bool())
 	case reflect.Uint:
@@ -94,8 +87,7 @@ func encode(v reflect.Value, tdt *idl.TypeDefinitionTable) ([]byte, []byte, erro
 		case "idl.Reserved":
 			return EncodeReserved()
 		case "idl.Optional":
-			v := v.Interface().(idl.Optional)
-			return EncodeCons(v, tdt)
+			return EncodeCons(&v, tdt)
 		case "idl.Variant":
 			v := v.Interface().(idl.Variant)
 			return EncodeCons(v, tdt)

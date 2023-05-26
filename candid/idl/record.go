@@ -11,27 +11,6 @@ import (
 	"github.com/aviate-labs/leb128"
 )
 
-func RecordMapToStruct(r *RecordType, m map[string]any, value any) error {
-	v := reflect.ValueOf(value).Elem()
-	if !v.CanAddr() {
-		return fmt.Errorf("can not address struct value")
-	}
-
-	fieldNameToIndex := make(map[string]int)
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Type().Field(i)
-		tag := parseTags(field)
-		fieldNameToIndex[HashString(tag.name)] = i
-	}
-
-	for _, f := range r.Fields {
-		value := m[f.Name]
-		i := fieldNameToIndex[f.Name]
-		v.Field(i).Set(reflect.ValueOf(value))
-	}
-	return nil
-}
-
 func StructToMap(value any) (map[string]any, error) {
 	v := reflect.ValueOf(value)
 	switch v.Kind() {
@@ -39,8 +18,8 @@ func StructToMap(value any) (map[string]any, error) {
 		m := make(map[string]any)
 		for i := 0; i < v.NumField(); i++ {
 			field := v.Type().Field(i)
-			tag := parseTags(field)
-			m[tag.name] = v.Field(i).Interface()
+			tag := ParseTags(field)
+			m[tag.Name] = v.Field(i).Interface()
 		}
 		return m, nil
 	default:
@@ -66,8 +45,8 @@ func NewRecordType(fields map[string]Type) *RecordType {
 	return &rec
 }
 
-func (r RecordType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
-	for _, f := range r.Fields {
+func (record RecordType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+	for _, f := range record.Fields {
 		if err := f.Type.AddTypeDefinition(tdt); err != nil {
 			return err
 		}
@@ -77,12 +56,12 @@ func (r RecordType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	if err != nil {
 		return err
 	}
-	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(r.Fields))))
+	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(record.Fields))))
 	if err != nil {
 		return err
 	}
 	var vs []byte
-	for _, f := range r.Fields {
+	for _, f := range record.Fields {
 		l, err := leb128.EncodeUnsigned(Hash(f.Name))
 		if err != nil {
 			return nil
@@ -94,13 +73,13 @@ func (r RecordType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 		vs = append(vs, concat(l, t)...)
 	}
 
-	tdt.Add(r, concat(id, l, vs))
+	tdt.Add(record, concat(id, l, vs))
 	return nil
 }
 
-func (r RecordType) Decode(r_ *bytes.Reader) (any, error) {
+func (record RecordType) Decode(r_ *bytes.Reader) (any, error) {
 	rec := make(map[string]any)
-	for _, f := range r.Fields {
+	for _, f := range record.Fields {
 		v, err := f.Type.Decode(r_)
 		if err != nil {
 			return nil, err
@@ -113,15 +92,15 @@ func (r RecordType) Decode(r_ *bytes.Reader) (any, error) {
 	return rec, nil
 }
 
-func (r RecordType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
-	idx, ok := tdt.Indexes[r.String()]
+func (record RecordType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
+	idx, ok := tdt.Indexes[record.String()]
 	if !ok {
-		return nil, fmt.Errorf("missing type index for: %s", r)
+		return nil, fmt.Errorf("missing type index for: %s", record)
 	}
 	return leb128.EncodeSigned(big.NewInt(int64(idx)))
 }
 
-func (r RecordType) EncodeValue(v any) ([]byte, error) {
+func (record RecordType) EncodeValue(v any) ([]byte, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -133,11 +112,11 @@ func (r RecordType) EncodeValue(v any) ([]byte, error) {
 		}
 	}
 	var vs_ []any
-	for _, f := range r.Fields {
+	for _, f := range record.Fields {
 		vs_ = append(vs_, fs[f.Name])
 	}
 	var vs []byte
-	for i, f := range r.Fields {
+	for i, f := range record.Fields {
 		v_, err := f.Type.EncodeValue(vs_[i])
 		if err != nil {
 			return nil, err
@@ -147,10 +126,83 @@ func (r RecordType) EncodeValue(v any) ([]byte, error) {
 	return vs, nil
 }
 
-func (r RecordType) String() string {
+func (record RecordType) String() string {
 	var s []string
-	for _, f := range r.Fields {
+	for _, f := range record.Fields {
 		s = append(s, fmt.Sprintf("%s:%s", f.Name, f.Type.String()))
 	}
 	return fmt.Sprintf("record {%s}", strings.Join(s, "; "))
+}
+
+func (record RecordType) UnmarshalGo(raw any, _v any) error {
+	m := make(map[string]any)
+	switch rv := reflect.ValueOf(raw); rv.Kind() {
+	case reflect.Map:
+		for _, k := range rv.MapKeys() {
+			m[k.String()] = rv.MapIndex(k).Interface()
+		}
+	case reflect.Struct:
+		for i := 0; i < rv.NumField(); i++ {
+			f := rv.Type().Field(i)
+			tag := ParseTags(f)
+			m[tag.Name] = rv.Field(i).Interface()
+		}
+	default:
+		return NewUnmarshalGoError(raw, _v)
+	}
+
+	if v, ok := _v.(*map[string]any); ok {
+		return record.unmarshalMap(m, v)
+	}
+	v := reflect.ValueOf(_v)
+	if v.Kind() != reflect.Ptr {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	v = v.Elem()
+	if v.Kind() != reflect.Struct {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	return record.unmarshalStruct(m, v)
+}
+
+func (record RecordType) unmarshalMap(raw map[string]any, _v *map[string]any) error {
+	m := make(map[string]any)
+	for _, f := range record.Fields {
+		v, err := EmptyOf(f.Type)
+		if err != nil {
+			return err
+		}
+
+		r := reflect.New(reflect.ValueOf(v).Type()).Elem()
+		if err := f.Type.UnmarshalGo(raw[f.Name], r.Addr().Interface()); err != nil {
+			return err
+		}
+		m[f.Name] = r.Interface()
+	}
+	*_v = m
+	return nil
+}
+
+func (record RecordType) unmarshalStruct(raw map[string]any, _v reflect.Value) error {
+	findField := func(name string) (reflect.Value, bool) {
+		name = lowerFirstCharacter(name)
+		for i := 0; i < _v.NumField(); i++ {
+			f := _v.Type().Field(i)
+			tag := ParseTags(f)
+			if tag.Name == name {
+				return _v.Field(i), true
+			}
+		}
+		return reflect.Value{}, false
+	}
+	for _, f := range record.Fields {
+		v, ok := findField(f.Name)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v.Interface())
+		}
+		if err := f.Type.UnmarshalGo(raw[f.Name], v.Addr().Interface()); err != nil {
+			return err
+		}
+	}
+	return nil
 }

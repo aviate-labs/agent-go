@@ -74,13 +74,13 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 	canister, ok := r.Canisters[canisterId]
 	if !ok {
 		writer.WriteHeader(http.StatusNotFound)
-		writer.Write([]byte("canister not found: " + canisterId))
+		_, _ = writer.Write([]byte("canister not found: " + canisterId))
 		return
 	}
 	var envelope agent.Envelope
 	if err := cbor.Unmarshal(body, &envelope); err != nil {
 		writer.WriteHeader(http.StatusBadRequest)
-		writer.Write([]byte(err.Error()))
+		_, _ = writer.Write([]byte(err.Error()))
 		return
 	}
 	// TODO: validate sender + signatures, ...
@@ -90,7 +90,7 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 	case "call":
 		if req.Type != agent.RequestTypeCall {
 			writer.WriteHeader(http.StatusBadRequest)
-			writer.Write([]byte("expected call request"))
+			_, _ = writer.Write([]byte("expected call request"))
 			return
 		}
 		requestId := agent.NewRequestID(req)
@@ -101,7 +101,7 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 	case "query":
 		if req.Type != agent.RequestTypeQuery {
 			writer.WriteHeader(http.StatusBadRequest)
-			writer.Write([]byte("expected query request"))
+			_, _ = writer.Write([]byte("expected query request"))
 			return
 		}
 		requestId := agent.NewRequestID(req)
@@ -111,14 +111,14 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 		values, err := canister.Handler(fromAgentRequest(req))
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			writer.Write([]byte(err.Error()))
+			_, _ = writer.Write([]byte(err.Error()))
 			return
 		}
 
 		rawReply, err := marshal.Marshal(values)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			writer.Write([]byte(err.Error()))
+			_, _ = writer.Write([]byte(err.Error()))
 			return
 		}
 
@@ -133,14 +133,14 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 		raw, err := cbor.Marshal(resp)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			writer.Write([]byte(err.Error()))
+			_, _ = writer.Write([]byte(err.Error()))
 			return
 		}
-		writer.Write(raw)
+		_, _ = writer.Write(raw)
 	case "read_state":
 		if !bytes.Equal(req.Paths[0][0], []byte("request_status")) {
 			writer.WriteHeader(http.StatusBadRequest)
-			writer.Write([]byte("expected request_status"))
+			_, _ = writer.Write([]byte("expected request_status"))
 			return
 		}
 		requestId := req.Paths[0][1]
@@ -149,20 +149,20 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 		req, ok := r.Requests[requestIdHex]
 		if !ok {
 			writer.WriteHeader(http.StatusNotFound)
-			writer.Write([]byte("request not found: " + requestIdHex))
+			_, _ = writer.Write([]byte("request not found: " + requestIdHex))
 			return
 		}
 		values, err := canister.Handler(fromAgentRequest(req))
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			writer.Write([]byte(err.Error()))
+			_, _ = writer.Write([]byte(err.Error()))
 			return
 		}
 
 		rawReply, err := marshal.Marshal(values)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			writer.Write([]byte(err.Error()))
+			_, _ = writer.Write([]byte(err.Error()))
 			return
 		}
 
@@ -202,10 +202,10 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 		raw, err := cbor.Marshal(m)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
-			writer.Write([]byte(err.Error()))
+			_, _ = writer.Write([]byte(err.Error()))
 			return
 		}
-		writer.Write(raw)
+		_, _ = writer.Write(raw)
 	default:
 		writer.WriteHeader(http.StatusNotFound)
 	}
@@ -220,7 +220,7 @@ func (r *Replica) handleStatus(writer http.ResponseWriter) {
 	}
 	raw, _ := cbor.Marshal(status)
 	writer.WriteHeader(http.StatusOK)
-	writer.Write(raw)
+	_, _ = writer.Write(raw)
 }
 
 type Request struct {

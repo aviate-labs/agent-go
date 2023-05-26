@@ -9,6 +9,17 @@ import (
 	"math/big"
 )
 
+func anyToFloat64(v any) (float64, bool) {
+	switch v := v.(type) {
+	case float64:
+		return v, true
+	case float32:
+		return float64(v), true
+	default:
+		return 0, false
+	}
+}
+
 // encodeFloat32 convert the given value to a float32.
 // Accepts: `float32`.
 func encodeFloat32(v any) (float32, error) {
@@ -124,4 +135,37 @@ func (f FloatType) EncodeValue(v any) ([]byte, error) {
 // String returns the string representation of the type.
 func (f FloatType) String() string {
 	return fmt.Sprintf("float%d", f.size*8)
+}
+
+func (f FloatType) UnmarshalGo(raw any, _v any) error {
+	switch f.size {
+	case 8:
+		f, ok := anyToFloat64(raw)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		v, ok := _v.(*float64)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		*v = f
+		return nil
+	case 4:
+		f32, ok := raw.(float32)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		switch v := _v.(type) {
+		case *float32:
+			*v = f32
+			return nil
+		case *float64:
+			*v = float64(f32)
+			return nil
+		default:
+			return NewUnmarshalGoError(raw, _v)
+		}
+	default:
+		return NewUnmarshalGoError(raw, _v)
+	}
 }

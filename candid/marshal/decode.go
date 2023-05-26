@@ -3,6 +3,7 @@ package marshal
 import (
 	"errors"
 	"fmt"
+	"github.com/aviate-labs/agent-go/principal"
 	"reflect"
 
 	"github.com/aviate-labs/agent-go/candid/idl"
@@ -30,6 +31,35 @@ func Unmarshal(data []byte, values []any) error {
 	return nil
 }
 
+func recordMapToStruct(r *idl.RecordType, m map[string]any, value any) error {
+	v := reflect.ValueOf(value).Elem()
+	if !v.CanAddr() {
+		return fmt.Errorf("can not address struct value")
+	}
+
+	fieldNameToIndex := make(map[string]int)
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		tag := idl.ParseTags(field)
+		fieldNameToIndex[idl.HashString(tag.Name)] = i
+	}
+
+	for _, f := range r.Fields {
+		value := m[f.Name]
+		i := fieldNameToIndex[f.Name]
+		if reflect.TypeOf(value) == v.Field(i).Type() {
+			v.Field(i).Set(reflect.ValueOf(value))
+			continue
+		}
+		fieldV := v.Field(i).Interface()
+		if err := unmarshal(f.Type, value, &fieldV); err != nil {
+			return err
+		}
+		v.Field(i).Set(reflect.ValueOf(fieldV))
+	}
+	return nil
+}
+
 func unmarshal(typ idl.Type, dv any, value any) error {
 	v := reflect.ValueOf(value)
 	if v.Kind() != reflect.Ptr || v.IsNil() {
@@ -45,7 +75,7 @@ func unmarshal(typ idl.Type, dv any, value any) error {
 		switch v.Kind() {
 		case reflect.Bool: // OK
 		default:
-			return fmt.Errorf("invalid type match: %s %s", v.Kind(), t)
+			return NewErrInvalidTypeMatch(v, t)
 		}
 	case *idl.NatType:
 		switch v.Kind() {
@@ -66,14 +96,21 @@ func unmarshal(typ idl.Type, dv any, value any) error {
 				return fmt.Errorf("invalid base: %d, expected 8", t.Base())
 			}
 		case reflect.Struct:
-			switch v.Type().String() {
-			case "idl.Nat":
+			switch value.(type) {
+			case *idl.Nat:
 			default:
-				return fmt.Errorf("invalid type match: %s %s", v.Type(), t)
+				return NewErrInvalidTypeMatch(v, t)
 			}
 		default:
-			return fmt.Errorf("invalid type match: %s %s", v.Kind(), t)
+			return NewErrInvalidTypeMatch(v, t)
 		}
+	case *idl.NullType:
+		switch value.(type) {
+		case *idl.Null:
+		default:
+			return NewErrInvalidTypeMatch(v, t)
+		}
+		return nil // No need to assign a value.
 	case *idl.IntType:
 		switch v.Kind() {
 		case reflect.Int8:
@@ -93,13 +130,13 @@ func unmarshal(typ idl.Type, dv any, value any) error {
 				return fmt.Errorf("invalid base: %d, expected 8", t.Base())
 			}
 		case reflect.Struct:
-			switch v.Type().String() {
-			case "idl.Int":
+			switch value.(type) {
+			case *idl.Int:
 			default:
-				return fmt.Errorf("invalid type match: %s %s", v.Type(), t)
+				return NewErrInvalidTypeMatch(v, t)
 			}
 		default:
-			return fmt.Errorf("invalid type match: %s %s", v.Kind(), t)
+			return NewErrInvalidTypeMatch(v, t)
 		}
 	case *idl.FloatType:
 		switch v.Kind() {
@@ -112,52 +149,46 @@ func unmarshal(typ idl.Type, dv any, value any) error {
 				return fmt.Errorf("invalid base: %d, expected 8", t.Base())
 			}
 		default:
-			return fmt.Errorf("invalid type match: %s %s", v.Kind(), t)
+			return NewErrInvalidTypeMatch(v, t)
 		}
 	case *idl.TextType:
 		switch v.Kind() {
 		case reflect.String: // OK
 		default:
-			return fmt.Errorf("invalid type match: %s %s", v.Kind(), t)
+			return NewErrInvalidTypeMatch(v, t)
 		}
 	case *idl.OptionalType:
-		if dv == nil {
-			return nil
-		}
-		dv = idl.Optional{
-			V: dv,
-			T: t.Type,
-		}
+		return typ.UnmarshalGo(dv, value)
 	case *idl.VectorType:
 		switch v.Kind() {
 		case reflect.Slice:
 		default:
-			return fmt.Errorf("invalid type match: %s %s", v.Kind(), t)
+			return NewErrInvalidTypeMatch(v, t)
 		}
 	case *idl.RecordType:
 		switch v.Kind() {
 		case reflect.Map:
 		case reflect.Struct:
-			return idl.RecordMapToStruct(t, dv.(map[string]any), value)
+			return recordMapToStruct(t, dv.(map[string]any), value)
 		default:
-			return fmt.Errorf("invalid type match: %s %s", v.Kind(), t)
+			return NewErrInvalidTypeMatch(v, t)
 		}
 	case *idl.VariantType:
 		switch v.Kind() {
 		case reflect.Struct:
-			switch v.Type().String() {
-			case "idl.Variant":
+			switch value.(type) {
+			case *idl.Variant:
 			default:
-				return idl.VariantToStruct(t, dv.(*idl.Variant), value)
+				return variantToStruct(t, dv.(*idl.Variant), value)
 			}
 		}
 	case *idl.PrincipalType:
 		switch v.Kind() {
 		case reflect.Struct:
-			switch v.Type().String() {
-			case "principal.Principal":
+			switch value.(type) {
+			case *principal.Principal:
 			default:
-				return fmt.Errorf("invalid type match: %s %s", v.Type(), t)
+				return NewErrInvalidTypeMatch(v, t)
 			}
 		}
 	default:
@@ -166,5 +197,25 @@ func unmarshal(typ idl.Type, dv any, value any) error {
 
 	// Default behavior: there is no need to check/convert dv.
 	v.Set(reflect.ValueOf(dv))
+	return nil
+}
+
+func variantToStruct(r *idl.VariantType, variant *idl.Variant, value any) error {
+	v := reflect.ValueOf(value).Elem()
+	if !v.CanAddr() {
+		return fmt.Errorf("can not address struct value")
+	}
+
+	fieldNameToIndex := make(map[string]int)
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Type().Field(i)
+		tag := idl.ParseTags(field)
+		fieldNameToIndex[idl.HashString(tag.Name)] = i
+	}
+
+	i := fieldNameToIndex[r.Fields[0].Name]
+	ptrValue := reflect.New(reflect.TypeOf(variant.Value))
+	ptrValue.Elem().Set(reflect.ValueOf(variant.Value))
+	v.Field(i).Set(ptrValue)
 	return nil
 }

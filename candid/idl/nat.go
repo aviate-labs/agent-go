@@ -9,6 +9,45 @@ import (
 	"github.com/aviate-labs/leb128"
 )
 
+func anyToUint16(v any) (uint16, bool) {
+	switch v := v.(type) {
+	case uint16:
+		return v, true
+	case uint8:
+		return uint16(v), true
+	default:
+		return 0, false
+	}
+}
+
+func anyToUint32(v any) (uint32, bool) {
+	switch v := v.(type) {
+	case uint32:
+		return v, true
+	case uint16:
+		return uint32(v), true
+	case uint8:
+		return uint32(v), true
+	default:
+		return 0, false
+	}
+}
+
+func anyToUint64(v any) (uint64, bool) {
+	switch v := v.(type) {
+	case uint64:
+		return v, true
+	case uint32:
+		return uint64(v), true
+	case uint16:
+		return uint64(v), true
+	case uint8:
+		return uint64(v), true
+	default:
+		return 0, false
+	}
+}
+
 // encodeNat16 convert the given value to an uint16.
 // Accepts: `uint8`, `uint16`.
 func encodeNat16(v any) (uint16, error) {
@@ -76,6 +115,25 @@ func NewNatFromString(n string) Nat {
 		panic("number: negative nat")
 	}
 	return Nat{bi}
+}
+
+func anyToNat(v any) (Nat, bool) {
+	switch v := v.(type) {
+	case Nat:
+		return v, true
+	case uint:
+		return NewNat(v), true
+	case uint64:
+		return NewNat(v), true
+	case uint32:
+		return NewNat(v), true
+	case uint16:
+		return NewNat(v), true
+	case uint8:
+		return NewNat(v), true
+	default:
+		return Nat{}, false
+	}
 }
 
 // BigInt returns the underlying big.Int.
@@ -237,6 +295,102 @@ func (n NatType) String() string {
 		return "nat"
 	}
 	return fmt.Sprintf("nat%d", n.size*8)
+}
+
+func (n NatType) UnmarshalGo(raw any, _v any) error {
+	switch n.size {
+	case 0:
+		n, ok := anyToNat(raw)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		v, ok := _v.(*Nat)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		*v = n
+		return nil
+	case 8:
+		u64, ok := anyToUint64(raw)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		switch v := _v.(type) {
+		case *uint64:
+			*v = u64
+			return nil
+		case *Nat:
+			*v = NewNat(u64)
+			return nil
+		default:
+			return NewUnmarshalGoError(raw, _v)
+		}
+	case 4:
+		u32, ok := anyToUint32(raw)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		switch v := _v.(type) {
+		case *uint32:
+			*v = u32
+			return nil
+		case *Nat:
+			*v = NewNat(u32)
+			return nil
+		case *uint64:
+			*v = uint64(u32)
+			return nil
+		default:
+			return NewUnmarshalGoError(raw, _v)
+		}
+	case 2:
+		u16, ok := anyToUint16(raw)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		switch v := _v.(type) {
+		case *uint16:
+			*v = u16
+			return nil
+		case *Nat:
+			*v = NewNat(u16)
+			return nil
+		case *uint64:
+			*v = uint64(u16)
+			return nil
+		case *uint32:
+			*v = uint32(u16)
+			return nil
+		default:
+			return NewUnmarshalGoError(raw, _v)
+		}
+	case 1:
+		u8, ok := raw.(uint8)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		switch v := _v.(type) {
+		case *uint8:
+			*v = u8
+			return nil
+		case *Nat:
+			*v = NewNat(u8)
+			return nil
+		case *uint64:
+			*v = uint64(u8)
+			return nil
+		case *uint32:
+			*v = uint32(u8)
+			return nil
+		case *uint16:
+			*v = uint16(u8)
+			return nil
+		default:
+			return NewUnmarshalGoError(raw, _v)
+		}
+	default:
+		return NewUnmarshalGoError(raw, _v)
+	}
 }
 
 // Natural contains all unsigned integer types.

@@ -14,34 +14,31 @@ func lowerFirstCharacter(s string) string {
 	return strings.ToLower(s[:1]) + s[1:]
 }
 
-type tag struct {
+type Tag struct {
 	// Name is the name of the field in the struct.
-	name        string
-	omitEmpty   bool
-	variantType bool
+	Name        string
+	VariantType bool
 }
 
-func parseTags(field reflect.StructField) tag {
+func ParseTags(field reflect.StructField) Tag {
 	icTag := field.Tag.Get("ic")
-	if icTag != "" {
-		var t tag
-		tags := strings.Split(icTag, ",")
-		if len(tags) != 0 {
-			t.name = tags[0]
-			for _, option := range tags[1:] {
-				switch option {
-				case "omitempty":
-					t.omitEmpty = true
-				case "variant":
-					t.variantType = true
-				default:
-					// ignore unknown options
-				}
+	if icTag == "" {
+		return Tag{
+			Name: lowerFirstCharacter(field.Name),
+		}
+	}
+	var t Tag
+	tags := strings.Split(icTag, ",")
+	if len(tags) != 0 {
+		t.Name = tags[0]
+		for _, option := range tags[1:] {
+			switch option {
+			case "variant":
+				t.VariantType = true
+			default:
+				// ignore unknown options
 			}
 		}
-		return t
 	}
-	return tag{
-		name: lowerFirstCharacter(field.Name),
-	}
+	return t
 }
