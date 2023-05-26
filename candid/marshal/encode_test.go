@@ -43,10 +43,8 @@ func ExampleMarshal_null() {
 
 func ExampleMarshal_principal() {
 	p, _ := principal.Decode("aaaaa-aa")
-	fmt.Println(marshal.Marshal([]any{&p}))
 	fmt.Println(marshal.Marshal([]any{p}))
 	// Output:
-	// [68 73 68 76 1 110 104 1 0 1 1 0] <nil>
 	// [68 73 68 76 0 1 104 1 0] <nil>
 }
 

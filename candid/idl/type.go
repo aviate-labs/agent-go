@@ -25,11 +25,6 @@ var (
 	principalType int64 = -24 // 0x68
 )
 
-// EqualIDLs returns true if the two types are equal.
-func EqualIDLs(a, b Type) bool {
-	return a.String() == b.String()
-}
-
 func idlString(typ int64) string {
 	switch typ {
 	case nullType:
@@ -102,12 +97,15 @@ type Type interface {
 	// EncodeValue encodes the value.
 	EncodeValue(v any) ([]byte, error)
 
+	// UnmarshalGo unmarshals the value from the go value.
+	UnmarshalGo(raw any, v any) error
+
 	fmt.Stringer
 }
 
 func getType(t int64, tds []Type) (Type, error) {
 	if t >= 0 {
-		if int(t) >= len(tds) {
+		if int(t) >= len(tds) || tds[t] == nil {
 			return nil, fmt.Errorf("type index out of range: %d", t)
 		}
 		return tds[t], nil

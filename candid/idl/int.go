@@ -9,6 +9,45 @@ import (
 	"github.com/aviate-labs/leb128"
 )
 
+func anyToInt16(v any) (int16, bool) {
+	switch v := v.(type) {
+	case int16:
+		return v, true
+	case int8:
+		return int16(v), true
+	default:
+		return 0, false
+	}
+}
+
+func anyToInt32(v any) (int32, bool) {
+	switch v := v.(type) {
+	case int32:
+		return v, true
+	case int16:
+		return int32(v), true
+	case int8:
+		return int32(v), true
+	default:
+		return 0, false
+	}
+}
+
+func anyToInt64(v any) (int64, bool) {
+	switch v := v.(type) {
+	case int64:
+		return v, true
+	case int32:
+		return int64(v), true
+	case int16:
+		return int64(v), true
+	case int8:
+		return int64(v), true
+	default:
+		return 0, false
+	}
+}
+
 // encodeInt16 convert the given value to an int16.
 // Accepts: `int8`, `int16`.
 func encodeInt16(v any) (int16, error) {
@@ -73,6 +112,25 @@ func NewIntFromString(n string) Int {
 		panic("number: invalid string: " + n)
 	}
 	return Int{bi}
+}
+
+func anyToInt(v any) (Int, bool) {
+	switch v := v.(type) {
+	case Int:
+		return v, true
+	case int:
+		return NewInt(v), true
+	case int64:
+		return NewInt(v), true
+	case int32:
+		return NewInt(v), true
+	case int16:
+		return NewInt(v), true
+	case int8:
+		return NewInt(v), true
+	default:
+		return Int{}, false
+	}
 }
 
 // BigInt returns the underlying big.Int.
@@ -248,6 +306,102 @@ func (n IntType) String() string {
 		return "int"
 	}
 	return fmt.Sprintf("int%d", n.size*8)
+}
+
+func (n IntType) UnmarshalGo(raw any, _v any) error {
+	switch n.size {
+	case 0:
+		n, ok := anyToInt(raw)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		v, ok := _v.(*Int)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		*v = n
+		return nil
+	case 8:
+		i64, ok := anyToInt64(raw)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		switch v := _v.(type) {
+		case *int64:
+			*v = i64
+			return nil
+		case *Int:
+			*v = NewInt(i64)
+			return nil
+		default:
+			return NewUnmarshalGoError(raw, _v)
+		}
+	case 4:
+		i32, ok := anyToInt32(raw)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		switch v := _v.(type) {
+		case *int32:
+			*v = i32
+			return nil
+		case *Int:
+			*v = NewInt(i32)
+			return nil
+		case *int64:
+			*v = int64(i32)
+			return nil
+		default:
+			return NewUnmarshalGoError(raw, _v)
+		}
+	case 2:
+		i16, ok := anyToInt16(raw)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		switch v := _v.(type) {
+		case *int16:
+			*v = i16
+			return nil
+		case *Int:
+			*v = NewInt(i16)
+			return nil
+		case *int64:
+			*v = int64(i16)
+			return nil
+		case *int32:
+			*v = int32(i16)
+			return nil
+		default:
+			return NewUnmarshalGoError(raw, _v)
+		}
+	case 1:
+		i8, ok := raw.(int8)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		switch v := _v.(type) {
+		case *int8:
+			*v = i8
+			return nil
+		case *Int:
+			*v = NewInt(i8)
+			return nil
+		case *int64:
+			*v = int64(i8)
+			return nil
+		case *int32:
+			*v = int32(i8)
+			return nil
+		case *int16:
+			*v = int16(i8)
+			return nil
+		default:
+			return NewUnmarshalGoError(raw, _v)
+		}
+	default:
+		return NewUnmarshalGoError(raw, _v)
+	}
 }
 
 // Integer contains all integer types.

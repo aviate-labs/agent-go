@@ -11,26 +11,6 @@ import (
 	"github.com/aviate-labs/leb128"
 )
 
-func VariantToStruct(r *VariantType, variant *Variant, value any) error {
-	v := reflect.ValueOf(value).Elem()
-	if !v.CanAddr() {
-		return fmt.Errorf("can not address struct value")
-	}
-
-	fieldNameToIndex := make(map[string]int)
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Type().Field(i)
-		tag := parseTags(field)
-		fieldNameToIndex[HashString(tag.name)] = i
-	}
-
-	i := fieldNameToIndex[r.Fields[0].Name]
-	ptrValue := reflect.New(reflect.TypeOf(variant.Value))
-	ptrValue.Elem().Set(reflect.ValueOf(variant.Value))
-	v.Field(i).Set(ptrValue)
-	return nil
-}
-
 type Variant struct {
 	Name  string
 	Value any
@@ -55,8 +35,8 @@ func NewVariantType(fields map[string]Type) *VariantType {
 	return &variant
 }
 
-func (v VariantType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
-	for _, f := range v.Fields {
+func (variant VariantType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+	for _, f := range variant.Fields {
 		if err := f.Type.AddTypeDefinition(tdt); err != nil {
 			return err
 		}
@@ -66,12 +46,12 @@ func (v VariantType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	if err != nil {
 		return err
 	}
-	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(v.Fields))))
+	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(variant.Fields))))
 	if err != nil {
 		return err
 	}
 	var vs []byte
-	for _, f := range v.Fields {
+	for _, f := range variant.Fields {
 		id, err := leb128.EncodeUnsigned(Hash(f.Name))
 		if err != nil {
 			return nil
@@ -83,43 +63,43 @@ func (v VariantType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 		vs = append(vs, concat(id, t)...)
 	}
 
-	tdt.Add(v, concat(id, l, vs))
+	tdt.Add(variant, concat(id, l, vs))
 	return nil
 }
 
-func (v VariantType) Decode(r *bytes.Reader) (any, error) {
+func (variant VariantType) Decode(r *bytes.Reader) (any, error) {
 	id, err := leb128.DecodeUnsigned(r)
 	if err != nil {
 		return nil, err
 	}
-	if id.Cmp(big.NewInt(int64(len(v.Fields)))) >= 0 {
-		return nil, fmt.Errorf("invalid variant index: %v", id)
+	if id.Cmp(big.NewInt(int64(len(variant.Fields)))) >= 0 {
+		return nil, fmt.Errorf("invalid variant index: %variant", id)
 	}
-	v_, err := v.Fields[int(id.Int64())].Type.Decode(r)
+	v_, err := variant.Fields[int(id.Int64())].Type.Decode(r)
 	if err != nil {
 		return nil, err
 	}
 	return &Variant{
 		Name:  id.String(),
 		Value: v_,
-		Type:  v,
+		Type:  variant,
 	}, nil
 }
 
-func (v VariantType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
-	idx, ok := tdt.Indexes[v.String()]
+func (variant VariantType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
+	idx, ok := tdt.Indexes[variant.String()]
 	if !ok {
-		return nil, fmt.Errorf("missing type index for: %s", v)
+		return nil, fmt.Errorf("missing type index for: %s", variant)
 	}
 	return leb128.EncodeSigned(big.NewInt(int64(idx)))
 }
 
-func (v VariantType) EncodeValue(value any) ([]byte, error) {
+func (variant VariantType) EncodeValue(value any) ([]byte, error) {
 	fs, ok := value.(Variant)
 	if !ok {
-		return nil, NewEncodeValueError(v, varType)
+		return nil, NewEncodeValueError(variant, varType)
 	}
-	for i, f := range v.Fields {
+	for i, f := range variant.Fields {
 		if f.Name == fs.Name {
 			id, err := leb128.EncodeUnsigned(big.NewInt(int64(i)))
 			if err != nil {
@@ -132,13 +112,91 @@ func (v VariantType) EncodeValue(value any) ([]byte, error) {
 			return concat(id, v_), nil
 		}
 	}
-	return nil, fmt.Errorf("unknown variant: %v", value)
+	return nil, fmt.Errorf("unknown variant: %variant", value)
 }
 
-func (v VariantType) String() string {
+func (variant VariantType) String() string {
 	var s []string
-	for _, f := range v.Fields {
+	for _, f := range variant.Fields {
 		s = append(s, fmt.Sprintf("%s:%s", f.Name, f.Type.String()))
 	}
 	return fmt.Sprintf("variant {%s}", strings.Join(s, "; "))
+}
+
+func (variant VariantType) UnmarshalGo(raw any, _v any) error {
+	m := make(map[string]any)
+	switch rv := reflect.ValueOf(raw); rv.Kind() {
+	case reflect.Map:
+		for _, k := range rv.MapKeys() {
+			m[k.String()] = rv.MapIndex(k).Interface()
+		}
+	case reflect.Struct:
+		for i := 0; i < rv.NumField(); i++ {
+			f := rv.Type().Field(i)
+			tag := ParseTags(f)
+			m[tag.Name] = rv.Field(i).Interface()
+		}
+	default:
+		return NewUnmarshalGoError(raw, _v)
+	}
+	if len(m) != 1 {
+		return NewUnmarshalGoError(raw, _v)
+	}
+
+	if v, ok := _v.(*map[string]any); ok {
+		return variant.unmarshalMap(m, v)
+	}
+	v := reflect.ValueOf(_v)
+	if v.Kind() != reflect.Ptr {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	v = v.Elem()
+	if v.Kind() != reflect.Struct {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	return variant.unmarshalStruct(m, v)
+}
+
+func (variant VariantType) unmarshalMap(raw map[string]any, _v *map[string]any) error {
+	for _, f := range variant.Fields {
+		v, err := EmptyOf(f.Type)
+		if err != nil {
+			continue
+		}
+
+		r := reflect.New(reflect.ValueOf(v).Type()).Elem()
+		if err := f.Type.UnmarshalGo(raw[f.Name], r.Addr().Interface()); err != nil {
+			return err
+		}
+		*_v = map[string]any{
+			f.Name: r.Interface(),
+		}
+		return nil
+	}
+	return NewUnmarshalGoError(raw, _v)
+}
+
+func (variant VariantType) unmarshalStruct(raw map[string]any, _v reflect.Value) error {
+	findField := func(name string) (reflect.Value, bool) {
+		name = lowerFirstCharacter(name)
+		for i := 0; i < _v.NumField(); i++ {
+			f := _v.Type().Field(i)
+			tag := ParseTags(f)
+			if tag.Name == name {
+				return _v.Field(i), true
+			}
+		}
+		return reflect.Value{}, false
+	}
+	for _, f := range variant.Fields {
+		v, ok := findField(f.Name)
+		if !ok {
+			continue
+		}
+		if err := f.Type.UnmarshalGo(raw[f.Name], v.Addr().Interface()); err != nil {
+			return err
+		}
+		return nil
+	}
+	return NewUnmarshalGoError(raw, _v)
 }

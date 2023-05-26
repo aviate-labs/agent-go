@@ -9,10 +9,9 @@ import (
 )
 
 func ExampleTypeOf() {
-	fmt.Println(idl.TypeOf(0))
-	fmt.Println(idl.TypeOf(idl.Optional{
-		V: 0, T: idl.Int64Type(),
-	}))
+	i := 0
+	fmt.Println(idl.TypeOf(i))
+	fmt.Println(idl.TypeOf(&i))
 	fmt.Println(idl.TypeOf([]any{0}))
 	fmt.Println(idl.TypeOf(map[string]any{
 		"foo": 0,
@@ -32,16 +31,6 @@ func ExampleTypeOf() {
 	// record {foo:int64} <nil>
 	// variant {foo:int64} <nil>
 	// principal <nil>
-}
-
-func TestTypeOf_customOptionalType(t *testing.T) {
-	typ, err := idl.TypeOf(ONat{})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if typ.String() != "opt nat" {
-		t.Error(typ)
-	}
 }
 
 func TestTypeOf_nil(t *testing.T) {
@@ -71,16 +60,4 @@ func TestTypeOf_nonInterfaceSlice(t *testing.T) {
 	if typ.String() != "vec nat" {
 		t.Error(typ)
 	}
-}
-
-type ONat struct {
-	V *idl.Nat
-}
-
-func (n ONat) Subtype() idl.Type {
-	return new(idl.NatType)
-}
-
-func (n ONat) Value() any {
-	return n.V
 }

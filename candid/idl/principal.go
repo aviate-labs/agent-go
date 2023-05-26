@@ -26,13 +26,13 @@ func (PrincipalType) Decode(r *bytes.Reader) (any, error) {
 		return nil, err
 	}
 	if l.Uint64() == 0 {
-		return &principal.Principal{Raw: []byte{}}, nil
+		return principal.Principal{Raw: []byte{}}, nil
 	}
 	v := make([]byte, l.Uint64())
 	if _, err := r.Read(v); err != nil {
 		return nil, err
 	}
-	return &principal.Principal{Raw: v}, nil
+	return principal.Principal{Raw: v}, nil
 }
 
 func (PrincipalType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
@@ -53,4 +53,20 @@ func (PrincipalType) EncodeValue(v any) ([]byte, error) {
 
 func (PrincipalType) String() string {
 	return "principal"
+}
+
+func (PrincipalType) UnmarshalGo(raw any, _v any) error {
+	v, ok := _v.(*principal.Principal)
+	if !ok {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	if p, ok := raw.(principal.Principal); ok {
+		*v = p
+		return nil
+	}
+	if b, ok := raw.([]byte); ok {
+		*v = principal.Principal{Raw: b}
+		return nil
+	}
+	return NewUnmarshalGoError(raw, _v)
 }

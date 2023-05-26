@@ -28,3 +28,7 @@ func (ReservedType) EncodeValue(_ any) ([]byte, error) {
 func (ReservedType) String() string {
 	return "reserved"
 }
+
+func (ReservedType) UnmarshalGo(raw any, _v any) error {
+	return NewUnmarshalGoError(raw, _v)
+}

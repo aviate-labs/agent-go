@@ -169,6 +169,10 @@ func (f FunctionType) String() string {
 	return fmt.Sprintf("(%s) -> (%s)%s", strings.Join(args, ", "), strings.Join(rets, ", "), ann)
 }
 
+func (FunctionType) UnmarshalGo(raw any, _v any) error {
+	return NewUnmarshalGoError(raw, _v)
+}
+
 type PrincipalMethod struct {
 	Principal principal.Principal
 	Method    string

@@ -89,3 +89,54 @@ func (vec VectorType) EncodeValue(v any) ([]byte, error) {
 func (vec VectorType) String() string {
 	return fmt.Sprintf("vec %s", vec.Type)
 }
+
+func (vec VectorType) UnmarshalGo(raw any, _v any) error {
+	v := reflect.ValueOf(_v)
+	if v.Kind() != reflect.Ptr {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	v = v.Elem()
+	if v.Kind() != reflect.Slice && v.Kind() != reflect.Array {
+		return NewUnmarshalGoError(raw, _v)
+	}
+
+	if raw == nil {
+		// Empty vector/slice.
+		v.Set(reflect.Zero(v.Type()))
+		return nil
+	}
+
+	rv := reflect.ValueOf(raw)
+	if v.Kind() == reflect.Array {
+		// Check if array is big enough.
+		if rv.Len() != v.Len() {
+			return NewUnmarshalGoError(raw, _v)
+		}
+	}
+
+	if rv.Kind() != reflect.Slice && rv.Kind() != reflect.Array {
+		return NewUnmarshalGoError(raw, _v)
+	}
+
+	if v.Len() > rv.Len() {
+		// Truncate slice.
+		v.Set(v.Slice(0, rv.Len()))
+	}
+	for i := 0; i < rv.Len(); i++ {
+		rv := rv.Index(i).Interface()
+		if i < v.Len() {
+			// Reuse existing element.
+			if err := vec.Type.UnmarshalGo(rv, v.Index(i).Addr().Interface()); err != nil {
+				return err
+			}
+		} else {
+			n := reflect.New(v.Type().Elem()) // Create new element.
+			if err := vec.Type.UnmarshalGo(rv, n.Interface()); err != nil {
+				return err
+			}
+			// Append new element.
+			v.Set(reflect.Append(v, n.Elem()))
+		}
+	}
+	return nil
+}

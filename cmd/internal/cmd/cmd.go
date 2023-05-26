@@ -121,9 +121,7 @@ type CommandOption struct {
 
 type EmptyCommand struct {
 	name        string
-	aliases     []string
 	description string
-	summary     string
 }
 
 func (c *EmptyCommand) Call(_ ...string) error {

@@ -8,22 +8,6 @@ import (
 	"reflect"
 )
 
-// Optional is a type that can be either nil or a value of the given type.
-type Optional struct {
-	V any
-	T Type
-}
-
-// Subtype returns the type of the value.
-func (o Optional) Subtype() Type {
-	return o.T
-}
-
-// Value returns the value.
-func (o Optional) Value() any {
-	return o.V
-}
-
 // OptionalType is the type of an optional value.
 type OptionalType struct {
 	Type Type
@@ -85,9 +69,6 @@ func (o OptionalType) EncodeValue(v any) ([]byte, error) {
 	if v == nil {
 		return []byte{0x00}, nil
 	}
-	if v, ok := v.(OptionalValue); ok {
-		return o.EncodeValue(v.Value())
-	}
 	if v := reflect.ValueOf(v); v.Kind() == reflect.Ptr {
 		return o.EncodeValue(v.Elem().Interface())
 	}
@@ -103,10 +84,27 @@ func (o OptionalType) String() string {
 	return fmt.Sprintf("opt %s", o.Type)
 }
 
-// OptionalValue is a value of an optional type.
-type OptionalValue interface {
-	// Value returns the value.
-	Value() any
-	// Subtype returns the type of the value.
-	Subtype() Type
+func (o OptionalType) UnmarshalGo(raw any, _v any) error {
+	if raw == nil {
+		// Optional value is `nil`.
+		return nil
+	}
+	if v := reflect.ValueOf(_v); v.Kind() == reflect.Ptr {
+		v := v.Elem() // Dereference the pointer.
+		if v.Kind() != reflect.Ptr {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		if !v.IsNil() {
+			// No need to allocate a new pointer.
+			return o.Type.UnmarshalGo(raw, v.Interface())
+		}
+		ptr := reflect.New(v.Type().Elem()) // Create a new pointer.
+		if err := o.Type.UnmarshalGo(raw, ptr.Interface()); err != nil {
+			return err
+		}
+		v.Set(ptr)
+		return nil
+	}
+	// Nothing to assign to v.
+	return NewUnmarshalGoError(raw, _v)
 }

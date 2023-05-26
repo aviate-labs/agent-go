@@ -120,3 +120,7 @@ func (s Service) String() string {
 	}
 	return fmt.Sprintf("service {%s}", strings.Join(methods, "; "))
 }
+
+func (Service) UnmarshalGo(raw any, _v any) error {
+	return NewUnmarshalGoError(raw, _v)
+}

@@ -51,3 +51,16 @@ func (BoolType) EncodeValue(v any) ([]byte, error) {
 func (BoolType) String() string {
 	return "bool"
 }
+
+func (BoolType) UnmarshalGo(raw any, _v any) error {
+	v, ok := _v.(*bool)
+	if !ok {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	b, ok := raw.(bool)
+	if !ok {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	*v = b
+	return nil
+}

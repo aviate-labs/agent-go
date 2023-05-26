@@ -69,21 +69,6 @@ var tree = cert.Fork{
 	},
 }
 
-func ExampleB() {
-	fmt.Printf("%X", cert.Leaf("good").Reconstruct())
-	// Output:
-	// 7B32AC0C6BA8CE35AC82C255FC7906F7FC130DAB2A090F80FE12F9C2CAE83BA6
-}
-
-func ExampleC() {
-	fmt.Printf("%X", cert.Labeled{
-		Label: []byte("c"),
-		Tree:  cert.Empty{},
-	}.Reconstruct())
-	// Output:
-	// EC8324B8A1F1AC16BD2E806EDBA78006479C9877FED4EB464A25485465AF601D
-}
-
 func ExampleDeserialize() {
 	data, _ := hex.DecodeString("8301830183024161830183018302417882034568656c6c6f810083024179820345776f726c6483024162820344676f6f648301830241638100830241648203476d6f726e696e67")
 	fmt.Println(cert.Deserialize(data))
@@ -97,17 +82,32 @@ func ExamplePruned() {
 	// EB5C5B2195E62D996B84C9BCC8259D19A83786A2F59E0878CEC84C811F669AA0
 }
 
-func ExampleRoot() {
-	fmt.Printf("%X", tree.Reconstruct())
-	// Output:
-	// EB5C5B2195E62D996B84C9BCC8259D19A83786A2F59E0878CEC84C811F669AA0
-}
-
 func ExampleSerialize() {
 	b, _ := cert.Serialize(tree)
 	fmt.Printf("%x", b)
 	// Output:
 	// 8301830183024161830183018302417882034568656c6c6f810083024179820345776f726c6483024162820344676f6f648301830241638100830241648203476d6f726e696e67
+}
+
+func Example_b() {
+	fmt.Printf("%X", cert.Leaf("good").Reconstruct())
+	// Output:
+	// 7B32AC0C6BA8CE35AC82C255FC7906F7FC130DAB2A090F80FE12F9C2CAE83BA6
+}
+
+func Example_c() {
+	fmt.Printf("%X", cert.Labeled{
+		Label: []byte("c"),
+		Tree:  cert.Empty{},
+	}.Reconstruct())
+	// Output:
+	// EC8324B8A1F1AC16BD2E806EDBA78006479C9877FED4EB464A25485465AF601D
+}
+
+func Example_root() {
+	fmt.Printf("%X", tree.Reconstruct())
+	// Output:
+	// EB5C5B2195E62D996B84C9BCC8259D19A83786A2F59E0878CEC84C811F669AA0
 }
 
 // Source: https://sdk.dfinity.org/docs/interface-spec/index.html#_example
@@ -118,7 +118,7 @@ func ExampleSerialize() {
 //	│ └╴"b" ──╴"good"
 //	└─┬╴"c" ──╴Empty
 //	  └╴"d" ──╴"morning"
-func ExampleX() {
+func Example_x() {
 	fmt.Printf("%X", cert.Fork{
 		LeftTree: cert.Labeled{
 			Label: []byte("x"),

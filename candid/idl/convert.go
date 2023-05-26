@@ -2,14 +2,18 @@ package idl
 
 import (
 	"fmt"
-	"math/big"
 	"reflect"
 
 	"github.com/aviate-labs/agent-go/principal"
 )
 
 func EmptyOf(t Type) (any, error) {
-	switch t := t.(type) {
+	var v any = t
+	if r := reflect.ValueOf(t); r.Kind() == reflect.Ptr {
+		v = r.Elem().Interface()
+	}
+
+	switch t := v.(type) {
 	case NullType:
 		return Null{}, nil
 	case BoolType:
@@ -25,7 +29,7 @@ func EmptyOf(t Type) (any, error) {
 		case 8:
 			return uint64(0), nil
 		default:
-			return NewBigNat(big.NewInt(0)), nil
+			return NewNat(uint(0)), nil
 		}
 	case IntType:
 		switch t.size {
@@ -38,7 +42,7 @@ func EmptyOf(t Type) (any, error) {
 		case 8:
 			return int64(0), nil
 		default:
-			return NewBigInt(big.NewInt(0)), nil
+			return NewInt(0), nil
 		}
 	case FloatType:
 		switch t.size {
@@ -53,12 +57,11 @@ func EmptyOf(t Type) (any, error) {
 		return Reserved{}, nil
 	case EmptyType:
 		return Empty{}, nil
+	case PrincipalType:
+		return principal.Principal{}, nil
 	case OptionalType:
 		if v, err := EmptyOf(t.Type); err == nil {
-			return Optional{
-				V: v,
-				T: t,
-			}, nil
+			return &v, nil
 		}
 	case VectorType:
 		if v, err := EmptyOf(t.Type); err == nil {
@@ -136,8 +139,6 @@ func TypeOf(v any) (Type, error) {
 		return new(ReservedType), nil
 	case Empty:
 		return new(EmptyType), nil
-	case Optional:
-		return NewOptionalType(v.Subtype()), nil
 	case []any:
 		typ, err := TypeOf(v[0])
 		if err != nil {
@@ -169,11 +170,6 @@ func TypeOf(v any) (Type, error) {
 			return new(NullType), nil
 		}
 
-		// Optional interface.
-		if o, ok := v.(OptionalValue); ok {
-			return NewOptionalType(o.Subtype()), nil
-		}
-
 		// Specific slices.
 		switch t := reflect.TypeOf(v); t.Kind() {
 		case reflect.Slice, reflect.Array:
@@ -200,7 +196,6 @@ func TypeOf(v any) (Type, error) {
 			}
 			return NewOptionalType(typ), nil
 		default:
-			fmt.Println(reflect.TypeOf(v).Kind(), reflect.Struct)
 			return nil, UnknownValueTypeError{Value: v}
 		}
 	}

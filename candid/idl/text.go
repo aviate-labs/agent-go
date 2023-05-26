@@ -58,3 +58,16 @@ func (TextType) EncodeValue(v any) ([]byte, error) {
 func (TextType) String() string {
 	return "text"
 }
+
+func (t TextType) UnmarshalGo(raw any, _v any) error {
+	v, ok := _v.(*string)
+	if !ok {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	b, ok := raw.(string)
+	if !ok {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	*v = b
+	return nil
+}

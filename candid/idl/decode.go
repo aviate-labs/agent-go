@@ -41,6 +41,8 @@ func Decode(bs []byte) ([]Type, []any, error) {
 		if err != nil {
 			return nil, nil, err
 		}
+
+		var tc typeCache
 		for i := 0; i < int(tdtl.Int64()); i++ {
 			tid, err := leb128.DecodeSigned(r)
 			if err != nil {
@@ -52,21 +54,43 @@ func Decode(bs []byte) ([]Type, []any, error) {
 				if err != nil {
 					return nil, nil, err
 				}
-				v, err := getType(tid.Int64(), tds)
-				if err != nil {
-					return nil, nil, err
+				f := func(tdt []Type) (Type, error) {
+					v, err := getType(tid.Int64(), tdt)
+					if err != nil {
+						return nil, err
+					}
+					return &OptionalType{v}, nil
 				}
-				tds = append(tds, &OptionalType{v})
+				if v, err := f(tds); err == nil {
+					tds = append(tds, v)
+				} else {
+					tc = append(tc, delayType{
+						index: len(tds),
+						f:     f,
+					})
+					tds = append(tds, nil)
+				}
 			case vecType:
 				tid, err := leb128.DecodeSigned(r)
 				if err != nil {
 					return nil, nil, err
 				}
-				v, err := getType(tid.Int64(), tds)
-				if err != nil {
-					return nil, nil, err
+				f := func(tdt []Type) (Type, error) {
+					v, err := getType(tid.Int64(), tdt)
+					if err != nil {
+						return nil, err
+					}
+					return &VectorType{v}, nil
 				}
-				tds = append(tds, &VectorType{v})
+				if v, err := f(tds); err == nil {
+					tds = append(tds, v)
+				} else {
+					tc = append(tc, delayType{
+						index: len(tds),
+						f:     f,
+					})
+					tds = append(tds, nil)
+				}
 			case recType:
 				l, err := leb128.DecodeUnsigned(r)
 				if err != nil {
@@ -82,10 +106,17 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					if err != nil {
 						return nil, nil, err
 					}
-					fields = append(fields, FieldType{
-						Name:  h.String(),
-						Index: tid.Int64(),
-					})
+					if v, err := getType(tid.Int64(), tds); err != nil {
+						fields = append(fields, FieldType{
+							Name:  h.String(),
+							index: tid.Int64(),
+						})
+					} else {
+						fields = append(fields, FieldType{
+							Name: h.String(),
+							Type: v,
+						})
+					}
 				}
 				tds = append(tds, &RecordType{Fields: fields})
 			case varType:
@@ -103,10 +134,17 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					if err != nil {
 						return nil, nil, err
 					}
-					fields = append(fields, FieldType{
-						Name:  h.String(),
-						Index: tid.Int64(),
-					})
+					if v, err := getType(tid.Int64(), tds); err != nil {
+						fields = append(fields, FieldType{
+							Name:  h.String(),
+							index: tid.Int64(),
+						})
+					} else {
+						fields = append(fields, FieldType{
+							Name: h.String(),
+							Type: v,
+						})
+					}
 				}
 				tds = append(tds, &VariantType{Fields: fields})
 			case funcType:
@@ -201,23 +239,77 @@ func Decode(bs []byte) ([]Type, []any, error) {
 				})
 			}
 		}
-		for _, tb := range tds {
+
+		for len(tc) != 0 {
+			resolved := false
+			for i, d := range tc {
+				if v, err := d.f(tds); v != nil && err == nil {
+					tds[d.index] = v
+					tc = append(tc[:i], tc[i+1:]...)
+					resolved = true
+					break
+				}
+			}
+			if !resolved {
+				return nil, nil, fmt.Errorf("failed to resolve all types")
+			}
+		}
+
+		for i, tb := range tds {
 			switch t := tb.(type) {
 			case *VariantType:
-				for i, f := range t.Fields {
-					v, err := getType(f.Index, tds)
-					if err != nil {
-						return nil, nil, err
+				resolved := true
+				for _, f := range t.Fields {
+					if f.Type == nil {
+						resolved = false
 					}
-					t.Fields[i].Type = v
+				}
+				if resolved {
+					continue
+				}
+
+				f := func(tds []Type) (Type, error) {
+					for i, f := range t.Fields {
+						v, err := getType(f.index, tds)
+						if err != nil {
+							return nil, err
+						}
+						t.Fields[i].Type = v
+					}
+					return t, nil
+				}
+				if v, err := f(tds); v == nil || err != nil {
+					tc = append(tc, delayType{
+						index: i,
+						f:     f,
+					})
 				}
 			case *RecordType:
-				for i, f := range t.Fields {
-					v, err := getType(f.Index, tds)
-					if err != nil {
-						return nil, nil, err
+				resolved := true
+				for _, f := range t.Fields {
+					if f.Type == nil {
+						resolved = false
 					}
-					t.Fields[i].Type = v
+				}
+				if resolved {
+					continue
+				}
+
+				f := func(tds []Type) (Type, error) {
+					for i, f := range t.Fields {
+						v, err := getType(f.index, tds)
+						if err != nil {
+							return nil, err
+						}
+						t.Fields[i].Type = v
+					}
+					return t, nil
+				}
+				if v, err := f(tds); v == nil || err != nil {
+					tc = append(tc, delayType{
+						index: i,
+						f:     f,
+					})
 				}
 			}
 		}
@@ -259,3 +351,16 @@ func Decode(bs []byte) ([]Type, []any, error) {
 	}
 	return ts, vs, nil
 }
+
+type delayType struct {
+	// index is the index of the type in the type list.
+	index int
+	// f is a function that takes the type list and returns the resolved type.
+	f func(tdt []Type) (Type, error)
+}
+
+// typeCache is a cache of types that are not yet fully decoded.
+// It is used to resolve recursive types.
+// - int is the index of the type in the type list.
+// - []delayType is a list of type that depend on the type to be resolved.
+type typeCache []delayType
