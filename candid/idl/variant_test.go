@@ -83,11 +83,14 @@ func TestVariantType_UnmarshalGo(t *testing.T) {
 				},
 			},
 		}
-		var m struct{ Ok string }
+		var m struct {
+			Ok  *string
+			Err *string
+		}
 		if err := result.UnmarshalGo(map[string]any{"ok": "👌🏼"}, &m); err != nil {
 			t.Fatal(err)
 		}
-		if m.Ok != "👌🏼" {
+		if *m.Ok != "👌🏼" {
 			t.Fatal("expected 👌🏼")
 		}
 		if err := result.UnmarshalGo(struct {
@@ -97,20 +100,32 @@ func TestVariantType_UnmarshalGo(t *testing.T) {
 		}, &m); err != nil {
 			t.Fatal(err)
 		}
-		if m.Ok != "👋🏼" {
+		if *m.Ok != "👋🏼" {
 			t.Fatal("expected 👋🏼")
+		}
+		ok := "🤔"
+		if err := result.UnmarshalGo(struct {
+			Ok *string `ic:"ok"`
+		}{
+			Ok: &ok,
+		}, &m); err != nil {
+			t.Fatal(err)
+		}
+		if *m.Ok != "🤔" {
+			t.Fatal("expected 🤔")
 		}
 		if err := result.UnmarshalGo(map[string]string{
 			"ok": "",
 		}, &m); err != nil {
 			t.Fatal(err)
 		}
-		if m.Ok != "" {
+		if *m.Ok != "" {
 			t.Fatal("expected empty string")
 		}
 
-		expectErr(t, result.UnmarshalGo(map[string]any{}, &m))                        // At least one field must be present.
-		expectErr(t, result.UnmarshalGo(map[string]any{"ok": "👌🏼", "err": "👎🏼"}, &m)) // Only one field can be present.
+		expectErr(t, result.UnmarshalGo(map[string]any{"ok": "👍🏼"}, &struct{ Ok string }{})) // Field must be a pointer.
+		expectErr(t, result.UnmarshalGo(map[string]any{}, &m))                               // At least one field must be present.
+		expectErr(t, result.UnmarshalGo(map[string]any{"ok": "👌🏼", "err": "👎🏼"}, &m))        // Only one field can be present.
 	})
 
 	var a any

@@ -134,7 +134,11 @@ func (variant VariantType) UnmarshalGo(raw any, _v any) error {
 		for i := 0; i < rv.NumField(); i++ {
 			f := rv.Type().Field(i)
 			tag := ParseTags(f)
-			m[tag.Name] = rv.Field(i).Interface()
+			v := rv.Field(i)
+			if v.Kind() == reflect.Ptr {
+				v = v.Elem()
+			}
+			m[tag.Name] = v.Interface()
 		}
 	default:
 		return NewUnmarshalGoError(raw, _v)
@@ -193,7 +197,14 @@ func (variant VariantType) unmarshalStruct(raw map[string]any, _v reflect.Value)
 		if !ok {
 			continue
 		}
-		if err := f.Type.UnmarshalGo(raw[f.Name], v.Addr().Interface()); err != nil {
+		if v.Kind() != reflect.Ptr {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		if v.IsNil() {
+			// Allocate a new value if the pointer is nil.
+			v.Set(reflect.New(v.Type().Elem()))
+		}
+		if err := f.Type.UnmarshalGo(raw[f.Name], v.Interface()); err != nil {
 			return err
 		}
 		return nil
