@@ -200,7 +200,17 @@ func (record RecordType) unmarshalStruct(raw map[string]any, _v reflect.Value) e
 		if !ok {
 			return NewUnmarshalGoError(raw, _v.Interface())
 		}
-		if err := f.Type.UnmarshalGo(raw[f.Name], v.Addr().Interface()); err != nil {
+		if v.Kind() != reflect.Ptr {
+			v = v.Addr()
+		}
+		if v.IsNil() {
+			// Set to a new value if the field is nil.
+			if _, ok := f.Type.(*NullType); !ok {
+				v.Set(reflect.New(v.Type().Elem()))
+			}
+		}
+
+		if err := f.Type.UnmarshalGo(raw[f.Name], v.Interface()); err != nil {
 			return err
 		}
 	}

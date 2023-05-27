@@ -73,7 +73,7 @@ func (variant VariantType) Decode(r *bytes.Reader) (any, error) {
 		return nil, err
 	}
 	if id.Cmp(big.NewInt(int64(len(variant.Fields)))) >= 0 {
-		return nil, fmt.Errorf("invalid variant index: %variant", id)
+		return nil, fmt.Errorf("invalid variant index: %v", id)
 	}
 	f := variant.Fields[int(id.Int64())]
 	v_, err := f.Type.Decode(r)
@@ -125,17 +125,28 @@ func (variant VariantType) String() string {
 }
 
 func (variant VariantType) UnmarshalGo(raw any, _v any) error {
-	m := make(map[string]any)
+	var (
+		name  string
+		value any
+	)
 	switch raw := raw.(type) {
 	case *Variant:
-		m[raw.Name] = raw.Value
+		name = raw.Name
+		value = raw.Value
 	default:
 		switch rv := reflect.ValueOf(raw); rv.Kind() {
 		case reflect.Map:
+			if rv.Len() != 1 {
+				return NewUnmarshalGoError(raw, _v)
+			}
 			for _, k := range rv.MapKeys() {
-				m[k.String()] = rv.MapIndex(k).Interface()
+				name = k.String()
+				value = rv.MapIndex(k).Interface()
 			}
 		case reflect.Struct:
+			if rv.NumField() != 1 {
+				return NewUnmarshalGoError(raw, _v)
+			}
 			for i := 0; i < rv.NumField(); i++ {
 				f := rv.Type().Field(i)
 				tag := ParseTags(f)
@@ -143,18 +154,16 @@ func (variant VariantType) UnmarshalGo(raw any, _v any) error {
 				if v.Kind() == reflect.Ptr {
 					v = v.Elem()
 				}
-				m[tag.Name] = v.Interface()
+				name = tag.Name
+				value = v.Interface()
 			}
 		default:
 			return NewUnmarshalGoError(raw, _v)
 		}
 	}
-	if len(m) != 1 {
-		return NewUnmarshalGoError(raw, _v)
-	}
 
 	if v, ok := _v.(*map[string]any); ok {
-		return variant.unmarshalMap(m, v)
+		return variant.unmarshalMap(name, value, v)
 	}
 	v := reflect.ValueOf(_v)
 	if v.Kind() != reflect.Ptr {
@@ -164,18 +173,22 @@ func (variant VariantType) UnmarshalGo(raw any, _v any) error {
 	if v.Kind() != reflect.Struct {
 		return NewUnmarshalGoError(raw, _v)
 	}
-	return variant.unmarshalStruct(m, v)
+	return variant.unmarshalStruct(name, value, v)
 }
 
-func (variant VariantType) unmarshalMap(raw map[string]any, _v *map[string]any) error {
+func (variant VariantType) unmarshalMap(name string, value any, _v *map[string]any) error {
 	for _, f := range variant.Fields {
-		v, err := EmptyOf(f.Type)
-		if err != nil {
+		if f.Name != name {
 			continue
 		}
 
+		v, err := EmptyOf(f.Type)
+		if err != nil {
+			return NewUnmarshalGoError(value, _v)
+		}
+
 		r := reflect.New(reflect.ValueOf(v).Type()).Elem()
-		if err := f.Type.UnmarshalGo(raw[f.Name], r.Addr().Interface()); err != nil {
+		if err := f.Type.UnmarshalGo(value, r.Addr().Interface()); err != nil {
 			return err
 		}
 		*_v = map[string]any{
@@ -183,41 +196,34 @@ func (variant VariantType) unmarshalMap(raw map[string]any, _v *map[string]any) 
 		}
 		return nil
 	}
-	return NewUnmarshalGoError(raw, _v)
+	return NewUnmarshalGoError(value, _v)
 }
 
-func (variant VariantType) unmarshalStruct(raw map[string]any, _v reflect.Value) error {
-	findField := func(name string) (reflect.Value, bool) {
-		name = lowerFirstCharacter(name)
-		for i := 0; i < _v.NumField(); i++ {
-			f := _v.Type().Field(i)
-			tag := ParseTags(f)
-			if tag.Name == name || HashString(tag.Name) == name {
-				return _v.Field(i), true
-			}
+func (variant VariantType) unmarshalStruct(name string, value any, _v reflect.Value) error {
+	var v reflect.Value
+	name = lowerFirstCharacter(name)
+	for i := 0; i < _v.NumField(); i++ {
+		tag := ParseTags(_v.Type().Field(i))
+		if tag.Name == name || HashString(tag.Name) == name {
+			v = _v.Field(i)
 		}
-		return reflect.Value{}, false
+	}
+	if !v.IsValid() {
+		return NewUnmarshalGoError(value, _v.Interface())
 	}
 	for _, f := range variant.Fields {
-		v, ok := findField(f.Name)
-		if !ok {
+		if f.Name != name {
 			continue
 		}
+
 		if v.Kind() != reflect.Ptr {
-			return NewUnmarshalGoError(raw, _v.Interface())
+			return NewUnmarshalGoError(value, _v.Interface())
 		}
 		if v.IsNil() {
 			// Allocate a new value if the pointer is nil.
 			v.Set(reflect.New(v.Type().Elem()))
 		}
-		r, ok := raw[f.Name]
-		if !ok {
-			return NewUnmarshalGoError(raw, _v.Interface())
-		}
-		if err := f.Type.UnmarshalGo(r, v.Interface()); err != nil {
-			return err
-		}
-		return nil
+		return f.Type.UnmarshalGo(value, v.Interface())
 	}
-	return NewUnmarshalGoError(raw, _v.Interface())
+	return NewUnmarshalGoError(value, _v.Interface())
 }

@@ -19,7 +19,7 @@ Variants always expect exactly one label and one value, labels are case-sensitiv
 
 | IDL Type         | Accepted Go Value(s)                                      | Accepted Go Type(s)                               |
 |------------------|-----------------------------------------------------------|---------------------------------------------------|
-| `null`           | `idl.Null`, `nil`                                         | `idl.Null`                                        |
+| `null`           | `idl.Null`, `nil`                                         | `*`                                               |
 | `bool`           | `bool`                                                    | `bool`                                            |
 | `nat`            | `idl.Nat`, `uint`, `uint64`, `uint32`, `uint16`, `uint8`  | `idl.Nat`                                         |
 | `int`            | `idl.Int`, `int`, `int64`, `int32`, `int16`, `int8`       | `idl.Int`                                         |
