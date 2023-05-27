@@ -177,6 +177,31 @@ func TestRecordType_UnmarshalGo(t *testing.T) {
 		}).UnmarshalGo(
 			make(map[string]any), &rt,
 		))
+
+		rn := idl.RecordType{
+			Fields: []idl.FieldType{
+				{
+					Name: "foo",
+					Type: new(idl.TextType),
+				},
+				{
+					Name: "bar",
+					Type: idl.OptionalType{
+						Type: idl.RecordType{},
+					},
+				},
+			},
+		}
+		var sn struct {
+			Foo string
+			Bar *struct{}
+		}
+		if err := rn.UnmarshalGo(map[string]any{
+			"foo": "💩",
+			"bar": nil,
+		}, &sn); err != nil {
+			t.Fatal(err)
+		}
 	})
 
 	var a any

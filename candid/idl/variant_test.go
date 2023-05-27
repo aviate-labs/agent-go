@@ -94,14 +94,14 @@ func TestVariantType_UnmarshalGo(t *testing.T) {
 			t.Fatal("expected 👌🏼")
 		}
 		if err := result.UnmarshalGo(struct {
-			Ok string `ic:"ok"`
+			Err string `ic:"err"`
 		}{
-			Ok: "👋🏼",
+			Err: "err",
 		}, &m); err != nil {
 			t.Fatal(err)
 		}
-		if *m.Ok != "👋🏼" {
-			t.Fatal("expected 👋🏼")
+		if *m.Err != "err" {
+			t.Fatal("expected err")
 		}
 		ok := "🤔"
 		if err := result.UnmarshalGo(struct {

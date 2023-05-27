@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/aviate-labs/leb128"
 	"math/big"
+	"reflect"
 )
 
 type Null struct{}
@@ -32,7 +33,8 @@ func (NullType) String() string {
 }
 
 func (NullType) UnmarshalGo(raw any, _v any) error {
-	if _, ok := _v.(*Null); !ok {
+	v := reflect.ValueOf(_v)
+	if v.Kind() != reflect.Ptr {
 		return NewUnmarshalGoError(raw, _v)
 	}
 	if _, ok := raw.(Null); ok || raw == nil {

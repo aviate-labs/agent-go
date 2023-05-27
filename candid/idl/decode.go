@@ -270,6 +270,9 @@ func Decode(bs []byte) ([]Type, []any, error) {
 
 				f := func(tds []Type) (Type, error) {
 					for i, f := range t.Fields {
+						if f.Type != nil {
+							continue
+						}
 						v, err := getType(f.index, tds)
 						if err != nil {
 							return nil, err
@@ -297,6 +300,9 @@ func Decode(bs []byte) ([]Type, []any, error) {
 
 				f := func(tds []Type) (Type, error) {
 					for i, f := range t.Fields {
+						if f.Type != nil {
+							continue
+						}
 						v, err := getType(f.index, tds)
 						if err != nil {
 							return nil, err
