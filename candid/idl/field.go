@@ -4,6 +4,7 @@ package idl
 type FieldType struct {
 	// Name is the name of the field.
 	Name string
+
 	// Type is the type of the field.
 	Type Type
 
