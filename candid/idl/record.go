@@ -189,7 +189,7 @@ func (record RecordType) unmarshalStruct(raw map[string]any, _v reflect.Value) e
 		for i := 0; i < _v.NumField(); i++ {
 			f := _v.Type().Field(i)
 			tag := ParseTags(f)
-			if tag.Name == name {
+			if tag.Name == name || HashString(tag.Name) == name {
 				return _v.Field(i), true
 			}
 		}

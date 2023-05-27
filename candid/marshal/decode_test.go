@@ -62,15 +62,18 @@ func ExampleUnmarshal_struct() {
 }
 
 func ExampleUnmarshal_variant() {
-	var v *idl.Variant
+	var v struct {
+		Ok  *idl.Nat
+		Err *string
+	}
 	data, _ := hex.DecodeString("4449444c016b019cc2017d01000000")
 	fmt.Println(marshal.Unmarshal(data, []any{&v}), v)
 	// Output:
-	// <nil> &{0 0 variant {24860:nat}}
+	// <nil> {0 <nil>}
 }
 
 func ExampleUnmarshal_vector() {
-	var vec []any
+	var vec []idl.Int
 	data, _ := hex.DecodeString("4449444c016d7c01000400010203")
 	fmt.Println(marshal.Unmarshal(data, []any{&vec}), vec)
 	// Output:
