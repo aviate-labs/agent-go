@@ -23,10 +23,10 @@ func ExampleAgent_GetBlocks() {
 		op := block.Transaction.Operation.Mint
 		to := hex.EncodeToString(op.To)
 		amount := op.Amount.E8s / 10_000_000
-		fmt.Printf("%s %s %d ICP\n", unix.String(), to, amount)
+		fmt.Printf("%s %s %d ICP\n", unix.UTC().String(), to, amount)
 	}
 	// Output:
-	// 2021-05-06 21:17:10 +0200 CEST 529ea51c22e8d66e8302eabd9297b100fdb369109822248bb86939a671fbc55b 15431 ICP
+	// 2021-05-06 19:17:10 +0000 UTC 529ea51c22e8d66e8302eabd9297b100fdb369109822248bb86939a671fbc55b 15431 ICP
 }
 
 func TestUnmarshal_operation(t *testing.T) {
