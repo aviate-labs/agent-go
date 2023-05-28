@@ -5,7 +5,6 @@ package icparchive
 import (
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/marshal"
 	"github.com/aviate-labs/agent-go/principal"
 )
 
@@ -31,7 +30,7 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 
 // GetBlocks calls the "get_blocks" method on the "icparchive" canister.
 func (a Agent) GetBlocks(arg0 GetBlocksArgs) (*GetBlocksResult, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}

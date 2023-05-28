@@ -8,6 +8,53 @@ import (
 	"github.com/aviate-labs/leb128"
 )
 
+func Unmarshal(data []byte, values []any) error {
+	ts, vs, err := Decode(data)
+	if err != nil {
+		return err
+	}
+	if len(ts) != len(vs) {
+		return fmt.Errorf("unequal data types and value lengths: %d %d", len(ts), len(vs))
+	}
+
+	if len(vs) != len(values) {
+		return fmt.Errorf("unequal value lengths: %d %d", len(vs), len(values))
+	}
+
+	for i, v := range values {
+		if err := ts[i].UnmarshalGo(vs[i], v); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func checkIsPtr(_v any) (reflect.Value, bool) {
+	v := reflect.ValueOf(_v)
+	if v.Kind() != reflect.Ptr {
+		return v, false
+	}
+	v = v.Elem()
+	if v.Kind() == reflect.Interface {
+		v = v.Elem()
+	}
+	return v, true
+}
+
+func checkIsPtrPrim(_v any) (reflect.Value, reflect.Type, bool) {
+	v := reflect.ValueOf(_v)
+	if v.Kind() != reflect.Ptr {
+		return v, v.Type(), false
+	}
+	v = v.Elem()
+	t := v.Type()
+	if v.Kind() == reflect.Interface {
+		t = v.Elem().Type()
+	}
+	return v, t, true
+}
+
 func Decode(bs []byte) ([]Type, []any, error) {
 	if len(bs) == 0 {
 		return nil, nil, &FormatError{

@@ -5,7 +5,6 @@ package icrc1
 import (
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/marshal"
 	"github.com/aviate-labs/agent-go/principal"
 )
 
@@ -34,7 +33,7 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 
 // Icrc1BalanceOf calls the "icrc1_balance_of" method on the "icrc1" canister.
 func (a Agent) Icrc1BalanceOf(arg0 Account) (*idl.Nat, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -52,7 +51,7 @@ func (a Agent) Icrc1BalanceOf(arg0 Account) (*idl.Nat, error) {
 
 // Icrc1Decimals calls the "icrc1_decimals" method on the "icrc1" canister.
 func (a Agent) Icrc1Decimals() (*uint8, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +69,7 @@ func (a Agent) Icrc1Decimals() (*uint8, error) {
 
 // Icrc1Fee calls the "icrc1_fee" method on the "icrc1" canister.
 func (a Agent) Icrc1Fee() (*idl.Nat, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +90,7 @@ func (a Agent) Icrc1Metadata() (*[]struct {
 	field0 string `ic:"field0"`
 	field1 Value  `ic:"field1"`
 }, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -112,7 +111,7 @@ func (a Agent) Icrc1Metadata() (*[]struct {
 
 // Icrc1MintingAccount calls the "icrc1_minting_account" method on the "icrc1" canister.
 func (a Agent) Icrc1MintingAccount() (**Account, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +129,7 @@ func (a Agent) Icrc1MintingAccount() (**Account, error) {
 
 // Icrc1Name calls the "icrc1_name" method on the "icrc1" canister.
 func (a Agent) Icrc1Name() (*string, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +150,7 @@ func (a Agent) Icrc1SupportedStandards() (*[]struct {
 	Name string `ic:"name"`
 	Url  string `ic:"url"`
 }, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -172,7 +171,7 @@ func (a Agent) Icrc1SupportedStandards() (*[]struct {
 
 // Icrc1Symbol calls the "icrc1_symbol" method on the "icrc1" canister.
 func (a Agent) Icrc1Symbol() (*string, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -190,7 +189,7 @@ func (a Agent) Icrc1Symbol() (*string, error) {
 
 // Icrc1TotalSupply calls the "icrc1_total_supply" method on the "icrc1" canister.
 func (a Agent) Icrc1TotalSupply() (*idl.Nat, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +210,7 @@ func (a Agent) Icrc1Transfer(arg0 TransferArgs) (*struct {
 	Ok  *idl.Nat       `ic:"Ok,variant"`
 	Err *TransferError `ic:"Err,variant"`
 }, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}

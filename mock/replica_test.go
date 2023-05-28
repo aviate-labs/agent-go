@@ -16,17 +16,19 @@ func TestNewReplica(t *testing.T) {
 	var canisterId principal.Principal
 	replica.AddCanister(
 		canisterId,
-		func(request mock.Request) ([]any, error) {
-			if !bytes.Equal(request.Sender.Raw, principal.AnonymousID.Raw) {
-				t.Error("unexpected sender")
-			}
-			if request.MethodName != "test" {
-				t.Error("unexpected method name")
-			}
-			if len(request.Arguments) != 0 {
-				t.Error("unexpected arguments")
-			}
-			return []any{"hello"}, nil
+		[]mock.Method{
+			{
+				Name: "test",
+				Handler: func(request mock.Request) ([]any, error) {
+					if !bytes.Equal(request.Sender.Raw, principal.AnonymousID.Raw) {
+						t.Error("unexpected sender")
+					}
+					if len(request.Arguments) != 0 {
+						t.Error("unexpected arguments")
+					}
+					return []any{"hello"}, nil
+				},
+			},
 		},
 	)
 
@@ -63,8 +65,13 @@ func TestNewReplica_error(t *testing.T) {
 	var canisterId principal.Principal
 	replica.AddCanister(
 		canisterId,
-		func(request mock.Request) ([]any, error) {
-			return nil, fmt.Errorf("oops")
+		[]mock.Method{
+			{
+				Name: "test",
+				Handler: func(request mock.Request) ([]any, error) {
+					return nil, fmt.Errorf("oops")
+				},
+			},
 		},
 	)
 

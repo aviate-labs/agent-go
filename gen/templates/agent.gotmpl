@@ -5,7 +5,6 @@ package {{ .PackageName }}
 import (
     "github.com/aviate-labs/agent-go"
     {{ if .UsedIDL }}"github.com/aviate-labs/agent-go/candid/idl"{{ end }}
-    "github.com/aviate-labs/agent-go/candid/marshal"
     "github.com/aviate-labs/agent-go/principal"
 )
 
@@ -35,7 +34,7 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 
 // {{ .Name }} calls the "{{ .RawName }}" method on the "{{ $.CanisterName }}" canister.
 func (a Agent) {{ .Name }}({{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }} {{ $e.Type }}{{ end }}) {{ if .ReturnTypes }}({{ range .ReturnTypes }}*{{ . }}, {{ end }}error){{ else }}error{{ end }} {
-    args, err := marshal.Marshal([]any{{ "{" }}{{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }}{{ end }}{{ "}" }})
+    args, err := idl.Marshal([]any{{ "{" }}{{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }}{{ end }}{{ "}" }})
     if err != nil {
         return {{ range .ReturnTypes }}nil, {{ end }}err
     }

@@ -5,7 +5,6 @@ package icpledger
 import (
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/marshal"
 	"github.com/aviate-labs/agent-go/principal"
 )
 
@@ -35,7 +34,7 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 
 // AccountBalance calls the "account_balance" method on the "icpledger" canister.
 func (a Agent) AccountBalance(arg0 AccountBalanceArgs) (*Tokens, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +52,7 @@ func (a Agent) AccountBalance(arg0 AccountBalanceArgs) (*Tokens, error) {
 
 // Archives calls the "archives" method on the "icpledger" canister.
 func (a Agent) Archives() (*Archives, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +72,7 @@ func (a Agent) Archives() (*Archives, error) {
 func (a Agent) Decimals() (*struct {
 	Decimals uint32 `ic:"decimals"`
 }, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +94,7 @@ func (a Agent) Decimals() (*struct {
 func (a Agent) Name() (*struct {
 	Name string `ic:"name"`
 }, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +114,7 @@ func (a Agent) Name() (*struct {
 
 // QueryBlocks calls the "query_blocks" method on the "icpledger" canister.
 func (a Agent) QueryBlocks(arg0 GetBlocksArgs) (*QueryBlocksResponse, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +134,7 @@ func (a Agent) QueryBlocks(arg0 GetBlocksArgs) (*QueryBlocksResponse, error) {
 func (a Agent) Symbol() (*struct {
 	Symbol string `ic:"symbol"`
 }, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +154,7 @@ func (a Agent) Symbol() (*struct {
 
 // Transfer calls the "transfer" method on the "icpledger" canister.
 func (a Agent) Transfer(arg0 TransferArgs) (*TransferResult, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -173,7 +172,7 @@ func (a Agent) Transfer(arg0 TransferArgs) (*TransferResult, error) {
 
 // TransferFee calls the "transfer_fee" method on the "icpledger" canister.
 func (a Agent) TransferFee(arg0 TransferFeeArg) (*TransferFee, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
