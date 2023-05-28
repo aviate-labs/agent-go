@@ -66,3 +66,15 @@ func Encode(argumentTypes []Type, arguments []any) ([]byte, error) {
 		vs,
 	), nil
 }
+
+func Marshal(args []any) ([]byte, error) {
+	var types []Type
+	for _, a := range args {
+		t, err := TypeOf(a)
+		if err != nil {
+			return nil, err
+		}
+		types = append(types, t)
+	}
+	return Encode(types, args)
+}

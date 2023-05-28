@@ -9,7 +9,6 @@ import (
 
 	"github.com/aviate-labs/agent-go/candid"
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/marshal"
 	"github.com/aviate-labs/agent-go/certificate"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
@@ -88,7 +87,7 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []by
 	if err != nil {
 		return err
 	}
-	return marshal.Unmarshal(raw, values)
+	return idl.Unmarshal(raw, values)
 }
 
 // CallCandid calls a method on a canister and returns the raw Candid result as a list of types and values.
@@ -180,7 +179,7 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []b
 	if err != nil {
 		return err
 	}
-	return marshal.Unmarshal(raw, values)
+	return idl.Unmarshal(raw, values)
 }
 
 // QueryCandid queries a method on a canister and returns the raw Candid result as a list of types and values.

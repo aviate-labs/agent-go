@@ -4,7 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/candid/marshal"
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/ic"
 	"github.com/aviate-labs/agent-go/ic/icparchive"
 	"github.com/aviate-labs/agent-go/ic/icpledger"
@@ -33,7 +33,7 @@ func TestUnmarshal_operation(t *testing.T) {
 	t.Run("Mint", func(t *testing.T) {
 		var o icparchive.Operation
 		data, _ := hex.DecodeString("4449444c046b01c2f5d59903016c02fbca0102d8a38ca80d036d7b6c01e0a9b3027801000004746573741027000000000000")
-		if err := marshal.Unmarshal(data, []any{&o}); err != nil {
+		if err := idl.Unmarshal(data, []any{&o}); err != nil {
 			t.Fatal(err)
 		}
 		if o.Mint == nil {
@@ -53,7 +53,7 @@ func TestUnmarshal_operation(t *testing.T) {
 	t.Run("Burn", func(t *testing.T) {
 		var o icparchive.Operation
 		data, _ := hex.DecodeString("4449444c046b01ef80e5df02016c02eaca8a9e0402d8a38ca80d036d7b6c01e0a9b3027801000004746573741027000000000000")
-		if err := marshal.Unmarshal(data, []any{&o}); err != nil {
+		if err := idl.Unmarshal(data, []any{&o}); err != nil {
 			t.Fatal(err)
 		}
 		if o.Burn == nil {
@@ -73,7 +73,7 @@ func TestUnmarshal_operation(t *testing.T) {
 	t.Run("Transfer", func(t *testing.T) {
 		var o icparchive.Operation
 		data, _ := hex.DecodeString("4449444c046b01cbd6fda00b016c04fbca0102c6fcb60203eaca8a9e0402d8a38ca80d036d7b6c01e0a9b302780100000474657374000000000000000004746573741027000000000000")
-		if err := marshal.Unmarshal(data, []any{&o}); err != nil {
+		if err := idl.Unmarshal(data, []any{&o}); err != nil {
 			t.Fatal(err)
 		}
 		if o.Transfer == nil {
@@ -99,7 +99,7 @@ func TestUnmarshal_operation(t *testing.T) {
 	t.Run("Approve", func(t *testing.T) {
 		var o icparchive.Operation
 		data, _ := hex.DecodeString("4449444c046b01adfaedfb01016c05c6fcb60202eaca8a9e0403b98792ea077cdea7f7da0d7fcb96dcb40e036c01e0a9b302786d7b0100000000000000000000047465737490ce000474657374")
-		if err := marshal.Unmarshal(data, []any{&o}); err != nil {
+		if err := idl.Unmarshal(data, []any{&o}); err != nil {
 			t.Fatal(err)
 		}
 		if o.Approve == nil {

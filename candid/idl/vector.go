@@ -91,11 +91,11 @@ func (vec VectorType) String() string {
 }
 
 func (vec VectorType) UnmarshalGo(raw any, _v any) error {
-	v := reflect.ValueOf(_v)
-	if v.Kind() != reflect.Ptr {
+	v, ok := checkIsPtr(_v)
+	if !ok {
 		return NewUnmarshalGoError(raw, _v)
 	}
-	v = v.Elem()
+
 	if v.Kind() != reflect.Slice && v.Kind() != reflect.Array {
 		return NewUnmarshalGoError(raw, _v)
 	}

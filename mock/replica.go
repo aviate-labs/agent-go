@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/candid/marshal"
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/certificate"
 	"github.com/aviate-labs/agent-go/certificate/bls"
 	"github.com/aviate-labs/agent-go/principal"
@@ -17,10 +17,16 @@ import (
 
 type Canister struct {
 	Id      principal.Principal
-	Handler HandlerFunc
+	Methods map[string]Method
 }
 
 type HandlerFunc func(request Request) ([]any, error)
+
+type Method struct {
+	Name          string
+	ArgumentTypes []idl.Type
+	Handler       HandlerFunc
+}
 
 type Replica struct {
 	rootKey   *bls.SecretKey
@@ -37,10 +43,17 @@ func NewReplica() *Replica {
 }
 
 // AddCanister adds a canister to the replica.
-func (r *Replica) AddCanister(id principal.Principal, handler HandlerFunc) {
+func (r *Replica) AddCanister(
+	id principal.Principal,
+	methods []Method,
+) {
+	ms := make(map[string]Method)
+	for _, m := range methods {
+		ms[m.Name] = m
+	}
 	r.Canisters[id.String()] = Canister{
 		Id:      id,
-		Handler: handler,
+		Methods: ms,
 	}
 }
 
@@ -108,14 +121,27 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 		requestIdHex := hex.EncodeToString(requestId[:])
 		log.Println("received query request", requestIdHex)
 
-		values, err := canister.Handler(fromAgentRequest(req))
+		method, ok := canister.Methods[req.MethodName]
+		if !ok {
+			writer.WriteHeader(http.StatusNotFound)
+			_, _ = writer.Write([]byte("method not defined in replica: " + req.MethodName))
+			return
+		}
+
+		var args []any
+		for _, t := range method.ArgumentTypes {
+			a, _ := idl.EmptyOf(t)
+			args = append(args, a)
+		}
+
+		values, err := method.Handler(fromAgentRequest(req, args))
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			_, _ = writer.Write([]byte(err.Error()))
 			return
 		}
 
-		rawReply, err := marshal.Marshal(values)
+		rawReply, err := idl.Marshal(values)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			_, _ = writer.Write([]byte(err.Error()))
@@ -152,14 +178,28 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 			_, _ = writer.Write([]byte("request not found: " + requestIdHex))
 			return
 		}
-		values, err := canister.Handler(fromAgentRequest(req))
+
+		method, ok := canister.Methods[req.MethodName]
+		if !ok {
+			writer.WriteHeader(http.StatusNotFound)
+			_, _ = writer.Write([]byte("method not defined in replica: " + req.MethodName))
+			return
+		}
+
+		var args []any
+		for _, t := range method.ArgumentTypes {
+			a, _ := idl.EmptyOf(t)
+			args = append(args, a)
+		}
+
+		values, err := method.Handler(fromAgentRequest(req, args))
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			_, _ = writer.Write([]byte(err.Error()))
 			return
 		}
 
-		rawReply, err := marshal.Marshal(values)
+		rawReply, err := idl.Marshal(values)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			_, _ = writer.Write([]byte(err.Error()))
@@ -224,19 +264,22 @@ func (r *Replica) handleStatus(writer http.ResponseWriter) {
 }
 
 type Request struct {
-	Type       agent.RequestType
-	Sender     principal.Principal
-	MethodName string
-	Arguments  []any
+	Type      agent.RequestType
+	Sender    principal.Principal
+	Arguments []any
 }
 
-func fromAgentRequest(request agent.Request) Request {
-	var arguments []any
-	_ = marshal.Unmarshal(request.Arguments, arguments)
+func fromAgentRequest(request agent.Request, arguments []any) Request {
+	var args []any
+	for _, a := range arguments {
+		args = append(args, &a) // Convert to pointer.
+	}
+	if err := idl.Unmarshal(request.Arguments, args); err != nil {
+		panic(err)
+	}
 	return Request{
-		Type:       request.Type,
-		Sender:     request.Sender,
-		MethodName: request.MethodName,
-		Arguments:  arguments,
+		Type:      request.Type,
+		Sender:    request.Sender,
+		Arguments: arguments,
 	}
 }

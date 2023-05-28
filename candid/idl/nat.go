@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"math/big"
-
 	"github.com/aviate-labs/leb128"
+	"math/big"
+	"reflect"
 )
 
 func anyToUint16(v any) (uint16, bool) {
@@ -369,21 +369,27 @@ func (n NatType) UnmarshalGo(raw any, _v any) error {
 		if !ok {
 			return NewUnmarshalGoError(raw, _v)
 		}
-		switch v := _v.(type) {
-		case *uint8:
-			*v = u8
+		v, t, ok := checkIsPtrPrim(_v)
+		if !ok {
+			return NewUnmarshalGoError(raw, _v)
+		}
+		switch t.Kind() {
+		case reflect.Uint8:
+			v.Set(reflect.ValueOf(u8))
 			return nil
+		case reflect.Uint64:
+			v.Set(reflect.ValueOf(uint64(u8)))
+			return nil
+		case reflect.Uint32:
+			v.Set(reflect.ValueOf(uint32(u8)))
+			return nil
+		case reflect.Uint16:
+			v.Set(reflect.ValueOf(uint16(u8)))
+			return nil
+		}
+		switch v := _v.(type) {
 		case *Nat:
 			*v = NewNat(u8)
-			return nil
-		case *uint64:
-			*v = uint64(u8)
-			return nil
-		case *uint32:
-			*v = uint32(u8)
-			return nil
-		case *uint16:
-			*v = uint16(u8)
 			return nil
 		default:
 			return NewUnmarshalGoError(raw, _v)

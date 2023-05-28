@@ -165,11 +165,11 @@ func (variant VariantType) UnmarshalGo(raw any, _v any) error {
 	if v, ok := _v.(*map[string]any); ok {
 		return variant.unmarshalMap(name, value, v)
 	}
-	v := reflect.ValueOf(_v)
-	if v.Kind() != reflect.Ptr {
+
+	v, ok := checkIsPtr(_v)
+	if !ok {
 		return NewUnmarshalGoError(raw, _v)
 	}
-	v = v.Elem()
 	if v.Kind() != reflect.Struct {
 		return NewUnmarshalGoError(raw, _v)
 	}

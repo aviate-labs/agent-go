@@ -5,7 +5,6 @@ package assetstorage
 import (
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/marshal"
 	"github.com/aviate-labs/agent-go/principal"
 )
 
@@ -29,7 +28,7 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 
 // ApiVersion calls the "api_version" method on the "assetstorage" canister.
 func (a Agent) ApiVersion() (*uint16, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +46,7 @@ func (a Agent) ApiVersion() (*uint16, error) {
 
 // Authorize calls the "authorize" method on the "assetstorage" canister.
 func (a Agent) Authorize(arg0 principal.Principal) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -68,7 +67,7 @@ func (a Agent) CertifiedTree(arg0 struct {
 	Certificate []byte `ic:"certificate"`
 	Tree        []byte `ic:"tree"`
 }, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +88,7 @@ func (a Agent) CertifiedTree(arg0 struct {
 
 // Clear calls the "clear" method on the "assetstorage" canister.
 func (a Agent) Clear(arg0 ClearArguments) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -106,7 +105,7 @@ func (a Agent) Clear(arg0 ClearArguments) error {
 
 // CommitBatch calls the "commit_batch" method on the "assetstorage" canister.
 func (a Agent) CommitBatch(arg0 CommitBatchArguments) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -123,7 +122,7 @@ func (a Agent) CommitBatch(arg0 CommitBatchArguments) error {
 
 // CommitProposedBatch calls the "commit_proposed_batch" method on the "assetstorage" canister.
 func (a Agent) CommitProposedBatch(arg0 CommitProposedBatchArguments) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -140,7 +139,7 @@ func (a Agent) CommitProposedBatch(arg0 CommitProposedBatchArguments) error {
 
 // ComputeEvidence calls the "compute_evidence" method on the "assetstorage" canister.
 func (a Agent) ComputeEvidence(arg0 ComputeEvidenceArguments) (**[]byte, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +157,7 @@ func (a Agent) ComputeEvidence(arg0 ComputeEvidenceArguments) (**[]byte, error) 
 
 // CreateAsset calls the "create_asset" method on the "assetstorage" canister.
 func (a Agent) CreateAsset(arg0 CreateAssetArguments) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -178,7 +177,7 @@ func (a Agent) CreateBatch(arg0 struct {
 }) (*struct {
 	BatchId BatchId `ic:"batch_id"`
 }, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -203,7 +202,7 @@ func (a Agent) CreateChunk(arg0 struct {
 }) (*struct {
 	ChunkId ChunkId `ic:"chunk_id"`
 }, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +222,7 @@ func (a Agent) CreateChunk(arg0 struct {
 
 // Deauthorize calls the "deauthorize" method on the "assetstorage" canister.
 func (a Agent) Deauthorize(arg0 principal.Principal) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -240,7 +239,7 @@ func (a Agent) Deauthorize(arg0 principal.Principal) error {
 
 // DeleteAsset calls the "delete_asset" method on the "assetstorage" canister.
 func (a Agent) DeleteAsset(arg0 DeleteAssetArguments) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -257,7 +256,7 @@ func (a Agent) DeleteAsset(arg0 DeleteAssetArguments) error {
 
 // DeleteBatch calls the "delete_batch" method on the "assetstorage" canister.
 func (a Agent) DeleteBatch(arg0 DeleteBatchArguments) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -283,7 +282,7 @@ func (a Agent) Get(arg0 struct {
 	Sha256          *[]byte `ic:"sha256,omitempty"`
 	TotalLength     idl.Nat `ic:"total_length"`
 }, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +311,7 @@ func (a Agent) GetAssetProperties(key Key) (*struct {
 	AllowRawAccess *bool          `ic:"allow_raw_access,omitempty"`
 	IsAliased      *bool          `ic:"is_aliased,omitempty"`
 }, error) {
-	args, err := marshal.Marshal([]any{key})
+	args, err := idl.Marshal([]any{key})
 	if err != nil {
 		return nil, err
 	}
@@ -342,7 +341,7 @@ func (a Agent) GetChunk(arg0 struct {
 }) (*struct {
 	Content []byte `ic:"content"`
 }, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +361,7 @@ func (a Agent) GetChunk(arg0 struct {
 
 // GrantPermission calls the "grant_permission" method on the "assetstorage" canister.
 func (a Agent) GrantPermission(arg0 GrantPermission) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -379,7 +378,7 @@ func (a Agent) GrantPermission(arg0 GrantPermission) error {
 
 // HttpRequest calls the "http_request" method on the "assetstorage" canister.
 func (a Agent) HttpRequest(request HttpRequest) (*HttpResponse, error) {
-	args, err := marshal.Marshal([]any{request})
+	args, err := idl.Marshal([]any{request})
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +396,7 @@ func (a Agent) HttpRequest(request HttpRequest) (*HttpResponse, error) {
 
 // HttpRequestStreamingCallback calls the "http_request_streaming_callback" method on the "assetstorage" canister.
 func (a Agent) HttpRequestStreamingCallback(token StreamingCallbackToken) (**StreamingCallbackHttpResponse, error) {
-	args, err := marshal.Marshal([]any{token})
+	args, err := idl.Marshal([]any{token})
 	if err != nil {
 		return nil, err
 	}
@@ -425,7 +424,7 @@ func (a Agent) List(arg0 struct {
 		Modified        Time    `ic:"modified"`
 	} `ic:"encodings"`
 }, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -452,7 +451,7 @@ func (a Agent) List(arg0 struct {
 
 // ListAuthorized calls the "list_authorized" method on the "assetstorage" canister.
 func (a Agent) ListAuthorized() (*[]principal.Principal, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -470,7 +469,7 @@ func (a Agent) ListAuthorized() (*[]principal.Principal, error) {
 
 // ListPermitted calls the "list_permitted" method on the "assetstorage" canister.
 func (a Agent) ListPermitted(arg0 ListPermitted) (*[]principal.Principal, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -488,7 +487,7 @@ func (a Agent) ListPermitted(arg0 ListPermitted) (*[]principal.Principal, error)
 
 // ProposeCommitBatch calls the "propose_commit_batch" method on the "assetstorage" canister.
 func (a Agent) ProposeCommitBatch(arg0 CommitBatchArguments) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -505,7 +504,7 @@ func (a Agent) ProposeCommitBatch(arg0 CommitBatchArguments) error {
 
 // RevokePermission calls the "revoke_permission" method on the "assetstorage" canister.
 func (a Agent) RevokePermission(arg0 RevokePermission) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -522,7 +521,7 @@ func (a Agent) RevokePermission(arg0 RevokePermission) error {
 
 // SetAssetContent calls the "set_asset_content" method on the "assetstorage" canister.
 func (a Agent) SetAssetContent(arg0 SetAssetContentArguments) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -539,7 +538,7 @@ func (a Agent) SetAssetContent(arg0 SetAssetContentArguments) error {
 
 // SetAssetProperties calls the "set_asset_properties" method on the "assetstorage" canister.
 func (a Agent) SetAssetProperties(arg0 SetAssetPropertiesArguments) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -562,7 +561,7 @@ func (a Agent) Store(arg0 struct {
 	Content         []byte  `ic:"content"`
 	Sha256          *[]byte `ic:"sha256,omitempty"`
 }) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -579,7 +578,7 @@ func (a Agent) Store(arg0 struct {
 
 // TakeOwnership calls the "take_ownership" method on the "assetstorage" canister.
 func (a Agent) TakeOwnership() error {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return err
 	}
@@ -596,7 +595,7 @@ func (a Agent) TakeOwnership() error {
 
 // UnsetAssetContent calls the "unset_asset_content" method on the "assetstorage" canister.
 func (a Agent) UnsetAssetContent(arg0 UnsetAssetContentArguments) error {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return err
 	}
@@ -613,7 +612,7 @@ func (a Agent) UnsetAssetContent(arg0 UnsetAssetContentArguments) error {
 
 // ValidateCommitProposedBatch calls the "validate_commit_proposed_batch" method on the "assetstorage" canister.
 func (a Agent) ValidateCommitProposedBatch(arg0 CommitProposedBatchArguments) (*ValidationResult, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -631,7 +630,7 @@ func (a Agent) ValidateCommitProposedBatch(arg0 CommitProposedBatchArguments) (*
 
 // ValidateGrantPermission calls the "validate_grant_permission" method on the "assetstorage" canister.
 func (a Agent) ValidateGrantPermission(arg0 GrantPermission) (*ValidationResult, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -649,7 +648,7 @@ func (a Agent) ValidateGrantPermission(arg0 GrantPermission) (*ValidationResult,
 
 // ValidateRevokePermission calls the "validate_revoke_permission" method on the "assetstorage" canister.
 func (a Agent) ValidateRevokePermission(arg0 RevokePermission) (*ValidationResult, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -667,7 +666,7 @@ func (a Agent) ValidateRevokePermission(arg0 RevokePermission) (*ValidationResul
 
 // ValidateTakeOwnership calls the "validate_take_ownership" method on the "assetstorage" canister.
 func (a Agent) ValidateTakeOwnership() (*ValidationResult, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}

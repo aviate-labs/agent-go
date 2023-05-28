@@ -5,7 +5,6 @@ package cmc
 import (
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/marshal"
 	"github.com/aviate-labs/agent-go/principal"
 )
 
@@ -33,7 +32,7 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 
 // GetIcpXdrConversionRate calls the "get_icp_xdr_conversion_rate" method on the "cmc" canister.
 func (a Agent) GetIcpXdrConversionRate() (*IcpXdrConversionRateResponse, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +50,7 @@ func (a Agent) GetIcpXdrConversionRate() (*IcpXdrConversionRateResponse, error) 
 
 // GetSubnetTypesToSubnets calls the "get_subnet_types_to_subnets" method on the "cmc" canister.
 func (a Agent) GetSubnetTypesToSubnets() (*SubnetTypesToSubnetsResponse, error) {
-	args, err := marshal.Marshal([]any{})
+	args, err := idl.Marshal([]any{})
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +68,7 @@ func (a Agent) GetSubnetTypesToSubnets() (*SubnetTypesToSubnetsResponse, error) 
 
 // NotifyCreateCanister calls the "notify_create_canister" method on the "cmc" canister.
 func (a Agent) NotifyCreateCanister(arg0 NotifyCreateCanisterArg) (*NotifyCreateCanisterResult, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
@@ -87,7 +86,7 @@ func (a Agent) NotifyCreateCanister(arg0 NotifyCreateCanisterArg) (*NotifyCreate
 
 // NotifyTopUp calls the "notify_top_up" method on the "cmc" canister.
 func (a Agent) NotifyTopUp(arg0 NotifyTopUpArg) (*NotifyTopUpResult, error) {
-	args, err := marshal.Marshal([]any{arg0})
+	args, err := idl.Marshal([]any{arg0})
 	if err != nil {
 		return nil, err
 	}
