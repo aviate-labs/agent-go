@@ -10,7 +10,6 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 	"github.com/fxamacker/cbor/v2"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -108,7 +107,6 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 		}
 		requestId := agent.NewRequestID(req)
 		requestIdHex := hex.EncodeToString(requestId[:])
-		log.Println("received call request", requestIdHex)
 		r.Requests[requestIdHex] = req
 		writer.WriteHeader(http.StatusAccepted)
 	case "query":
@@ -117,9 +115,6 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 			_, _ = writer.Write([]byte("expected query request"))
 			return
 		}
-		requestId := agent.NewRequestID(req)
-		requestIdHex := hex.EncodeToString(requestId[:])
-		log.Println("received query request", requestIdHex)
 
 		method, ok := canister.Methods[req.MethodName]
 		if !ok {
@@ -165,7 +160,6 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 		}
 		requestId := req.Paths[0][1]
 		requestIdHex := hex.EncodeToString(requestId)
-		log.Println("received read_state request", requestIdHex)
 		req, ok := r.Requests[requestIdHex]
 		if !ok {
 			writer.WriteHeader(http.StatusNotFound)
@@ -240,7 +234,6 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 }
 
 func (r *Replica) handleStatus(writer http.ResponseWriter) {
-	log.Println("getting status")
 	publicKey := r.rootKey.GetPublicKey().Serialize()
 	status := agent.Status{
 		Version: "golang-mock",
