@@ -42,19 +42,6 @@ func checkIsPtr(_v any) (reflect.Value, bool) {
 	return v, true
 }
 
-func checkIsPtrPrim(_v any) (reflect.Value, reflect.Type, bool) {
-	v := reflect.ValueOf(_v)
-	if v.Kind() != reflect.Ptr {
-		return v, v.Type(), false
-	}
-	v = v.Elem()
-	t := v.Type()
-	if v.Kind() == reflect.Interface {
-		t = v.Elem().Type()
-	}
-	return v, t, true
-}
-
 func Decode(bs []byte) ([]Type, []any, error) {
 	if len(bs) == 0 {
 		return nil, nil, &FormatError{

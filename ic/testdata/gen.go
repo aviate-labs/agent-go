@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"unicode"
 )
 
 var (
@@ -21,19 +22,44 @@ func main() {
 		fmt.Printf("Generating %q...\n", name)
 		did, _ := dids.ReadFile(fmt.Sprintf("did/%s", entry.Name()))
 
-		dir := fmt.Sprintf("ic/%s", name)
-		if _, err := os.Stat(dir); os.IsNotExist(err) {
-			_ = os.Mkdir(dir, os.ModePerm)
-		}
+		if strings.HasSuffix(name, ".test") {
+			name = strings.TrimSuffix(name, ".test")
+			g, err := gen.NewGenerator(title(name), name, "ic_test", did)
+			if err != nil {
+				log.Panic(err)
+			}
+			raw, err := g.Generate()
+			if err != nil {
+				log.Panic(err)
+			}
+			_ = os.WriteFile(fmt.Sprintf("ic/%s_agent_test.go", name), raw, os.ModePerm)
+		} else {
+			dir := fmt.Sprintf("ic/%s", name)
+			if _, err := os.Stat(dir); os.IsNotExist(err) {
+				_ = os.Mkdir(dir, os.ModePerm)
+			}
 
-		g, err := gen.NewGenerator(name, name, did)
-		if err != nil {
-			log.Panic(err)
+			g, err := gen.NewGenerator("", name, name, did)
+			if err != nil {
+				log.Panic(err)
+			}
+			raw, err := g.Generate()
+			if err != nil {
+				log.Panic(err)
+			}
+			_ = os.WriteFile(fmt.Sprintf("%s/agent.go", dir), raw, os.ModePerm)
 		}
-		raw, err := g.Generate()
-		if err != nil {
-			log.Panic(err)
-		}
-		_ = os.WriteFile(fmt.Sprintf("%s/agent.go", dir), raw, os.ModePerm)
 	}
+}
+
+func title(s string) string {
+	var title []rune
+	for i, c := range s {
+		if i == 0 {
+			title = append(title, unicode.ToUpper(c))
+		} else {
+			title = append(title, c)
+		}
+	}
+	return string(title)
 }

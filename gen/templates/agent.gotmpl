@@ -14,18 +14,18 @@ type {{ .Name }} = {{ .Type }}
 {{- end }}
 
 // Agent is a client for the "{{ .CanisterName }}" canister.
-type Agent struct {
+type {{ .AgentName }}Agent struct {
     a          *agent.Agent
     canisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "{{ .CanisterName }}" canister.
-func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, error) {
+func New{{ .AgentName }}Agent(canisterId principal.Principal, config agent.Config) (*{{ .AgentName }}Agent, error) {
     a, err := agent.New(config)
     if err != nil {
         return nil, err
     }
-    return &Agent{
+    return &{{ .AgentName }}Agent{
         a:          a,
         canisterId: canisterId,
     }, nil
@@ -33,7 +33,7 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 {{- range .Methods }}
 
 // {{ .Name }} calls the "{{ .RawName }}" method on the "{{ $.CanisterName }}" canister.
-func (a Agent) {{ .Name }}({{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }} {{ $e.Type }}{{ end }}) {{ if .ReturnTypes }}({{ range .ReturnTypes }}*{{ . }}, {{ end }}error){{ else }}error{{ end }} {
+func (a {{ $.AgentName }}Agent) {{ .Name }}({{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }} {{ $e.Type }}{{ end }}) {{ if .ReturnTypes }}({{ range .ReturnTypes }}*{{ . }}, {{ end }}error){{ else }}error{{ end }} {
     args, err := idl.Marshal([]any{{ "{" }}{{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }}{{ end }}{{ "}" }})
     if err != nil {
         return {{ range .ReturnTypes }}nil, {{ end }}err

@@ -144,7 +144,7 @@ func main() {
 }
 
 func writeDID(canisterName, packageName, outputPath string, rawDID []byte) error {
-	g, err := gen.NewGenerator(canisterName, packageName, rawDID)
+	g, err := gen.NewGenerator("", canisterName, packageName, rawDID)
 	if err != nil {
 		return err
 	}
