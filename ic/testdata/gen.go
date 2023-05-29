@@ -39,15 +39,29 @@ func main() {
 				_ = os.Mkdir(dir, os.ModePerm)
 			}
 
-			g, err := gen.NewGenerator("", name, name, did)
-			if err != nil {
-				log.Panic(err)
+			{
+				g, err := gen.NewGenerator("", name, name, did)
+				if err != nil {
+					log.Panic(err)
+				}
+				raw, err := g.Generate()
+				if err != nil {
+					log.Panic(err)
+				}
+				_ = os.WriteFile(fmt.Sprintf("%s/agent.go", dir), raw, os.ModePerm)
 			}
-			raw, err := g.Generate()
-			if err != nil {
-				log.Panic(err)
+			{
+				g, err := gen.NewGenerator("", name, name, did)
+				g.ModulePath = "github.com/aviate-labs/agent-go/ic"
+				if err != nil {
+					log.Panic(err)
+				}
+				raw, err := g.GenerateMock()
+				if err != nil {
+					log.Panic(err)
+				}
+				_ = os.WriteFile(fmt.Sprintf("%s/agent_test.go", dir), raw, os.ModePerm)
 			}
-			_ = os.WriteFile(fmt.Sprintf("%s/agent.go", dir), raw, os.ModePerm)
 		}
 	}
 }

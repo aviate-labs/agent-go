@@ -18,6 +18,10 @@ func StructToMap(value any) (map[string]any, error) {
 		m := make(map[string]any)
 		for i := 0; i < v.NumField(); i++ {
 			field := v.Type().Field(i)
+			if !field.IsExported() {
+				continue
+			}
+
 			tag := ParseTags(field)
 			m[tag.Name] = v.Field(i).Interface()
 		}
@@ -135,6 +139,10 @@ func (record RecordType) String() string {
 }
 
 func (record RecordType) UnmarshalGo(raw any, _v any) error {
+	if raw == nil && record.Fields == nil {
+		return nil // Empty record.
+	}
+
 	m := make(map[string]any)
 	switch rv := reflect.ValueOf(raw); rv.Kind() {
 	case reflect.Map:

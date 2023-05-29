@@ -252,7 +252,10 @@ func (n NatType) EncodeValue(v any) ([]byte, error) {
 		if !ok {
 			return nil, fmt.Errorf("invalid value: %v", v)
 		}
-		return leb128.EncodeUnsigned(v.BigInt())
+		if bi := v.BigInt(); bi != nil {
+			return leb128.EncodeUnsigned(bi)
+		}
+		return leb128.EncodeUnsigned(big.NewInt(0))
 	case 8:
 		v, err := encodeNat64(v)
 		if err != nil {

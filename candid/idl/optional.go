@@ -70,6 +70,9 @@ func (o OptionalType) EncodeValue(v any) ([]byte, error) {
 		return []byte{0x00}, nil
 	}
 	if v := reflect.ValueOf(v); v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return []byte{0x00}, nil
+		}
 		return o.EncodeValue(v.Elem().Interface())
 	}
 	v_, err := o.Type.EncodeValue(v)

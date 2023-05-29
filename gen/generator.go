@@ -22,13 +22,16 @@ var (
 	templates map[string]*template.Template
 )
 
-func funcName(name string) string {
+func funcName(prefix, name string) string {
 	if strings.HasPrefix(name, "\"") {
 		name = name[1 : len(name)-1]
 	}
 	var str string
 	for _, p := range strings.Split(name, "_") {
 		str += strings.ToUpper(string(p[0])) + p[1:]
+	}
+	if prefix != "" {
+		return fmt.Sprintf("%s.%s", prefix, str)
 	}
 	return str
 }
@@ -66,6 +69,7 @@ func rawName(name string) string {
 // Generator is a generator for a given service description.
 type Generator struct {
 	AgentName          string
+	ModulePath         string
 	CanisterName       string
 	PackageName        string
 	ServiceDescription did.Description
@@ -92,8 +96,8 @@ func (g *Generator) Generate() ([]byte, error) {
 		switch definition := definition.(type) {
 		case did.Type:
 			definitions = append(definitions, agentArgsDefinition{
-				Name: funcName(definition.Id),
-				Type: g.dataToString(definition.Data),
+				Name: funcName("", definition.Id),
+				Type: g.dataToString("", definition.Data),
 			})
 		}
 	}
@@ -114,13 +118,13 @@ func (g *Generator) Generate() ([]byte, error) {
 				}
 				argumentTypes = append(argumentTypes, agentArgsMethodArgument{
 					Name: n,
-					Type: g.dataToString(t.Data),
+					Type: g.dataToString("", t.Data),
 				})
 			}
 
 			var returnTypes []string
 			for _, t := range f.ResTypes {
-				returnTypes = append(returnTypes, g.dataToString(t.Data))
+				returnTypes = append(returnTypes, g.dataToString("", t.Data))
 			}
 
 			typ := "Call"
@@ -130,7 +134,7 @@ func (g *Generator) Generate() ([]byte, error) {
 
 			methods = append(methods, agentArgsMethod{
 				RawName:       name,
-				Name:          funcName(name),
+				Name:          funcName("", name),
 				Type:          typ,
 				ArgumentTypes: argumentTypes,
 				ReturnTypes:   returnTypes,
@@ -155,16 +159,74 @@ func (g *Generator) Generate() ([]byte, error) {
 	return io.ReadAll(&tmpl)
 }
 
-func (g *Generator) dataToString(data did.Data) string {
+func (g *Generator) GenerateMock() ([]byte, error) {
+	var methods []agentArgsMethod
+	for _, service := range g.ServiceDescription.Services {
+		for _, method := range service.Methods {
+			name := rawName(method.Name)
+			f := method.Func
+
+			var argumentTypes []agentArgsMethodArgument
+			for i, t := range f.ArgTypes {
+				var n string
+				if (t.Name != nil) && (*t.Name != "") {
+					n = *t.Name
+				} else {
+					n = fmt.Sprintf("arg%d", i)
+				}
+				argumentTypes = append(argumentTypes, agentArgsMethodArgument{
+					Name: n,
+					Type: g.dataToString(g.PackageName, t.Data),
+				})
+			}
+
+			var returnTypes []string
+			for _, t := range f.ResTypes {
+				returnTypes = append(returnTypes, g.dataToString(g.PackageName, t.Data))
+			}
+
+			typ := "Call"
+			if f.Annotation != nil && *f.Annotation == did.AnnQuery {
+				typ = "Query"
+			}
+
+			methods = append(methods, agentArgsMethod{
+				RawName:       name,
+				Name:          funcName("", name),
+				Type:          typ,
+				ArgumentTypes: argumentTypes,
+				ReturnTypes:   returnTypes,
+			})
+		}
+	}
+	t, ok := templates["agent_test"]
+	if !ok {
+		return nil, fmt.Errorf("template not found")
+	}
+	var tmpl bytes.Buffer
+	if err := t.Execute(&tmpl, agentMockArgs{
+		AgentName:    g.AgentName,
+		CanisterName: g.CanisterName,
+		PackageName:  g.PackageName,
+		ModulePath:   g.ModulePath,
+		UsedIDL:      g.usedIDL,
+		Methods:      methods,
+	}); err != nil {
+		return nil, err
+	}
+	return io.ReadAll(&tmpl)
+}
+
+func (g *Generator) dataToString(prefix string, data did.Data) string {
 	switch t := data.(type) {
 	case did.Blob:
 		return "[]byte"
 	case did.DataId:
-		return funcName(string(t))
+		return funcName(prefix, string(t))
 	case did.Func:
 		return "struct { /* NOT SUPPORTED */ }"
 	case did.Optional:
-		return fmt.Sprintf("*%s", g.dataToString(t.Data))
+		return fmt.Sprintf("*%s", g.dataToString(prefix, t.Data))
 	case did.Primitive:
 		switch t {
 		case "nat8", "nat16", "nat32", "nat64":
@@ -199,16 +261,16 @@ func (g *Generator) dataToString(data did.Data) string {
 			name := originalName
 			if n := field.Name; n != nil {
 				originalName = *n
-				name = funcName(*n)
+				name = funcName("", *n)
 			}
 			if l := len(name); l > sizeName {
 				sizeName = l
 			}
 			var typ string
 			if field.Data != nil {
-				typ = g.dataToString(*field.Data)
+				typ = g.dataToString(prefix, *field.Data)
 			} else {
-				typ = funcName(*field.NameData)
+				typ = funcName(prefix, *field.NameData)
 			}
 			for _, typ := range strings.Split(typ, "\n") {
 				if l := len(typ); l > sizeType {
@@ -257,15 +319,15 @@ func (g *Generator) dataToString(data did.Data) string {
 					typ          string
 				}{originalName: name, name: name, typ: "struct{}"})
 			} else {
-				name := funcName(*field.Name)
+				name := funcName("", *field.Name)
 				if l := len(name); l > sizeName {
 					sizeName = l
 				}
 				var typ string
 				if field.Data != nil {
-					typ = g.dataToString(*field.Data)
+					typ = g.dataToString(prefix, *field.Data)
 				} else {
-					typ = funcName(*field.NameData)
+					typ = funcName(prefix, *field.NameData)
 				}
 				for _, typ := range strings.Split(typ, "\n") {
 					if l := len(typ); l > sizeType {
@@ -289,7 +351,7 @@ func (g *Generator) dataToString(data did.Data) string {
 		}
 		return fmt.Sprintf("struct {\n%s}", record)
 	case did.Vector:
-		return fmt.Sprintf("[]%s", g.dataToString(t.Data))
+		return fmt.Sprintf("[]%s", g.dataToString(prefix, t.Data))
 	default:
 		panic(fmt.Sprintf("unknown type: %T", t))
 	}
@@ -320,4 +382,13 @@ type agentArgsMethod struct {
 type agentArgsMethodArgument struct {
 	Name string
 	Type string
+}
+
+type agentMockArgs struct {
+	AgentName    string
+	CanisterName string
+	PackageName  string
+	ModulePath   string
+	UsedIDL      bool
+	Methods      []agentArgsMethod
 }

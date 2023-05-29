@@ -1,4 +1,4 @@
-.PHONY: test test-cover test-ledger gen gen-ic fmt
+.PHONY: test test-cover gen gen-ic fmt
 
 test:
 	go test -v -cover ./...
@@ -6,11 +6,6 @@ test:
 test-cover:
 	go test -v -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out
-
-test-ledger:
-	cd ic; dfx start --background --clean
-	cd ic/testdata; dfx deploy --no-wallet
-	cd ic; DFX=true go test -v icpledger_test.go; dfx stop
 
 gen:
 	cd candid && go generate
