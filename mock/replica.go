@@ -23,9 +23,9 @@ type Canister struct {
 type HandlerFunc func(request Request) ([]any, error)
 
 type Method struct {
-	Name          string
-	ArgumentTypes []idl.Type
-	Handler       HandlerFunc
+	Name      string      // Name is the name of the method.
+	Arguments []any       // Arguments is a list of pointers to the arguments, that will be filled by the agent.
+	Handler   HandlerFunc // Handler is the function that will be called when the method is called.
 }
 
 type Replica struct {
@@ -128,13 +128,7 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 			return
 		}
 
-		var args []any
-		for _, t := range method.ArgumentTypes {
-			a, _ := idl.EmptyOf(t)
-			args = append(args, a)
-		}
-
-		values, err := method.Handler(fromAgentRequest(req, args))
+		values, err := method.Handler(fromAgentRequest(req, method.Arguments))
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			_, _ = writer.Write([]byte(err.Error()))
@@ -186,13 +180,7 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 			return
 		}
 
-		var args []any
-		for _, t := range method.ArgumentTypes {
-			a, _ := idl.EmptyOf(t)
-			args = append(args, a)
-		}
-
-		values, err := method.Handler(fromAgentRequest(req, args))
+		values, err := method.Handler(fromAgentRequest(req, method.Arguments))
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			_, _ = writer.Write([]byte(err.Error()))
@@ -270,11 +258,7 @@ type Request struct {
 }
 
 func fromAgentRequest(request agent.Request, arguments []any) Request {
-	var args []any
-	for _, a := range arguments {
-		args = append(args, &a) // Convert to pointer.
-	}
-	if err := idl.Unmarshal(request.Arguments, args); err != nil {
+	if err := idl.Unmarshal(request.Arguments, arguments); err != nil {
 		panic(err)
 	}
 	return Request{

@@ -65,6 +65,7 @@ func rawName(name string) string {
 
 // Generator is a generator for a given service description.
 type Generator struct {
+	AgentName          string
 	CanisterName       string
 	PackageName        string
 	ServiceDescription did.Description
@@ -72,12 +73,13 @@ type Generator struct {
 }
 
 // NewGenerator creates a new generator for the given service description.
-func NewGenerator(canisterName, packageName string, rawDID []byte) (*Generator, error) {
+func NewGenerator(agentName, canisterName, packageName string, rawDID []byte) (*Generator, error) {
 	desc, err := candid.ParseDID(rawDID)
 	if err != nil {
 		return nil, err
 	}
 	return &Generator{
+		AgentName:          agentName,
 		CanisterName:       canisterName,
 		PackageName:        packageName,
 		ServiceDescription: desc,
@@ -141,6 +143,7 @@ func (g *Generator) Generate() ([]byte, error) {
 	}
 	var tmpl bytes.Buffer
 	if err := t.Execute(&tmpl, agentArgs{
+		AgentName:    g.AgentName,
 		CanisterName: g.CanisterName,
 		PackageName:  g.PackageName,
 		UsedIDL:      g.usedIDL,
@@ -166,7 +169,7 @@ func (g *Generator) dataToString(data did.Data) string {
 		switch t {
 		case "nat8", "nat16", "nat32", "nat64":
 			return strings.ReplaceAll(data.String(), "nat", "uint")
-		case "bool", "float64", "int8", "int16", "int32", "int64":
+		case "bool", "float32", "float64", "int8", "int16", "int32", "int64":
 			return data.String()
 		case "int":
 			g.usedIDL = true
@@ -293,6 +296,7 @@ func (g *Generator) dataToString(data did.Data) string {
 }
 
 type agentArgs struct {
+	AgentName    string
 	CanisterName string
 	PackageName  string
 	UsedIDL      bool
