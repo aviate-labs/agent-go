@@ -22,9 +22,16 @@ type Principal struct {
 
 // Decode converts a textual representation into a principal.
 func Decode(s string) (Principal, error) {
-	s = strings.ReplaceAll(s, "-", "")
-	s = strings.ToUpper(s)
-	b32, err := encoding.DecodeString(s)
+	p := strings.Split(s, "-")
+	for i, c := range p {
+		if len(c) > 5 {
+			return Principal{}, fmt.Errorf("invalid length: %s", c)
+		}
+		if i != len(p)-1 && len(c) < 5 {
+			return Principal{}, fmt.Errorf("invalid length: %s", c)
+		}
+	}
+	b32, err := encoding.DecodeString(strings.ToUpper(strings.Join(p, "")))
 	if err != nil {
 		return Principal{}, err
 	}
@@ -49,8 +56,7 @@ func NewSelfAuthenticating(pub []byte) Principal {
 func (p Principal) Encode() string {
 	cs := make([]byte, 4)
 	binary.BigEndian.PutUint32(cs, crc32.ChecksumIEEE(p.Raw))
-	b32 := encoding.EncodeToString(append(cs, p.Raw...))
-	b32 = strings.ToLower(b32)
+	b32 := strings.ToLower(encoding.EncodeToString(append(cs, p.Raw...)))
 	var str string
 	for i, c := range b32 {
 		if i != 0 && i%5 == 0 {

@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"fmt"
 	"hash/crc32"
 )
 
@@ -19,8 +20,8 @@ type (
 	SubAccount [32]byte
 )
 
-// FromPrincipal returns the account identifier corresponding with the given sub-account.
-func FromPrincipal(p Principal, subAccount [32]byte) AccountIdentifier {
+// NewAccountID returns the account identifier corresponding with the given sub-account.
+func NewAccountID(p Principal, subAccount [32]byte) AccountIdentifier {
 	h := sha256.New224()
 	h.Write([]byte("\x0Aaccount-id"))
 	h.Write(p.Raw)
@@ -39,7 +40,30 @@ func (id AccountIdentifier) Bytes() []byte {
 	return append(crc, id[:]...)
 }
 
+// DecodeAccountID decodes the given string into an account identifier.
+func DecodeAccountID(s string) (AccountIdentifier, error) {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return AccountIdentifier{}, err
+	}
+	if len(b) != 32 {
+		return AccountIdentifier{}, fmt.Errorf("invalid length: %d", len(b))
+	}
+	crc := binary.BigEndian.Uint32(b[:4])
+	if crc != crc32.ChecksumIEEE(b[4:]) {
+		return AccountIdentifier{}, fmt.Errorf("invalid checksum: %d", crc)
+	}
+	var id AccountIdentifier
+	copy(id[:], b[4:])
+	return id, nil
+}
+
+// Encode returns the hexadecimal representation of the account identifier.
+func (id AccountIdentifier) Encode() string {
+	return hex.EncodeToString(id.Bytes())
+}
+
 // String returns the hexadecimal representation of the account identifier.
 func (id AccountIdentifier) String() string {
-	return hex.EncodeToString(id.Bytes())
+	return id.Encode()
 }
