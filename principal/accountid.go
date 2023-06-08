@@ -19,6 +19,19 @@ type (
 	SubAccount [32]byte
 )
 
+// FromPrincipal returns the account identifier corresponding with the given sub-account.
+func FromPrincipal(p Principal, subAccount [32]byte) AccountIdentifier {
+	h := sha256.New224()
+	h.Write([]byte("\x0Aaccount-id"))
+	h.Write(p.Raw)
+	h.Write(subAccount[:])
+	bs := h.Sum(nil)
+
+	var accountId [28]byte
+	copy(accountId[:], bs)
+	return accountId
+}
+
 // Bytes returns the bytes of the account identifier, including the checksum.
 func (id AccountIdentifier) Bytes() []byte {
 	crc := make([]byte, 4)
@@ -29,17 +42,4 @@ func (id AccountIdentifier) Bytes() []byte {
 // String returns the hexadecimal representation of the account identifier.
 func (id AccountIdentifier) String() string {
 	return hex.EncodeToString(id.Bytes())
-}
-
-// AccountIdentifier returns the account identifier corresponding with the given sub-account.
-func (p Principal) AccountIdentifier(subAccount [32]byte) AccountIdentifier {
-	h := sha256.New224()
-	h.Write([]byte("\x0Aaccount-id"))
-	h.Write(p.Raw)
-	h.Write(subAccount[:])
-	bs := h.Sum(nil)
-
-	var accountId [28]byte
-	copy(accountId[:], bs)
-	return accountId
 }
