@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-
-	"github.com/pegn/pegn-go"
 )
 
 func main() {

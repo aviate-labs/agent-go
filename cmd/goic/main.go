@@ -3,15 +3,25 @@ package main
 import (
 	"fmt"
 	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/cmd/internal/cmd"
+	"github.com/aviate-labs/agent-go/cmd/goic/internal/cmd"
 	"github.com/aviate-labs/agent-go/gen"
 	"github.com/aviate-labs/agent-go/principal"
 	"os"
 )
 
 var root = cmd.NewCommandFork(
-	"agent-go",
-	"agent-go is a CLI tool for creating a Go agent.",
+	"goic",
+	"`goic` is a CLI tool for creating a Go agent.",
+	cmd.NewCommand(
+		"version",
+		"Print the version of `goic`.",
+		[]string{},
+		[]cmd.CommandOption{},
+		func(args []string, options map[string]string) error {
+			fmt.Println("0.0.1")
+			return nil
+		},
+	),
 	cmd.NewCommand(
 		"fetch",
 		"Fetch a DID from a canister ID.",

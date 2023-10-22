@@ -34,17 +34,13 @@ func New{{ .AgentName }}Agent(canisterId principal.Principal, config agent.Confi
 
 // {{ .Name }} calls the "{{ .RawName }}" method on the "{{ $.CanisterName }}" canister.
 func (a {{ $.AgentName }}Agent) {{ .Name }}({{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }} {{ $e.Type }}{{ end }}) {{ if .ReturnTypes }}({{ range .ReturnTypes }}*{{ . }}, {{ end }}error){{ else }}error{{ end }} {
-    args, err := idl.Marshal([]any{{ "{" }}{{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }}{{ end }}{{ "}" }})
-    if err != nil {
-        return {{ range .ReturnTypes }}nil, {{ end }}err
-    }
     {{ range $i, $e := .ReturnTypes -}}
         var r{{ $i }} {{ $e }}
     {{ end -}}
     if err := a.a.{{ .Type }}(
         a.canisterId,
         "{{ .RawName }}",
-        args,
+        []any{{ "{" }}{{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }}{{ end }}{{ "}" }},
         []any{{ "{" }}{{ range $i, $e := .ReturnTypes }}{{ if $i }}, {{ end }}&r{{ $i }}{{ end }}{{ "}"}},
     ); err != nil {
         return {{ range .ReturnTypes }}nil, {{ end }}err

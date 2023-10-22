@@ -30,15 +30,11 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 
 // GetBlocks calls the "get_blocks" method on the "icparchive" canister.
 func (a Agent) GetBlocks(arg0 GetBlocksArgs) (*GetBlocksResult, error) {
-	args, err := idl.Marshal([]any{arg0})
-	if err != nil {
-		return nil, err
-	}
 	var r0 GetBlocksResult
 	if err := a.a.Query(
 		a.canisterId,
 		"get_blocks",
-		args,
+		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
 		return nil, err

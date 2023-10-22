@@ -3,6 +3,9 @@
 test:
 	go test -v -cover ./...
 
+check-moc:
+	find ic -type f -name '*.mo' -print0 | xargs -0 $(shell dfx cache show)/moc --check
+
 test-cover:
 	go test -v -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out

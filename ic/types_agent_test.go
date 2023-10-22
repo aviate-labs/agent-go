@@ -28,16 +28,12 @@ func NewTypesAgent(canisterId principal.Principal, config agent.Config) (*TypesA
 
 // Bool calls the "bool" method on the "types" canister.
 func (a TypesAgent) Bool(arg0 bool, arg1 []bool) (*bool, *[]bool, error) {
-	args, err := idl.Marshal([]any{arg0, arg1})
-	if err != nil {
-		return nil, nil, err
-	}
 	var r0 bool
 	var r1 []bool
 	if err := a.a.Call(
 		a.canisterId,
 		"bool",
-		args,
+		[]any{arg0, arg1},
 		[]any{&r0, &r1},
 	); err != nil {
 		return nil, nil, err
@@ -47,10 +43,6 @@ func (a TypesAgent) Bool(arg0 bool, arg1 []bool) (*bool, *[]bool, error) {
 
 // Float calls the "float" method on the "types" canister.
 func (a TypesAgent) Float(arg0 float32, arg1 []float32, arg2 float64, arg3 []float64) (*float32, *[]float32, *float64, *[]float64, error) {
-	args, err := idl.Marshal([]any{arg0, arg1, arg2, arg3})
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
 	var r0 float32
 	var r1 []float32
 	var r2 float64
@@ -58,7 +50,7 @@ func (a TypesAgent) Float(arg0 float32, arg1 []float32, arg2 float64, arg3 []flo
 	if err := a.a.Call(
 		a.canisterId,
 		"float",
-		args,
+		[]any{arg0, arg1, arg2, arg3},
 		[]any{&r0, &r1, &r2, &r3},
 	); err != nil {
 		return nil, nil, nil, nil, err
@@ -68,10 +60,6 @@ func (a TypesAgent) Float(arg0 float32, arg1 []float32, arg2 float64, arg3 []flo
 
 // Int calls the "int" method on the "types" canister.
 func (a TypesAgent) Int(arg0 idl.Int, arg1 int8, arg2 int16, arg3 int32, arg4 int64) (*idl.Int, *int8, *int16, *int32, *int64, error) {
-	args, err := idl.Marshal([]any{arg0, arg1, arg2, arg3, arg4})
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
 	var r0 idl.Int
 	var r1 int8
 	var r2 int16
@@ -80,7 +68,7 @@ func (a TypesAgent) Int(arg0 idl.Int, arg1 int8, arg2 int16, arg3 int32, arg4 in
 	if err := a.a.Call(
 		a.canisterId,
 		"int",
-		args,
+		[]any{arg0, arg1, arg2, arg3, arg4},
 		[]any{&r0, &r1, &r2, &r3, &r4},
 	); err != nil {
 		return nil, nil, nil, nil, nil, err
@@ -90,10 +78,6 @@ func (a TypesAgent) Int(arg0 idl.Int, arg1 int8, arg2 int16, arg3 int32, arg4 in
 
 // Nat calls the "nat" method on the "types" canister.
 func (a TypesAgent) Nat(arg0 idl.Nat, arg1 uint8, arg2 uint16, arg3 uint32, arg4 uint64) (*idl.Nat, *uint8, *uint16, *uint32, *uint64, error) {
-	args, err := idl.Marshal([]any{arg0, arg1, arg2, arg3, arg4})
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
 	var r0 idl.Nat
 	var r1 uint8
 	var r2 uint16
@@ -102,7 +86,7 @@ func (a TypesAgent) Nat(arg0 idl.Nat, arg1 uint8, arg2 uint16, arg3 uint32, arg4
 	if err := a.a.Call(
 		a.canisterId,
 		"nat",
-		args,
+		[]any{arg0, arg1, arg2, arg3, arg4},
 		[]any{&r0, &r1, &r2, &r3, &r4},
 	); err != nil {
 		return nil, nil, nil, nil, nil, err
@@ -112,16 +96,12 @@ func (a TypesAgent) Nat(arg0 idl.Nat, arg1 uint8, arg2 uint16, arg3 uint32, arg4
 
 // Principal calls the "principal" method on the "types" canister.
 func (a TypesAgent) Principal(arg0 principal.Principal, arg1 []principal.Principal) (*principal.Principal, *[]principal.Principal, error) {
-	args, err := idl.Marshal([]any{arg0, arg1})
-	if err != nil {
-		return nil, nil, err
-	}
 	var r0 principal.Principal
 	var r1 []principal.Principal
 	if err := a.a.Call(
 		a.canisterId,
 		"principal",
-		args,
+		[]any{arg0, arg1},
 		[]any{&r0, &r1},
 	); err != nil {
 		return nil, nil, err
@@ -131,16 +111,12 @@ func (a TypesAgent) Principal(arg0 principal.Principal, arg1 []principal.Princip
 
 // Text calls the "text" method on the "types" canister.
 func (a TypesAgent) Text(arg0 string, arg1 []string) (*string, *[]string, error) {
-	args, err := idl.Marshal([]any{arg0, arg1})
-	if err != nil {
-		return nil, nil, err
-	}
 	var r0 string
 	var r1 []string
 	if err := a.a.Call(
 		a.canisterId,
 		"text",
-		args,
+		[]any{arg0, arg1},
 		[]any{&r0, &r1},
 	); err != nil {
 		return nil, nil, err
@@ -150,10 +126,6 @@ func (a TypesAgent) Text(arg0 string, arg1 []string) (*string, *[]string, error)
 
 // VecInt calls the "vec_int" method on the "types" canister.
 func (a TypesAgent) VecInt(arg0 []idl.Int, arg1 []int8, arg2 []int16, arg3 []int32, arg4 []int64) (*[]idl.Int, *[]int8, *[]int16, *[]int32, *[]int64, error) {
-	args, err := idl.Marshal([]any{arg0, arg1, arg2, arg3, arg4})
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
 	var r0 []idl.Int
 	var r1 []int8
 	var r2 []int16
@@ -162,7 +134,7 @@ func (a TypesAgent) VecInt(arg0 []idl.Int, arg1 []int8, arg2 []int16, arg3 []int
 	if err := a.a.Call(
 		a.canisterId,
 		"vec_int",
-		args,
+		[]any{arg0, arg1, arg2, arg3, arg4},
 		[]any{&r0, &r1, &r2, &r3, &r4},
 	); err != nil {
 		return nil, nil, nil, nil, nil, err
@@ -172,10 +144,6 @@ func (a TypesAgent) VecInt(arg0 []idl.Int, arg1 []int8, arg2 []int16, arg3 []int
 
 // VecNat calls the "vec_nat" method on the "types" canister.
 func (a TypesAgent) VecNat(arg0 []idl.Nat, arg1 []uint8, arg2 []uint16, arg3 []uint32, arg4 []uint64) (*[]idl.Nat, *[]uint8, *[]uint16, *[]uint32, *[]uint64, error) {
-	args, err := idl.Marshal([]any{arg0, arg1, arg2, arg3, arg4})
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
 	var r0 []idl.Nat
 	var r1 []uint8
 	var r2 []uint16
@@ -184,7 +152,7 @@ func (a TypesAgent) VecNat(arg0 []idl.Nat, arg1 []uint8, arg2 []uint16, arg3 []u
 	if err := a.a.Call(
 		a.canisterId,
 		"vec_nat",
-		args,
+		[]any{arg0, arg1, arg2, arg3, arg4},
 		[]any{&r0, &r1, &r2, &r3, &r4},
 	); err != nil {
 		return nil, nil, nil, nil, nil, err

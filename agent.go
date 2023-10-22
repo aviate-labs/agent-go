@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/aviate-labs/agent-go/candid"
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/certificate"
 	"github.com/aviate-labs/agent-go/identity"
@@ -78,56 +77,34 @@ func New(cfg Config) (*Agent, error) {
 }
 
 // Call calls a method on a canister and unmarshals the result into the given values.
-func (a Agent) Call(canisterID principal.Principal, methodName string, args []byte, values []any) error {
-	if len(args) == 0 {
-		// Default to the empty Candid argument list.
-		args = []byte{'D', 'I', 'D', 'L', 0, 0}
-	}
-	raw, err := a.CallRaw(canisterID, methodName, args)
+func (a Agent) Call(canisterID principal.Principal, methodName string, args []any, values []any) error {
+	rawArgs, err := idl.Marshal(args)
 	if err != nil {
 		return err
 	}
-	return idl.Unmarshal(raw, values)
-}
-
-// CallCandid calls a method on a canister and returns the raw Candid result as a list of types and values.
-func (a Agent) CallCandid(canisterID principal.Principal, methodName string, args []byte) ([]idl.Type, []interface{}, error) {
-	raw, err := a.CallRaw(canisterID, methodName, args)
-	if err != nil {
-		return nil, nil, err
+	if len(args) == 0 {
+		// Default to the empty Candid argument list.
+		rawArgs = []byte{'D', 'I', 'D', 'L', 0, 0}
 	}
-	return idl.Decode(raw)
-}
-
-// CallRaw calls a method on a canister and returns the raw Candid result.
-func (a Agent) CallRaw(canisterID principal.Principal, methodName string, args []byte) ([]byte, error) {
 	requestID, data, err := a.sign(Request{
 		Type:          RequestTypeCall,
 		Sender:        a.Sender(),
 		CanisterID:    canisterID,
 		MethodName:    methodName,
-		Arguments:     args,
+		Arguments:     rawArgs,
 		IngressExpiry: a.expiryDate(),
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	if _, err := a.call(canisterID, data); err != nil {
-		return nil, err
+		return err
 	}
-	return a.poll(canisterID, *requestID, time.Second, time.Second*10)
-}
-
-// CallString calls a method on a canister and returns the result as a string.
-func (a Agent) CallString(canisterID principal.Principal, methodName string, args []byte) (string, error) {
-	if len(args) == 0 {
-		args = []byte{'D', 'I', 'D', 'L', 0, 0}
-	}
-	types, values, err := a.CallCandid(canisterID, methodName, args)
+	raw, err := a.poll(canisterID, *requestID, time.Second, time.Second*10)
 	if err != nil {
-		return "", err
+		return err
 	}
-	return candid.DecodeValuesString(types, values)
+	return idl.Unmarshal(raw, values)
 }
 
 // GetCanisterControllers returns the list of principals that can control the given canister.
@@ -170,64 +147,40 @@ func (a Agent) GetCanisterModuleHash(canisterID principal.Principal) ([]byte, er
 	return a.GetCanisterInfo(canisterID, "module_hash")
 }
 
-// Query queries a method on a canister and unmarshals the result into the given values.
-func (a Agent) Query(canisterID principal.Principal, methodName string, args []byte, values []any) error {
-	if len(args) == 0 {
-		args = []byte{'D', 'I', 'D', 'L', 0, 0}
-	}
-	raw, err := a.QueryRaw(canisterID, methodName, args)
+func (a Agent) Query(canisterID principal.Principal, methodName string, args []any, values []any) error {
+	rawArgs, err := idl.Marshal(args)
 	if err != nil {
 		return err
 	}
-	return idl.Unmarshal(raw, values)
-}
-
-// QueryCandid queries a method on a canister and returns the raw Candid result as a list of types and values.
-func (a Agent) QueryCandid(canisterID principal.Principal, methodName string, args []byte) ([]idl.Type, []interface{}, error) {
-	raw, err := a.QueryRaw(canisterID, methodName, args)
-	if err != nil {
-		return nil, nil, err
+	if len(args) == 0 {
+		// Default to the empty Candid argument list.
+		rawArgs = []byte{'D', 'I', 'D', 'L', 0, 0}
 	}
-	return idl.Decode(raw)
-}
-
-// QueryRaw queries a method on a canister and returns the raw Candid result.
-func (a Agent) QueryRaw(canisterID principal.Principal, methodName string, args []byte) ([]byte, error) {
 	_, data, err := a.sign(Request{
 		Type:          RequestTypeQuery,
 		Sender:        a.Sender(),
 		CanisterID:    canisterID,
 		MethodName:    methodName,
-		Arguments:     args,
+		Arguments:     rawArgs,
 		IngressExpiry: a.expiryDate(),
 	})
 	if err != nil {
-		return nil, err
+		return err
 	}
 	resp, err := a.query(canisterID, data)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	var raw []byte
 	switch resp.Status {
 	case "replied":
-		return resp.Reply["arg"], nil
+		raw = resp.Reply["arg"]
 	case "rejected":
-		return nil, fmt.Errorf("(%d) %s", resp.RejectCode, resp.RejectMsg)
+		return fmt.Errorf("(%d) %s", resp.RejectCode, resp.RejectMsg)
 	default:
 		panic("unreachable")
 	}
-}
-
-// QueryString queries a method on a canister and returns the result as a string.
-func (a Agent) QueryString(canisterID principal.Principal, methodName string, args []byte) (string, error) {
-	if len(args) == 0 {
-		args = []byte{'D', 'I', 'D', 'L', 0, 0}
-	}
-	types, values, err := a.QueryCandid(canisterID, methodName, args)
-	if err != nil {
-		return "", err
-	}
-	return candid.DecodeValuesString(types, values)
+	return idl.Unmarshal(raw, values)
 }
 
 // RequestStatus returns the status of the request with the given ID.
@@ -237,7 +190,7 @@ func (a Agent) RequestStatus(canisterID principal.Principal, requestID RequestID
 	if err != nil {
 		return nil, nil, err
 	}
-	var state map[string]interface{}
+	var state map[string]any
 	if err := cbor.Unmarshal(c, &state); err != nil {
 		return nil, nil, err
 	}

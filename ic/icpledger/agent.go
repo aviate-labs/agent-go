@@ -34,15 +34,11 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 
 // AccountBalance calls the "account_balance" method on the "icpledger" canister.
 func (a Agent) AccountBalance(arg0 AccountBalanceArgs) (*Tokens, error) {
-	args, err := idl.Marshal([]any{arg0})
-	if err != nil {
-		return nil, err
-	}
 	var r0 Tokens
 	if err := a.a.Query(
 		a.canisterId,
 		"account_balance",
-		args,
+		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -52,15 +48,11 @@ func (a Agent) AccountBalance(arg0 AccountBalanceArgs) (*Tokens, error) {
 
 // Archives calls the "archives" method on the "icpledger" canister.
 func (a Agent) Archives() (*Archives, error) {
-	args, err := idl.Marshal([]any{})
-	if err != nil {
-		return nil, err
-	}
 	var r0 Archives
 	if err := a.a.Query(
 		a.canisterId,
 		"archives",
-		args,
+		[]any{},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -72,17 +64,13 @@ func (a Agent) Archives() (*Archives, error) {
 func (a Agent) Decimals() (*struct {
 	Decimals uint32 `ic:"decimals"`
 }, error) {
-	args, err := idl.Marshal([]any{})
-	if err != nil {
-		return nil, err
-	}
 	var r0 struct {
 		Decimals uint32 `ic:"decimals"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
 		"decimals",
-		args,
+		[]any{},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -94,17 +82,13 @@ func (a Agent) Decimals() (*struct {
 func (a Agent) Name() (*struct {
 	Name string `ic:"name"`
 }, error) {
-	args, err := idl.Marshal([]any{})
-	if err != nil {
-		return nil, err
-	}
 	var r0 struct {
 		Name string `ic:"name"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
 		"name",
-		args,
+		[]any{},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -114,15 +98,11 @@ func (a Agent) Name() (*struct {
 
 // QueryBlocks calls the "query_blocks" method on the "icpledger" canister.
 func (a Agent) QueryBlocks(arg0 GetBlocksArgs) (*QueryBlocksResponse, error) {
-	args, err := idl.Marshal([]any{arg0})
-	if err != nil {
-		return nil, err
-	}
 	var r0 QueryBlocksResponse
 	if err := a.a.Query(
 		a.canisterId,
 		"query_blocks",
-		args,
+		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -134,17 +114,13 @@ func (a Agent) QueryBlocks(arg0 GetBlocksArgs) (*QueryBlocksResponse, error) {
 func (a Agent) Symbol() (*struct {
 	Symbol string `ic:"symbol"`
 }, error) {
-	args, err := idl.Marshal([]any{})
-	if err != nil {
-		return nil, err
-	}
 	var r0 struct {
 		Symbol string `ic:"symbol"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
 		"symbol",
-		args,
+		[]any{},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -154,15 +130,11 @@ func (a Agent) Symbol() (*struct {
 
 // Transfer calls the "transfer" method on the "icpledger" canister.
 func (a Agent) Transfer(arg0 TransferArgs) (*TransferResult, error) {
-	args, err := idl.Marshal([]any{arg0})
-	if err != nil {
-		return nil, err
-	}
 	var r0 TransferResult
 	if err := a.a.Call(
 		a.canisterId,
 		"transfer",
-		args,
+		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -172,15 +144,11 @@ func (a Agent) Transfer(arg0 TransferArgs) (*TransferResult, error) {
 
 // TransferFee calls the "transfer_fee" method on the "icpledger" canister.
 func (a Agent) TransferFee(arg0 TransferFeeArg) (*TransferFee, error) {
-	args, err := idl.Marshal([]any{arg0})
-	if err != nil {
-		return nil, err
-	}
 	var r0 TransferFee
 	if err := a.a.Query(
 		a.canisterId,
 		"transfer_fee",
-		args,
+		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
 		return nil, err

@@ -32,15 +32,11 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 
 // GetIcpXdrConversionRate calls the "get_icp_xdr_conversion_rate" method on the "cmc" canister.
 func (a Agent) GetIcpXdrConversionRate() (*IcpXdrConversionRateResponse, error) {
-	args, err := idl.Marshal([]any{})
-	if err != nil {
-		return nil, err
-	}
 	var r0 IcpXdrConversionRateResponse
 	if err := a.a.Query(
 		a.canisterId,
 		"get_icp_xdr_conversion_rate",
-		args,
+		[]any{},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -50,15 +46,11 @@ func (a Agent) GetIcpXdrConversionRate() (*IcpXdrConversionRateResponse, error) 
 
 // GetSubnetTypesToSubnets calls the "get_subnet_types_to_subnets" method on the "cmc" canister.
 func (a Agent) GetSubnetTypesToSubnets() (*SubnetTypesToSubnetsResponse, error) {
-	args, err := idl.Marshal([]any{})
-	if err != nil {
-		return nil, err
-	}
 	var r0 SubnetTypesToSubnetsResponse
 	if err := a.a.Query(
 		a.canisterId,
 		"get_subnet_types_to_subnets",
-		args,
+		[]any{},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -68,15 +60,11 @@ func (a Agent) GetSubnetTypesToSubnets() (*SubnetTypesToSubnetsResponse, error) 
 
 // NotifyCreateCanister calls the "notify_create_canister" method on the "cmc" canister.
 func (a Agent) NotifyCreateCanister(arg0 NotifyCreateCanisterArg) (*NotifyCreateCanisterResult, error) {
-	args, err := idl.Marshal([]any{arg0})
-	if err != nil {
-		return nil, err
-	}
 	var r0 NotifyCreateCanisterResult
 	if err := a.a.Call(
 		a.canisterId,
 		"notify_create_canister",
-		args,
+		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -86,15 +74,11 @@ func (a Agent) NotifyCreateCanister(arg0 NotifyCreateCanisterArg) (*NotifyCreate
 
 // NotifyTopUp calls the "notify_top_up" method on the "cmc" canister.
 func (a Agent) NotifyTopUp(arg0 NotifyTopUpArg) (*NotifyTopUpResult, error) {
-	args, err := idl.Marshal([]any{arg0})
-	if err != nil {
-		return nil, err
-	}
 	var r0 NotifyTopUpResult
 	if err := a.a.Call(
 		a.canisterId,
 		"notify_top_up",
-		args,
+		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
 		return nil, err

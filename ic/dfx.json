@@ -1,0 +1,8 @@
+{
+  "canisters": {
+    "assetstorage": {
+      "type": "motoko",
+      "main": "assetstorage/actor.mo"
+    }
+  }
+}
