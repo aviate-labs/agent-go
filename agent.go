@@ -14,6 +14,9 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
+// DefaultConfig is the default configuration for an Agent.
+var DefaultConfig = Config{}
+
 // ic0 is the old (default) host for the Internet Computer.
 // var ic0, _ = url.Parse("https://ic0.app/")
 

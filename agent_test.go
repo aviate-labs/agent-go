@@ -12,14 +12,16 @@ import (
 )
 
 func Example_anonymous_query() {
-	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
-	a, _ := agent.New(agent.Config{})
+	a, _ := agent.New(agent.DefaultConfig)
+	type Account struct {
+		Account string `ic:"account"`
+	}
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
 	}
-	_ = a.Query(ledgerID, "account_balance_dfx", []any{map[string]any{
-		"account": "9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d",
-	}}, []any{&balance})
+	_ = a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{
+		Account{"9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d"},
+	}, []any{&balance})
 	fmt.Println(balance.E8S)
 	// Output:
 	// 0
