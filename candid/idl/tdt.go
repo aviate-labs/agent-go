@@ -1,7 +1,7 @@
 package idl
 
 import (
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 type TypeDefinitionTable struct {

@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"github.com/aviate-labs/agent-go/principal"
 	"github.com/aviate-labs/secp256k1"
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 var secp256k1OID = asn1.ObjectIdentifier{1, 3, 132, 0, 10}

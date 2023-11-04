@@ -5,7 +5,7 @@ import (
 	"github.com/aviate-labs/agent-go/certificate/bls"
 	"github.com/aviate-labs/agent-go/principal"
 	"github.com/fxamacker/cbor/v2"
-	"golang.org/x/exp/slices"
+	"slices"
 )
 
 // Cert is a certificate gets returned by the IC.
