@@ -16,7 +16,7 @@ func Example_ledger() {
 			"e8s": idl.Nat64Type(),
 		})
 		return typ.Service(map[string]*idl.FunctionType{
-			"account_balance": typ.Func([]idl.Type{accountBalanceArgs}, []idl.Type{tokens}, []string{"query"}),
+			"account_balance": typ.Func([]idl.FunctionParameter{{Type: accountBalanceArgs}}, []idl.FunctionParameter{{Type: tokens}}, []string{"query"}),
 			// etc.
 		})
 	}))
@@ -28,7 +28,7 @@ func Example_optionalNat() {
 	fmt.Println(idl.NewInterface(func(typ idl.IDL) *idl.Service {
 		time := idl.NewOptionalType(new(idl.NatType))
 		return typ.Service(map[string]*idl.FunctionType{
-			"now": typ.Func([]idl.Type{}, []idl.Type{time}, []string{"query"}),
+			"now": typ.Func([]idl.FunctionParameter{}, []idl.FunctionParameter{{Type: time}}, []string{"query"}),
 			// etc.
 		})
 	}))

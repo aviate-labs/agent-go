@@ -50,5 +50,5 @@ func NewUnmarshalGoError(raw any, v any) *UnmarshalGoError {
 }
 
 func (e UnmarshalGoError) Error() string {
-	return fmt.Sprintf("cannot unmarshal %v into Go value of type %T", e.Raw, e.V)
+	return fmt.Sprintf("cannot unmarshal %v (%T) into Go value of type %T", e.Raw, e.Raw, e.V)
 }

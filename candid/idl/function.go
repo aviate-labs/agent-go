@@ -26,28 +26,33 @@ func encodeTypes(ts []Type, tdt *TypeDefinitionTable) ([]byte, error) {
 	return concat(l, vs), nil
 }
 
-type FunctionType struct {
-	ArgTypes    []Type
-	RetTypes    []Type
-	Annotations []string
+type FunctionParameter struct {
+	Type  Type
+	index int64
 }
 
-func NewFunctionType(argumentTypes []Type, returnTypes []Type, annotations []string) *FunctionType {
+type FunctionType struct {
+	ArgumentParameters []FunctionParameter
+	ReturnParameters   []FunctionParameter
+	Annotations        []string
+}
+
+func NewFunctionType(argumentTypes []FunctionParameter, returnTypes []FunctionParameter, annotations []string) *FunctionType {
 	return &FunctionType{
-		ArgTypes:    argumentTypes,
-		RetTypes:    returnTypes,
-		Annotations: annotations,
+		ArgumentParameters: argumentTypes,
+		ReturnParameters:   returnTypes,
+		Annotations:        annotations,
 	}
 }
 
 func (f FunctionType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
-	for _, t := range f.ArgTypes {
-		if err := t.AddTypeDefinition(tdt); err != nil {
+	for _, t := range f.ArgumentParameters {
+		if err := t.Type.AddTypeDefinition(tdt); err != nil {
 			return err
 		}
 	}
-	for _, t := range f.RetTypes {
-		if err := t.AddTypeDefinition(tdt); err != nil {
+	for _, t := range f.ReturnParameters {
+		if err := t.Type.AddTypeDefinition(tdt); err != nil {
 			return err
 		}
 	}
@@ -56,11 +61,11 @@ func (f FunctionType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	if err != nil {
 		return err
 	}
-	vsa, err := encodeTypes(f.ArgTypes, tdt)
+	vsa, err := encodeTypes(getFunctionParameterTypes(f.ArgumentParameters), tdt)
 	if err != nil {
 		return err
 	}
-	vsr, err := encodeTypes(f.RetTypes, tdt)
+	vsr, err := encodeTypes(getFunctionParameterTypes(f.ReturnParameters), tdt)
 	if err != nil {
 		return err
 	}
@@ -155,12 +160,12 @@ func (f FunctionType) EncodeValue(v any) ([]byte, error) {
 
 func (f FunctionType) String() string {
 	var args []string
-	for _, t := range f.ArgTypes {
-		args = append(args, t.String())
+	for _, t := range f.ArgumentParameters {
+		args = append(args, t.Type.String())
 	}
 	var rets []string
-	for _, t := range f.RetTypes {
-		rets = append(rets, t.String())
+	for _, t := range f.ReturnParameters {
+		rets = append(rets, t.Type.String())
 	}
 	var ann string
 	if len(f.Annotations) != 0 {
@@ -170,10 +175,18 @@ func (f FunctionType) String() string {
 }
 
 func (FunctionType) UnmarshalGo(raw any, _v any) error {
-	return NewUnmarshalGoError(raw, _v)
+	return nil // Unsupported.
 }
 
 type PrincipalMethod struct {
 	Principal principal.Principal
 	Method    string
+}
+
+func getFunctionParameterTypes(parameters []FunctionParameter) []Type {
+	var ts []Type
+	for _, p := range parameters {
+		ts = append(ts, p.Type)
+	}
+	return ts
 }

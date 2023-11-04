@@ -94,7 +94,7 @@ func (o OptionalType) UnmarshalGo(raw any, _v any) error {
 	}
 	if v := reflect.ValueOf(_v); v.Kind() == reflect.Ptr {
 		v := v.Elem() // Dereference the pointer.
-		if v.Kind() != reflect.Ptr {
+		if k := v.Kind(); k != reflect.Ptr {
 			return NewUnmarshalGoError(raw, _v)
 		}
 		if !v.IsNil() {

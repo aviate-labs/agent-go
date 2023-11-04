@@ -208,9 +208,7 @@ func (record RecordType) unmarshalStruct(raw map[string]any, _v reflect.Value) e
 		if !ok {
 			return NewUnmarshalGoError(raw, _v.Interface())
 		}
-		if v.Kind() != reflect.Ptr {
-			v = v.Addr()
-		}
+		v = v.Addr()
 		if v.IsNil() {
 			// Set to a new value if the field is nil.
 			if _, ok := f.Type.(*NullType); !ok {

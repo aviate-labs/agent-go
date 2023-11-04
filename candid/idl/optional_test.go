@@ -1,6 +1,7 @@
 package idl_test
 
 import (
+	"errors"
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"testing"
 )
@@ -14,11 +15,19 @@ func ExampleOpt() {
 	// 4449444c016e7d01000101
 }
 
+func ExampleOpt_blob() {
+	var optNatArray = idl.NewOptionalType(idl.VectorType{Type: idl.Nat8Type()})
+	test([]idl.Type{optNatArray}, []any{nil})
+	test([]idl.Type{optNatArray}, []any{[]byte{0x00}})
+	// Output:
+	// 4449444c026d7b6e00010100
+	// 4449444c026d7b6e000101010100
+}
+
 func TestOptionalType_UnmarshalGo(t *testing.T) {
-	var null *idl.Null
 	if err := (idl.OptionalType{
 		Type: new(idl.NullType),
-	}).UnmarshalGo(nil, &null); err != nil {
+	}).UnmarshalGo(nil, new(idl.Null)); err != nil {
 		t.Fatal(err)
 	}
 
@@ -43,8 +52,18 @@ func TestOptionalType_UnmarshalGo(t *testing.T) {
 	}).UnmarshalGo("", &a); err == nil {
 		t.Fatal("expected error")
 	} else {
-		if _, ok := err.(*idl.UnmarshalGoError); !ok {
+		var unmarshalGoError *idl.UnmarshalGoError
+		if !errors.As(err, &unmarshalGoError) {
 			t.Fatal("expected UnmarshalGoError")
 		}
 	}
+
+	t.Run("Blob", func(t *testing.T) {
+		var bs *[]byte
+		if err := (idl.OptionalType{
+			Type: idl.NewVectorType(idl.Nat8Type()),
+		}).UnmarshalGo([]any{byte(0x00)}, &bs); err != nil {
+			t.Error(err)
+		}
+	})
 }

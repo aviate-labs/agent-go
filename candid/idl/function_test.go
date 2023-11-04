@@ -10,8 +10,8 @@ func ExampleFunctionType() {
 	test_(
 		[]idl.Type{
 			idl.NewFunctionType(
-				[]idl.Type{new(idl.TextType)},
-				[]idl.Type{new(idl.NatType)},
+				[]idl.FunctionParameter{{Type: new(idl.TextType)}},
+				[]idl.FunctionParameter{{Type: new(idl.NatType)}},
 				nil,
 			),
 		},

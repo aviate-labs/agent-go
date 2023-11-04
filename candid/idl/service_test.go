@@ -11,8 +11,8 @@ func ExampleService() {
 		[]idl.Type{idl.NewServiceType(
 			map[string]*idl.FunctionType{
 				"foo": idl.NewFunctionType(
-					[]idl.Type{new(idl.TextType)},
-					[]idl.Type{new(idl.NatType)},
+					[]idl.FunctionParameter{{Type: new(idl.TextType)}},
+					[]idl.FunctionParameter{{Type: new(idl.NatType)}},
 					nil,
 				),
 			},

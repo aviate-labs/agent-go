@@ -186,33 +186,41 @@ func Decode(bs []byte) ([]Type, []any, error) {
 				if err != nil {
 					return nil, nil, err
 				}
-				var args []Type
+				var args []FunctionParameter
 				for i := 0; i < int(la.Int64()); i++ {
 					tid, err = leb128.DecodeSigned(r)
 					if err != nil {
 						return nil, nil, err
 					}
-					v, err := getType(tid.Int64(), tds)
-					if err != nil {
-						return nil, nil, err
+					if v, err := getType(tid.Int64(), tds); err != nil {
+						args = append(args, FunctionParameter{
+							index: tid.Int64(),
+						})
+					} else {
+						args = append(args, FunctionParameter{
+							Type: v,
+						})
 					}
-					args = append(args, v)
 				}
 				lr, err := leb128.DecodeUnsigned(r)
 				if err != nil {
 					return nil, nil, err
 				}
-				var rets []Type
+				var rets []FunctionParameter
 				for i := 0; i < int(lr.Int64()); i++ {
 					tid, err = leb128.DecodeSigned(r)
 					if err != nil {
 						return nil, nil, err
 					}
-					v, err := getType(tid.Int64(), tds)
-					if err != nil {
-						return nil, nil, err
+					if v, err := getType(tid.Int64(), tds); err != nil {
+						rets = append(rets, FunctionParameter{
+							index: tid.Int64(),
+						})
+					} else {
+						rets = append(rets, FunctionParameter{
+							Type: v,
+						})
 					}
-					rets = append(rets, v)
 				}
 				l, err := leb128.DecodeUnsigned(r)
 				if err != nil {
@@ -227,9 +235,9 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					anns = append(anns, string(ann))
 				}
 				tds = append(tds, &FunctionType{
-					ArgTypes:    args,
-					RetTypes:    rets,
-					Annotations: anns,
+					ArgumentParameters: args,
+					ReturnParameters:   rets,
+					Annotations:        anns,
 				})
 			case serviceType:
 				l, err := leb128.DecodeUnsigned(r)
@@ -342,6 +350,50 @@ func Decode(bs []byte) ([]Type, []any, error) {
 							return nil, err
 						}
 						t.Fields[i].Type = v
+					}
+					return t, nil
+				}
+				if v, err := f(tds); v == nil || err != nil {
+					tc = append(tc, delayType{
+						index: i,
+						f:     f,
+					})
+				}
+			case *FunctionType:
+				resolved := true
+				for _, f := range t.ArgumentParameters {
+					if f.Type == nil {
+						resolved = false
+					}
+				}
+				for _, f := range t.ReturnParameters {
+					if f.Type == nil {
+						resolved = false
+					}
+				}
+				if resolved {
+					continue
+				}
+				f := func(tds []Type) (Type, error) {
+					for i, f := range t.ArgumentParameters {
+						if f.Type != nil {
+							continue
+						}
+						v, err := getType(f.index, tds)
+						if err != nil {
+							return nil, err
+						}
+						t.ArgumentParameters[i].Type = v
+					}
+					for i, f := range t.ReturnParameters {
+						if f.Type != nil {
+							continue
+						}
+						v, err := getType(f.index, tds)
+						if err != nil {
+							return nil, err
+						}
+						t.ReturnParameters[i].Type = v
 					}
 					return t, nil
 				}

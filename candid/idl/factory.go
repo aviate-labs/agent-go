@@ -23,7 +23,7 @@ type IDL struct {
 	Vec       func(t Type) *VectorType
 	Record    func(fields map[string]Type) *RecordType
 	Variant   func(fields map[string]Type) *VariantType
-	Func      func(args []Type, ret []Type, annotations []string) *FunctionType
+	Func      func(args, ret []FunctionParameter, annotations []string) *FunctionType
 	Service   func(functions map[string]*FunctionType) *Service
 	Principal *PrincipalType
 }
@@ -65,7 +65,7 @@ func NewInterface(factory IDLFactory) *Service {
 		Variant: func(fields map[string]Type) *VariantType {
 			return NewVariantType(fields)
 		},
-		Func: func(argumentTypes, returnTypes []Type, annotations []string) *FunctionType {
+		Func: func(argumentTypes, returnTypes []FunctionParameter, annotations []string) *FunctionType {
 			return NewFunctionType(argumentTypes, returnTypes, annotations)
 		},
 		Service: func(methods map[string]*FunctionType) *Service {

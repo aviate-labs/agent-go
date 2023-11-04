@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/ic"
+	"github.com/aviate-labs/agent-go/ic/icpledger"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
+	"testing"
 )
 
 func Example_anonymous_query() {
@@ -63,4 +65,17 @@ func Example_query() {
 	fmt.Println(balance.E8S)
 	// Output:
 	// 0
+}
+
+func TestICPLedger_queryBlocks(t *testing.T) {
+	a, err := icpledger.NewAgent(ic.LEDGER_PRINCIPAL, agent.DefaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.QueryBlocks(icpledger.GetBlocksArgs{
+		Start:  1,  // Start from the first block.
+		Length: 10, // Get the last 10 blocks.
+	}); err != nil {
+		t.Fatal(err)
+	}
 }
