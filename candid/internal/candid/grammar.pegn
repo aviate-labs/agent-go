@@ -1,4 +1,4 @@
-# CANDID (v0.1.1) github.com/di-wu/candid-go/internal/candid
+# CANDID (v0.1.1) github.com/aviate-labs/agent-go/candid/internal/candid
 
 Prog      <-- (Ws Def (';' Ws Def)*)?     ';'? Ws
               (Ws Actor (';' Ws Actor)*)? ';'? Ws

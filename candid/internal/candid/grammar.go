@@ -1,5 +1,5 @@
 // Do not edit. This file is auto-generated.
-// Grammar: CANDID (v0.1.1) github.com/di-wu/candid-go/internal/candid
+// Grammar: CANDID (v0.1.1) github.com/aviate-labs/agent-go/candid/internal/candid
 
 package candid
 
@@ -13,7 +13,7 @@ import (
 const (
 	Unknown = iota
 
-	// CANDID (github.com/di-wu/candid-go/internal/candid)
+	// CANDID (github.com/aviate-labs/agent-go/candid/internal/candid)
 
 	ProgT        // 001
 	TypeT        // 002
@@ -44,7 +44,7 @@ const (
 
 // Token Definitions
 const (
-	// CANDID (github.com/di-wu/candid-go/internal/candid)
+	// CANDID (github.com/aviate-labs/agent-go/candid/internal/candid)
 
 	ESC = 0x005C // \
 )
@@ -52,7 +52,7 @@ const (
 var NodeTypes = []string{
 	"UNKNOWN",
 
-	// CANDID (github.com/di-wu/candid-go/internal/candid)
+	// CANDID (github.com/aviate-labs/agent-go/candid/internal/candid)
 
 	"Prog",
 	"Type",

@@ -1,6 +1,8 @@
 package certificate
 
-import "bytes"
+import (
+	"bytes"
+)
 
 // Lookup looks up the given path in the certificate tree.
 func Lookup(path [][]byte, node Node) []byte {
@@ -27,6 +29,18 @@ func LookupPath(p ...string) [][]byte {
 		path = append(path, []byte(p))
 	}
 	return path
+}
+
+func LookupNode(path [][]byte, node Node) *Node {
+	if len(path) == 0 {
+		return &node
+	}
+
+	n := findLabel(flattenNode(node), path[0])
+	if n != nil {
+		return LookupNode(path[1:], *n)
+	}
+	return nil
 }
 
 func findLabel(nodes []Node, label Label) *Node {

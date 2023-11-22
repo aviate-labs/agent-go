@@ -85,8 +85,8 @@ func Test_Icrc1Metadata(t *testing.T) {
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{*new([]struct {
-					field0 string      `ic:"field0"`
-					field1 icrc1.Value `ic:"field1"`
+					Field0 string      `ic:"0"`
+					Field1 icrc1.Value `ic:"1"`
 				})}, nil
 			},
 		},

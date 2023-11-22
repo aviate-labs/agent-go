@@ -8,7 +8,7 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
-type AccountIdentifier = struct {
+type AccountIdentifier struct {
 	Bytes []byte `ic:"bytes"`
 }
 
@@ -90,7 +90,7 @@ type BlockIndex = uint64
 
 type Cycles = idl.Nat
 
-type CyclesCanisterInitPayload = struct {
+type CyclesCanisterInitPayload struct {
 	LedgerCanisterId       *principal.Principal  `ic:"ledger_canister_id,omitempty"`
 	GovernanceCanisterId   *principal.Principal  `ic:"governance_canister_id,omitempty"`
 	MintingAccountId       *AccountIdentifier    `ic:"minting_account_id,omitempty"`
@@ -98,34 +98,34 @@ type CyclesCanisterInitPayload = struct {
 	ExchangeRateCanister   *ExchangeRateCanister `ic:"exchange_rate_canister,omitempty"`
 }
 
-type ExchangeRateCanister = struct {
+type ExchangeRateCanister struct {
 	Set   *principal.Principal `ic:"Set,variant"`
 	Unset *struct{}            `ic:"Unset,variant"`
 }
 
-type IcpXdrConversionRate = struct {
+type IcpXdrConversionRate struct {
 	TimestampSeconds   uint64 `ic:"timestamp_seconds"`
 	XdrPermyriadPerIcp uint64 `ic:"xdr_permyriad_per_icp"`
 }
 
-type IcpXdrConversionRateResponse = struct {
+type IcpXdrConversionRateResponse struct {
 	Data        IcpXdrConversionRate `ic:"data"`
 	HashTree    []byte               `ic:"hash_tree"`
 	Certificate []byte               `ic:"certificate"`
 }
 
-type NotifyCreateCanisterArg = struct {
+type NotifyCreateCanisterArg struct {
 	BlockIndex BlockIndex          `ic:"block_index"`
 	Controller principal.Principal `ic:"controller"`
 	SubnetType *string             `ic:"subnet_type,omitempty"`
 }
 
-type NotifyCreateCanisterResult = struct {
+type NotifyCreateCanisterResult struct {
 	Ok  *principal.Principal `ic:"Ok,variant"`
 	Err *NotifyError         `ic:"Err,variant"`
 }
 
-type NotifyError = struct {
+type NotifyError struct {
 	Refunded *struct {
 		Reason     string      `ic:"reason"`
 		BlockIndex *BlockIndex `ic:"block_index,omitempty"`
@@ -139,19 +139,19 @@ type NotifyError = struct {
 	} `ic:"Other,variant"`
 }
 
-type NotifyTopUpArg = struct {
+type NotifyTopUpArg struct {
 	BlockIndex BlockIndex          `ic:"block_index"`
 	CanisterId principal.Principal `ic:"canister_id"`
 }
 
-type NotifyTopUpResult = struct {
+type NotifyTopUpResult struct {
 	Ok  *Cycles      `ic:"Ok,variant"`
 	Err *NotifyError `ic:"Err,variant"`
 }
 
-type SubnetTypesToSubnetsResponse = struct {
+type SubnetTypesToSubnetsResponse struct {
 	Data []struct {
-		field0 string                `ic:"field0"`
-		field1 []principal.Principal `ic:"field1"`
+		Field0 string                `ic:"0"`
+		Field1 []principal.Principal `ic:"1"`
 	} `ic:"data"`
 }

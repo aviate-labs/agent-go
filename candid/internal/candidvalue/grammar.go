@@ -1,5 +1,5 @@
 // Do not edit. This file is auto-generated.
-// Grammar: CANDID (v0.1.0) github.com/di-wu/candid-go/internal/candid/candidvalue
+// Grammar: CANDID (v0.1.0) github.com/aviate-labs/agent-go/candid/internal/candid/candidvalue
 
 package candidvalue
 
@@ -13,7 +13,7 @@ import (
 const (
 	Unknown = iota
 
-	// CANDID (github.com/di-wu/candid-go/internal/candid/candidvalue)
+	// CANDID (github.com/aviate-labs/agent-go/candid/internal/candid/candidvalue)
 
 	ValuesT      // 001
 	OptValueT    // 002
@@ -35,7 +35,7 @@ const (
 
 // Token Definitions
 const (
-	// CANDID (github.com/di-wu/candid-go/internal/candid/candidvalue)
+	// CANDID (github.com/aviate-labs/agent-go/candid/internal/candid/candidvalue)
 
 	ESC = 0x005C // \
 )
@@ -43,7 +43,7 @@ const (
 var NodeTypes = []string{
 	"UNKNOWN",
 
-	// CANDID (github.com/di-wu/candid-go/internal/candid/candidvalue)
+	// CANDID (github.com/aviate-labs/agent-go/candid/internal/candid/candidvalue)
 
 	"Values",
 	"OptValue",

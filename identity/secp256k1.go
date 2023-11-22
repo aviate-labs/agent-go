@@ -1,7 +1,6 @@
 package identity
 
 import (
-	"crypto/elliptic"
 	"crypto/sha256"
 	"encoding/asn1"
 	"encoding/pem"
@@ -22,7 +21,7 @@ func derEncodeSecp256k1PublicKey(key *secp256k1.PublicKey) ([]byte, error) {
 			secp256k1OID,             // Secp256k1
 		},
 		PublicKey: asn1.BitString{
-			Bytes: elliptic.Marshal(secp256k1.S256(), point.X, point.Y),
+			Bytes: marshal(secp256k1.S256(), point.X, point.Y),
 		},
 	})
 }
@@ -104,7 +103,7 @@ func (id Secp256k1Identity) ToPEM() ([]byte, error) {
 		PrivateKey:    id.privateKey.D.Bytes(),
 		NamedCurveOID: secp256k1OID,
 		PublicKey: asn1.BitString{
-			Bytes: elliptic.Marshal(secp256k1.S256(), point.X, point.Y),
+			Bytes: marshal(secp256k1.S256(), point.X, point.Y),
 		},
 	})
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 
 {{- range .Definitions }}
 
-type {{ .Name }} = {{ .Type }}
+type {{ .Name }} {{ if .Eq }}= {{end}}{{ .Type }}
 {{- end }}
 
 // Agent is a client for the "{{ .CanisterName }}" canister.

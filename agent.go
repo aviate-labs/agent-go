@@ -145,9 +145,30 @@ func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) (
 	return certificate.Lookup(path, node), nil
 }
 
+func (a Agent) GetCanisterMetadata(canisterID principal.Principal, subPath string) ([]byte, error) {
+	path := [][]byte{[]byte("canister"), canisterID.Raw, []byte("metadata"), []byte(subPath)}
+	c, err := a.readStateCertificate(canisterID, [][][]byte{path})
+	if err != nil {
+		return nil, err
+	}
+	var state map[string]any
+	if err := cbor.Unmarshal(c, &state); err != nil {
+		return nil, err
+	}
+	node, err := certificate.DeserializeNode(state["tree"].([]any))
+	if err != nil {
+		return nil, err
+	}
+	return certificate.Lookup(path, node), nil
+}
+
 // GetCanisterModuleHash returns the module hash for the given canister.
 func (a Agent) GetCanisterModuleHash(canisterID principal.Principal) ([]byte, error) {
 	return a.GetCanisterInfo(canisterID, "module_hash")
+}
+
+func (a Agent) GetRootKey() []byte {
+	return a.rootKey
 }
 
 func (a Agent) Query(canisterID principal.Principal, methodName string, args []any, values []any) error {

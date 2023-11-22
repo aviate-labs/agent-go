@@ -21,9 +21,9 @@ type Cert struct {
 // Certificate is a certificate gets returned by the IC and can be used to verify
 // the state root based on the root key and canister ID.
 type Certificate struct {
-	cert       Cert
-	rootKey    []byte
-	canisterID principal.Principal
+	Cert       Cert
+	RootKey    []byte
+	CanisterID principal.Principal
 }
 
 // New creates a new certificate.
@@ -33,15 +33,15 @@ func New(canisterID principal.Principal, rootKey []byte, certificate []byte) (*C
 		return nil, err
 	}
 	return &Certificate{
-		cert:       cert,
-		rootKey:    rootKey,
-		canisterID: canisterID,
+		Cert:       cert,
+		RootKey:    rootKey,
+		CanisterID: canisterID,
 	}, nil
 }
 
 // Verify verifies the certificate.
 func (c Certificate) Verify() error {
-	signature, err := bls.SignatureFromBytes(c.cert.Signature)
+	signature, err := bls.SignatureFromBytes(c.Cert.Signature)
 	if err != nil {
 		return err
 	}
@@ -49,7 +49,7 @@ func (c Certificate) Verify() error {
 	if err != nil {
 		return err
 	}
-	rootHash := c.cert.Tree.Digest()
+	rootHash := c.Cert.Tree.Digest()
 	message := append(DomainSeparator("ic-state-root"), rootHash[:]...)
 	if !signature.Verify(publicKey, string(message)) {
 		return fmt.Errorf("signature verification failed")
@@ -59,13 +59,14 @@ func (c Certificate) Verify() error {
 
 // getPublicKey checks the delegation and returns the public key.
 func (c Certificate) getPublicKey() (*bls.PublicKey, error) {
-	if c.cert.Delegation == nil {
-		return bls.PublicKeyFromBytes(c.rootKey)
+	if c.Cert.Delegation == nil {
+		return bls.PublicKeyFromBytes(c.RootKey)
 	}
-	cert := c.cert.Delegation
+
+	cert := c.Cert.Delegation
 	canisterRanges := Lookup(
 		LookupPath("subnet", string(cert.SubnetId.Raw), "canister_ranges"),
-		cert.Certificate.cert.Tree.root,
+		cert.Certificate.Cert.Tree.Root,
 	)
 	if canisterRanges == nil {
 		return nil, fmt.Errorf("no canister ranges found for subnet %s", cert.SubnetId)
@@ -80,18 +81,18 @@ func (c Certificate) getPublicKey() (*bls.PublicKey, error) {
 		if len(pair) != 2 {
 			return nil, fmt.Errorf("invalid range: %v", pair)
 		}
-		if slices.Compare(pair[0], c.canisterID.Raw) <= 0 && slices.Compare(c.canisterID.Raw, pair[1]) <= 0 {
+		if slices.Compare(pair[0], c.CanisterID.Raw) <= 0 && slices.Compare(c.CanisterID.Raw, pair[1]) <= 0 {
 			inRange = true
 			break
 		}
 	}
 	if !inRange {
-		return nil, fmt.Errorf("canister %s is not in range", c.canisterID)
+		return nil, fmt.Errorf("canister %s is not in range", c.CanisterID)
 	}
 
 	publicKey := Lookup(
 		LookupPath("subnet", string(cert.SubnetId.Raw), "public_key"),
-		cert.Certificate.cert.Tree.root,
+		cert.Certificate.Cert.Tree.Root,
 	)
 	if publicKey == nil {
 		return nil, fmt.Errorf("no public key found for subnet %s", cert.SubnetId)
@@ -131,7 +132,7 @@ func (d *Delegation) UnmarshalCBOR(bytes []byte) error {
 				Raw: v.([]byte),
 			}
 		case "certificate":
-			if err := cbor.Unmarshal(v.([]byte), &d.Certificate.cert); err != nil {
+			if err := cbor.Unmarshal(v.([]byte), &d.Certificate.Cert); err != nil {
 				return err
 			}
 		default:

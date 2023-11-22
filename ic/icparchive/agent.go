@@ -42,7 +42,7 @@ func (a Agent) GetBlocks(arg0 GetBlocksArgs) (*GetBlocksResult, error) {
 	return &r0, nil
 }
 
-type Block = struct {
+type Block struct {
 	ParentHash  *[]byte     `ic:"parent_hash,omitempty"`
 	Transaction Transaction `ic:"transaction"`
 	Timestamp   Timestamp   `ic:"timestamp"`
@@ -50,16 +50,16 @@ type Block = struct {
 
 type BlockIndex = uint64
 
-type BlockRange = struct {
+type BlockRange struct {
 	Blocks []Block `ic:"blocks"`
 }
 
-type GetBlocksArgs = struct {
+type GetBlocksArgs struct {
 	Start  BlockIndex `ic:"start"`
 	Length uint64     `ic:"length"`
 }
 
-type GetBlocksError = struct {
+type GetBlocksError struct {
 	BadFirstBlockIndex *struct {
 		RequestedIndex  BlockIndex `ic:"requested_index"`
 		FirstValidIndex BlockIndex `ic:"first_valid_index"`
@@ -70,14 +70,14 @@ type GetBlocksError = struct {
 	} `ic:"Other,variant"`
 }
 
-type GetBlocksResult = struct {
+type GetBlocksResult struct {
 	Ok  *BlockRange     `ic:"Ok,variant"`
 	Err *GetBlocksError `ic:"Err,variant"`
 }
 
 type Memo = uint64
 
-type Operation = struct {
+type Operation struct {
 	Mint *struct {
 		To     AccountIdentifier `ic:"to"`
 		Amount Tokens            `ic:"amount"`
@@ -108,15 +108,15 @@ type Operation = struct {
 	} `ic:"TransferFrom,variant"`
 }
 
-type Timestamp = struct {
+type Timestamp struct {
 	TimestampNanos uint64 `ic:"timestamp_nanos"`
 }
 
-type Tokens = struct {
+type Tokens struct {
 	E8s uint64 `ic:"e8s"`
 }
 
-type Transaction = struct {
+type Transaction struct {
 	Memo          Memo       `ic:"memo"`
 	Icrc1Memo     *[]byte    `ic:"icrc1_memo,omitempty"`
 	Operation     *Operation `ic:"operation,omitempty"`

@@ -8,7 +8,7 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
-type Account = struct {
+type Account struct {
 	Owner      principal.Principal `ic:"owner"`
 	Subaccount *Subaccount         `ic:"subaccount,omitempty"`
 }
@@ -75,12 +75,12 @@ func (a Agent) Icrc1Fee() (*idl.Nat, error) {
 
 // Icrc1Metadata calls the "icrc1_metadata" method on the "icrc1" canister.
 func (a Agent) Icrc1Metadata() (*[]struct {
-	field0 string `ic:"field0"`
-	field1 Value  `ic:"field1"`
+	Field0 string `ic:"0"`
+	Field1 Value  `ic:"1"`
 }, error) {
 	var r0 []struct {
-		field0 string `ic:"field0"`
-		field1 Value  `ic:"field1"`
+		Field0 string `ic:"0"`
+		Field1 Value  `ic:"1"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -195,7 +195,7 @@ type Subaccount = []byte
 
 type Timestamp = uint64
 
-type TransferArgs = struct {
+type TransferArgs struct {
 	FromSubaccount *Subaccount `ic:"from_subaccount,omitempty"`
 	To             Account     `ic:"to"`
 	Amount         idl.Nat     `ic:"amount"`
@@ -204,7 +204,7 @@ type TransferArgs = struct {
 	CreatedAtTime  *Timestamp  `ic:"created_at_time,omitempty"`
 }
 
-type TransferError = struct {
+type TransferError struct {
 	BadFee *struct {
 		ExpectedFee idl.Nat `ic:"expected_fee"`
 	} `ic:"BadFee,variant"`
@@ -228,7 +228,7 @@ type TransferError = struct {
 	} `ic:"GenericError,variant"`
 }
 
-type Value = struct {
+type Value struct {
 	Nat  *idl.Nat `ic:"Nat,variant"`
 	Int  *idl.Int `ic:"Int,variant"`
 	Text *string  `ic:"Text,variant"`
