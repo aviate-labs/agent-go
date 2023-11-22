@@ -97,9 +97,11 @@ func (g *Generator) Generate() ([]byte, error) {
 	for _, definition := range g.ServiceDescription.Definitions {
 		switch definition := definition.(type) {
 		case did.Type:
+			typ := g.dataToString("", definition.Data)
 			definitions = append(definitions, agentArgsDefinition{
 				Name: funcName("", definition.Id),
-				Type: g.dataToString("", definition.Data),
+				Type: typ,
+				Eq:   !strings.HasPrefix(typ, "struct"),
 			})
 		}
 	}
@@ -508,12 +510,14 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 			name         string
 			typ          string
 		}
+		var tuple = true
 		for i, field := range t {
-			originalName := fmt.Sprintf("field%d", i)
+			originalName := fmt.Sprintf("Field%d", i)
 			name := originalName
 			if n := field.Name; n != nil {
 				originalName = *n
 				name = funcName("", *n)
+				tuple = false
 			}
 			if l := len(name); l > sizeName {
 				sizeName = l
@@ -542,6 +546,9 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 		var record string
 		for _, r := range records {
 			tag := r.originalName
+			if tuple {
+				tag = strings.TrimPrefix(tag, "Field")
+			}
 			if strings.HasPrefix(r.typ, "*") {
 				tag += ",omitempty" // optional value.
 			}
@@ -638,6 +645,7 @@ type agentArgs struct {
 type agentArgsDefinition struct {
 	Name string
 	Type string
+	Eq   bool
 }
 
 type agentArgsMethod struct {

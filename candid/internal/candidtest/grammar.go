@@ -1,5 +1,5 @@
 // Do not edit. This file is auto-generated.
-// Grammar: CANDID-TEST (v0.1.0) github.com/di-wu/candid-go/internal/candidtest
+// Grammar: CANDID-TEST (v0.1.0) github.com/aviate-labs/agent-go/candid/internal/candidtest
 
 package candidtest
 
@@ -13,7 +13,7 @@ import (
 const (
 	Unknown = iota
 
-	// CANDID-TEST (github.com/di-wu/candid-go/internal/candidtest)
+	// CANDID-TEST (github.com/aviate-labs/agent-go/candid/internal/candidtest)
 
 	TestDataT    // 001
 	CommentTextT // 002
@@ -38,7 +38,7 @@ const (
 
 // Token Definitions
 const (
-	// CANDID-TEST (github.com/di-wu/candid-go/internal/candidtest)
+	// CANDID-TEST (github.com/aviate-labs/agent-go/candid/internal/candidtest)
 
 	ESC = 0x005C // \
 )
@@ -46,7 +46,7 @@ const (
 var NodeTypes = []string{
 	"UNKNOWN",
 
-	// CANDID-TEST (github.com/di-wu/candid-go/internal/candidtest)
+	// CANDID-TEST (github.com/aviate-labs/agent-go/candid/internal/candidtest)
 
 	"TestData",
 	"CommentText",

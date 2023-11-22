@@ -1,4 +1,4 @@
-# CANDID (v0.1.0) github.com/di-wu/candid-go/internal/candid/candidvalue
+# CANDID (v0.1.0) github.com/aviate-labs/agent-go/candid/internal/candid/candidvalue
 
 Values   <-- '(' Sp (Value (Sp ',' Sp Value)*)? Sp ')' / Value
 Value     <- OptValue / Num / Bool / Null / Text / Record / Variant / Principal / Vec / Blob

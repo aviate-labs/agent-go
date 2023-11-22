@@ -552,7 +552,7 @@ func (a Agent) ValidateTakeOwnership() (*ValidationResult, error) {
 
 type BatchId = idl.Nat
 
-type BatchOperationKind = struct {
+type BatchOperationKind struct {
 	CreateAsset        *CreateAssetArguments        `ic:"CreateAsset,variant"`
 	SetAssetContent    *SetAssetContentArguments    `ic:"SetAssetContent,variant"`
 	SetAssetProperties *SetAssetPropertiesArguments `ic:"SetAssetProperties,variant"`
@@ -563,25 +563,25 @@ type BatchOperationKind = struct {
 
 type ChunkId = idl.Nat
 
-type ClearArguments = struct {
+type ClearArguments struct {
 }
 
-type CommitBatchArguments = struct {
+type CommitBatchArguments struct {
 	BatchId    BatchId              `ic:"batch_id"`
 	Operations []BatchOperationKind `ic:"operations"`
 }
 
-type CommitProposedBatchArguments = struct {
+type CommitProposedBatchArguments struct {
 	BatchId  BatchId `ic:"batch_id"`
 	Evidence []byte  `ic:"evidence"`
 }
 
-type ComputeEvidenceArguments = struct {
+type ComputeEvidenceArguments struct {
 	BatchId       BatchId `ic:"batch_id"`
 	MaxIterations *uint16 `ic:"max_iterations,omitempty"`
 }
 
-type CreateAssetArguments = struct {
+type CreateAssetArguments struct {
 	Key            Key            `ic:"key"`
 	ContentType    string         `ic:"content_type"`
 	MaxAge         *uint64        `ic:"max_age,omitempty"`
@@ -590,25 +590,25 @@ type CreateAssetArguments = struct {
 	AllowRawAccess *bool          `ic:"allow_raw_access,omitempty"`
 }
 
-type DeleteAssetArguments = struct {
+type DeleteAssetArguments struct {
 	Key Key `ic:"key"`
 }
 
-type DeleteBatchArguments = struct {
+type DeleteBatchArguments struct {
 	BatchId BatchId `ic:"batch_id"`
 }
 
-type GrantPermission = struct {
+type GrantPermission struct {
 	ToPrincipal principal.Principal `ic:"to_principal"`
 	Permission  Permission          `ic:"permission"`
 }
 
-type HeaderField = struct {
-	field0 string `ic:"field0"`
-	field1 string `ic:"field1"`
+type HeaderField struct {
+	Field0 string `ic:"0"`
+	Field1 string `ic:"1"`
 }
 
-type HttpRequest = struct {
+type HttpRequest struct {
 	Method             string        `ic:"method"`
 	Url                string        `ic:"url"`
 	Headers            []HeaderField `ic:"headers"`
@@ -616,7 +616,7 @@ type HttpRequest = struct {
 	CertificateVersion *uint16       `ic:"certificate_version,omitempty"`
 }
 
-type HttpResponse = struct {
+type HttpResponse struct {
 	StatusCode        uint16             `ic:"status_code"`
 	Headers           []HeaderField      `ic:"headers"`
 	Body              []byte             `ic:"body"`
@@ -625,29 +625,29 @@ type HttpResponse = struct {
 
 type Key = string
 
-type ListPermitted = struct {
+type ListPermitted struct {
 	Permission Permission `ic:"permission"`
 }
 
-type Permission = struct {
+type Permission struct {
 	Commit            *struct{} `ic:"Commit,variant"`
 	ManagePermissions *struct{} `ic:"ManagePermissions,variant"`
 	Prepare           *struct{} `ic:"Prepare,variant"`
 }
 
-type RevokePermission = struct {
+type RevokePermission struct {
 	OfPrincipal principal.Principal `ic:"of_principal"`
 	Permission  Permission          `ic:"permission"`
 }
 
-type SetAssetContentArguments = struct {
+type SetAssetContentArguments struct {
 	Key             Key       `ic:"key"`
 	ContentEncoding string    `ic:"content_encoding"`
 	ChunkIds        []ChunkId `ic:"chunk_ids"`
 	Sha256          *[]byte   `ic:"sha256,omitempty"`
 }
 
-type SetAssetPropertiesArguments = struct {
+type SetAssetPropertiesArguments struct {
 	Key            Key             `ic:"key"`
 	MaxAge         **uint64        `ic:"max_age,omitempty"`
 	Headers        **[]HeaderField `ic:"headers,omitempty"`
@@ -655,19 +655,19 @@ type SetAssetPropertiesArguments = struct {
 	IsAliased      **bool          `ic:"is_aliased,omitempty"`
 }
 
-type StreamingCallbackHttpResponse = struct {
+type StreamingCallbackHttpResponse struct {
 	Body  []byte                  `ic:"body"`
 	Token *StreamingCallbackToken `ic:"token,omitempty"`
 }
 
-type StreamingCallbackToken = struct {
+type StreamingCallbackToken struct {
 	Key             Key     `ic:"key"`
 	ContentEncoding string  `ic:"content_encoding"`
 	Index           idl.Nat `ic:"index"`
 	Sha256          *[]byte `ic:"sha256,omitempty"`
 }
 
-type StreamingStrategy = struct {
+type StreamingStrategy struct {
 	Callback *struct {
 		Callback struct { /* NOT SUPPORTED */
 		} `ic:"callback"`
@@ -677,12 +677,12 @@ type StreamingStrategy = struct {
 
 type Time = idl.Int
 
-type UnsetAssetContentArguments = struct {
+type UnsetAssetContentArguments struct {
 	Key             Key    `ic:"key"`
 	ContentEncoding string `ic:"content_encoding"`
 }
 
-type ValidationResult = struct {
+type ValidationResult struct {
 	Ok  *string `ic:"Ok,variant"`
 	Err *string `ic:"Err,variant"`
 }

@@ -1,4 +1,4 @@
-# CANDID-BLOB (v0.1.0) github.com/di-wu/candid-go/internal/blob
+# CANDID-BLOB (v0.1.0) github.com/aviate-labs/agent-go/candid/internal/blob
 
 Blob  <-- (Alpha / '\' Hex)+
 Alpha <-- ([A-Z] / [a-z])+

@@ -1,5 +1,5 @@
 // Do not edit. This file is auto-generated.
-// Grammar: CANDID-BLOB (v0.1.0) github.com/di-wu/candid-go/internal/blob
+// Grammar: CANDID-BLOB (v0.1.0) github.com/aviate-labs/agent-go/candid/internal/blob
 
 package blob
 
@@ -13,7 +13,7 @@ import (
 const (
 	Unknown = iota
 
-	// CANDID-BLOB (github.com/di-wu/candid-go/internal/blob)
+	// CANDID-BLOB (github.com/aviate-labs/agent-go/candid/internal/blob)
 
 	BlobT  // 001
 	AlphaT // 002
@@ -23,7 +23,7 @@ const (
 var NodeTypes = []string{
 	"UNKNOWN",
 
-	// CANDID-BLOB (github.com/di-wu/candid-go/internal/blob)
+	// CANDID-BLOB (github.com/aviate-labs/agent-go/candid/internal/blob)
 
 	"Blob",
 	"Alpha",

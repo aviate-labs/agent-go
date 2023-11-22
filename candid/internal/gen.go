@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	pegn "github.com/pegn/pegn-go"
 	"io/ioutil"
 	"log"
 )
@@ -20,7 +21,7 @@ func main() {
 	} {
 		rawGrammar, _ := ioutil.ReadFile(fmt.Sprintf("%s/grammar.pegn", grammar.path))
 		if err := pegn.GenerateFromFiles(fmt.Sprintf("%s/", grammar.path), pegn.Config{
-			ModulePath:     fmt.Sprintf("github.com/di-wu/candid-go/%s", grammar.path),
+			ModulePath:     fmt.Sprintf("github.com/aviate-labs/agent-go/candid/%s", grammar.path),
 			ModuleName:     grammar.name,
 			IgnoreReserved: true,
 			TypeSuffix:     "T",

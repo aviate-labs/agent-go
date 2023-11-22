@@ -8,7 +8,7 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
-type AccountBalanceArgs = struct {
+type AccountBalanceArgs struct {
 	Account AccountIdentifier `ic:"account"`
 }
 
@@ -156,15 +156,15 @@ func (a Agent) TransferFee(arg0 TransferFeeArg) (*TransferFee, error) {
 	return &r0, nil
 }
 
-type Archive = struct {
+type Archive struct {
 	CanisterId principal.Principal `ic:"canister_id"`
 }
 
-type Archives = struct {
+type Archives struct {
 	Archives []Archive `ic:"archives"`
 }
 
-type Block = struct {
+type Block struct {
 	ParentHash  *[]byte     `ic:"parent_hash,omitempty"`
 	Transaction Transaction `ic:"transaction"`
 	Timestamp   TimeStamp   `ic:"timestamp"`
@@ -172,18 +172,18 @@ type Block = struct {
 
 type BlockIndex = uint64
 
-type BlockRange = struct {
+type BlockRange struct {
 	Blocks []Block `ic:"blocks"`
 }
 
-type GetBlocksArgs = struct {
+type GetBlocksArgs struct {
 	Start  BlockIndex `ic:"start"`
 	Length uint64     `ic:"length"`
 }
 
 type Memo = uint64
 
-type Operation = struct {
+type Operation struct {
 	Mint *struct {
 		To     AccountIdentifier `ic:"to"`
 		Amount Tokens            `ic:"amount"`
@@ -214,7 +214,7 @@ type Operation = struct {
 	} `ic:"TransferFrom,variant"`
 }
 
-type QueryArchiveError = struct {
+type QueryArchiveError struct {
 	BadFirstBlockIndex *struct {
 		RequestedIndex  BlockIndex `ic:"requested_index"`
 		FirstValidIndex BlockIndex `ic:"first_valid_index"`
@@ -225,15 +225,15 @@ type QueryArchiveError = struct {
 	} `ic:"Other,variant"`
 }
 
-type QueryArchiveFn = struct { /* NOT SUPPORTED */
+type QueryArchiveFn struct { /* NOT SUPPORTED */
 }
 
-type QueryArchiveResult = struct {
+type QueryArchiveResult struct {
 	Ok  *BlockRange        `ic:"Ok,variant"`
 	Err *QueryArchiveError `ic:"Err,variant"`
 }
 
-type QueryBlocksResponse = struct {
+type QueryBlocksResponse struct {
 	ChainLength     uint64     `ic:"chain_length"`
 	Certificate     *[]byte    `ic:"certificate,omitempty"`
 	Blocks          []Block    `ic:"blocks"`
@@ -247,22 +247,22 @@ type QueryBlocksResponse = struct {
 
 type SubAccount = []byte
 
-type TimeStamp = struct {
+type TimeStamp struct {
 	TimestampNanos uint64 `ic:"timestamp_nanos"`
 }
 
-type Tokens = struct {
+type Tokens struct {
 	E8s uint64 `ic:"e8s"`
 }
 
-type Transaction = struct {
+type Transaction struct {
 	Memo          Memo       `ic:"memo"`
 	Icrc1Memo     *[]byte    `ic:"icrc1_memo,omitempty"`
 	Operation     *Operation `ic:"operation,omitempty"`
 	CreatedAtTime TimeStamp  `ic:"created_at_time"`
 }
 
-type TransferArgs = struct {
+type TransferArgs struct {
 	Memo           Memo              `ic:"memo"`
 	Amount         Tokens            `ic:"amount"`
 	Fee            Tokens            `ic:"fee"`
@@ -271,7 +271,7 @@ type TransferArgs = struct {
 	CreatedAtTime  *TimeStamp        `ic:"created_at_time,omitempty"`
 }
 
-type TransferError = struct {
+type TransferError struct {
 	BadFee *struct {
 		ExpectedFee Tokens `ic:"expected_fee"`
 	} `ic:"BadFee,variant"`
@@ -287,14 +287,14 @@ type TransferError = struct {
 	} `ic:"TxDuplicate,variant"`
 }
 
-type TransferFee = struct {
+type TransferFee struct {
 	TransferFee Tokens `ic:"transfer_fee"`
 }
 
-type TransferFeeArg = struct {
+type TransferFeeArg struct {
 }
 
-type TransferResult = struct {
+type TransferResult struct {
 	Ok  *BlockIndex    `ic:"Ok,variant"`
 	Err *TransferError `ic:"Err,variant"`
 }
