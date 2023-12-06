@@ -250,6 +250,13 @@ func (g *Generator) GenerateActorTypes() ([]byte, error) {
 }
 
 func (g *Generator) GenerateMock() ([]byte, error) {
+	definitions := make(map[string]did.Data)
+	for _, definition := range g.ServiceDescription.Definitions {
+		switch definition := definition.(type) {
+		case did.Type:
+			definitions[definition.Id] = definition.Data
+		}
+	}
 	var methods []agentArgsMethod
 	for _, service := range g.ServiceDescription.Services {
 		for _, method := range service.Methods {
@@ -257,6 +264,7 @@ func (g *Generator) GenerateMock() ([]byte, error) {
 			f := method.Func
 
 			var argumentTypes []agentArgsMethodArgument
+			var filledArgumentTypes []agentArgsMethodArgument
 			for i, t := range f.ArgTypes {
 				var n string
 				if (t.Name != nil) && (*t.Name != "") {
@@ -268,11 +276,15 @@ func (g *Generator) GenerateMock() ([]byte, error) {
 					Name: n,
 					Type: g.dataToString(g.PackageName, t.Data),
 				})
+				filledArgumentTypes = append(filledArgumentTypes, agentArgsMethodArgument{
+					Name: n,
+					Type: g.dataToGoReturnValue(definitions, g.PackageName, t.Data),
+				})
 			}
 
 			var returnTypes []string
 			for _, t := range f.ResTypes {
-				returnTypes = append(returnTypes, g.dataToString(g.PackageName, t.Data))
+				returnTypes = append(returnTypes, g.dataToGoReturnValue(definitions, g.PackageName, t.Data))
 			}
 
 			typ := "Call"
@@ -281,11 +293,12 @@ func (g *Generator) GenerateMock() ([]byte, error) {
 			}
 
 			methods = append(methods, agentArgsMethod{
-				RawName:       name,
-				Name:          funcName("", name),
-				Type:          typ,
-				ArgumentTypes: argumentTypes,
-				ReturnTypes:   returnTypes,
+				RawName:             name,
+				Name:                funcName("", name),
+				Type:                typ,
+				ArgumentTypes:       argumentTypes,
+				FilledArgumentTypes: filledArgumentTypes,
+				ReturnTypes:         returnTypes,
 			})
 		}
 	}
@@ -305,6 +318,121 @@ func (g *Generator) GenerateMock() ([]byte, error) {
 		return nil, err
 	}
 	return io.ReadAll(&tmpl)
+}
+
+func (g *Generator) dataToGoReturnValue(definitions map[string]did.Data, prefix string, data did.Data) string {
+	switch t := data.(type) {
+	case did.Primitive:
+		switch t {
+		case "nat":
+			g.usedIDL = true
+			return "idl.NewNat(uint(0))"
+		case "int":
+			g.usedIDL = true
+			return "idl.NewInt(0)"
+		default:
+			return fmt.Sprintf("*new(%s)", g.dataToString(prefix, data))
+		}
+	case did.DataId:
+		switch data := definitions[t.String()].(type) {
+		case did.Record:
+			var fields []string
+			for _, f := range data {
+				var data did.Data
+				if f.Data != nil {
+					data = *f.Data
+				} else {
+					data = did.DataId(*f.NameData)
+				}
+				fields = append(fields, g.dataToGoReturnValue(definitions, prefix, data))
+			}
+			if len(fields) == 0 {
+				return fmt.Sprintf("%s{}", g.dataToString(prefix, t))
+			}
+			return fmt.Sprintf("%s{\n%s,\n}", g.dataToString(prefix, t), strings.Join(fields, ",\n"))
+		case did.Variant:
+			f := data[0]
+			var d did.Data
+			if f.Data != nil {
+				d = *f.Data
+			} else {
+				d = did.DataId(*f.NameData)
+			}
+			field := g.dataToGoReturnValue(definitions, prefix, d)
+			if !strings.HasPrefix(field, "*") {
+				g.usedIDL = true
+				field = fmt.Sprintf("idl.Ptr(%s)", field)
+			} else {
+				field = strings.TrimPrefix(field, "*")
+			}
+			var name string
+			if f.Name != nil {
+				name = *f.Name
+			} else {
+				name = *f.NameData
+			}
+			return fmt.Sprintf("%s{\n%s: %s,\n}", g.dataToString(prefix, t), name, field)
+		default:
+			switch data := data.(type) {
+			case did.Primitive:
+				switch data {
+				case "nat":
+					g.usedIDL = true
+					return "idl.NewNat(uint(0))"
+				case "int":
+					g.usedIDL = true
+					return "idl.NewInt(0)"
+				}
+			}
+			if data != nil {
+				return fmt.Sprintf("*new(%s)", g.dataToString(prefix, data))
+			}
+			return "*new(idl.Null)"
+		}
+	case did.Record:
+		var fields []string
+		for _, f := range t {
+			var data did.Data
+			if f.Data != nil {
+				data = *f.Data
+			} else {
+				data = did.DataId(*f.NameData)
+			}
+			fields = append(fields, g.dataToGoReturnValue(definitions, prefix, data))
+		}
+		if len(fields) == 0 {
+			return fmt.Sprintf("%s{}", g.dataToString(prefix, data))
+		}
+		return fmt.Sprintf("%s{\n%s,\n}", g.dataToString(prefix, data), strings.Join(fields, ",\n"))
+	case did.Variant:
+		f := t[0]
+		var name string
+		var d did.Data
+		if f.Data != nil {
+			name = *f.Name
+			d = *f.Data
+		} else {
+			name = *f.NameData
+			d = did.DataId(*f.NameData)
+		}
+		field := g.dataToGoReturnValue(definitions, prefix, d)
+		if !strings.HasPrefix(field, "*") {
+			g.usedIDL = true
+			field = fmt.Sprintf("idl.Ptr(%s)", field)
+		} else {
+			field = strings.TrimPrefix(field, "*")
+		}
+		return fmt.Sprintf("%s{\n%s: %s,\n}", g.dataToString(prefix, data), name, field)
+	case did.Vector:
+		switch t.Data.(type) {
+		case did.DataId:
+			return fmt.Sprintf("[]%s{%s}", funcName(prefix, t.Data.String()), g.dataToGoReturnValue(definitions, prefix, t.Data))
+		default:
+			return fmt.Sprintf("[]%s{%s}", g.dataToString(prefix, t.Data), g.dataToGoReturnValue(definitions, prefix, t.Data))
+		}
+	default:
+		return fmt.Sprintf("*new(%s)", g.dataToString(prefix, data))
+	}
 }
 
 func (g *Generator) dataToMotokoReturnValue(s rand.Source, definitions map[string]did.Data, data did.Data) string {
@@ -496,7 +624,8 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 		case "text":
 			return "string"
 		case "null":
-			return "struct{}"
+			g.usedIDL = true
+			return "idl.Null"
 		default:
 			panic(fmt.Sprintf("unknown primitive: %s", t))
 		}
@@ -572,11 +701,12 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 				if 8 > sizeType {
 					sizeType = 8
 				}
+				g.usedIDL = true
 				records = append(records, struct {
 					originalName string
 					name         string
 					typ          string
-				}{originalName: name, name: name, typ: "struct{}"})
+				}{originalName: name, name: name, typ: "idl.Null"})
 			} else {
 				name := funcName("", *field.Name)
 				if l := len(name); l > sizeName {
@@ -649,11 +779,12 @@ type agentArgsDefinition struct {
 }
 
 type agentArgsMethod struct {
-	RawName       string
-	Name          string
-	Type          string
-	ArgumentTypes []agentArgsMethodArgument
-	ReturnTypes   []string
+	RawName             string
+	Name                string
+	Type                string
+	ArgumentTypes       []agentArgsMethodArgument
+	FilledArgumentTypes []agentArgsMethodArgument
+	ReturnTypes         []string
 }
 
 type agentArgsMethodArgument struct {

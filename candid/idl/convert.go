@@ -95,14 +95,6 @@ func EmptyOf(t Type) (any, error) {
 	return nil, UnknownTypeError{Type: t}
 }
 
-func IsType(v any, t Type) bool {
-	typ, err := TypeOf(v)
-	if err != nil {
-		return false
-	}
-	return typ.String() == t.String()
-}
-
 func TypeOf(v any) (Type, error) {
 	switch v := v.(type) {
 	case Null:
@@ -182,6 +174,23 @@ func TypeOf(v any) (Type, error) {
 			m, err := StructToMap(v)
 			if err != nil {
 				return nil, err
+			}
+			if isVariantType(v) {
+				fields := make(map[string]Type)
+				for k, v := range m {
+					typ, err := TypeOf(v)
+					if err != nil {
+						return nil, err
+					}
+					switch t := typ.(type) {
+					case *OptionalType:
+						typ = t.Type
+					default:
+						return nil, UnknownValueTypeError{Value: v}
+					}
+					fields[k] = typ
+				}
+				return NewVariantType(fields), nil
 			}
 			return TypeOf(m)
 		case reflect.Ptr:

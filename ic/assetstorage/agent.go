@@ -630,9 +630,9 @@ type ListPermitted struct {
 }
 
 type Permission struct {
-	Commit            *struct{} `ic:"Commit,variant"`
-	ManagePermissions *struct{} `ic:"ManagePermissions,variant"`
-	Prepare           *struct{} `ic:"Prepare,variant"`
+	Commit            *idl.Null `ic:"Commit,variant"`
+	ManagePermissions *idl.Null `ic:"ManagePermissions,variant"`
+	Prepare           *idl.Null `ic:"Prepare,variant"`
 }
 
 type RevokePermission struct {

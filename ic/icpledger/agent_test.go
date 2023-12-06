@@ -20,7 +20,9 @@ func Test_AccountBalance(t *testing.T) {
 			Name:      "account_balance",
 			Arguments: []any{new(icpledger.AccountBalanceArgs)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(icpledger.Tokens)}, nil
+				return []any{icpledger.Tokens{
+					*new(uint64),
+				}}, nil
 			},
 		},
 	})
@@ -28,7 +30,9 @@ func Test_AccountBalance(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 icpledger.AccountBalanceArgs
+	var a0 = icpledger.AccountBalanceArgs{
+		*new([]byte),
+	}
 	if _, err := a.AccountBalance(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +46,11 @@ func Test_Archives(t *testing.T) {
 			Name:      "archives",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(icpledger.Archives)}, nil
+				return []any{icpledger.Archives{
+					[]icpledger.Archive{{
+						*new(principal.Principal),
+					}},
+				}}, nil
 			},
 		},
 	})
@@ -63,9 +71,11 @@ func Test_Decimals(t *testing.T) {
 			Name:      "decimals",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(struct {
+				return []any{struct {
 					Decimals uint32 `ic:"decimals"`
-				})}, nil
+				}{
+					*new(uint32),
+				}}, nil
 			},
 		},
 	})
@@ -86,9 +96,11 @@ func Test_Name(t *testing.T) {
 			Name:      "name",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(struct {
+				return []any{struct {
 					Name string `ic:"name"`
-				})}, nil
+				}{
+					*new(string),
+				}}, nil
 			},
 		},
 	})
@@ -109,7 +121,37 @@ func Test_QueryBlocks(t *testing.T) {
 			Name:      "query_blocks",
 			Arguments: []any{new(icpledger.GetBlocksArgs)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(icpledger.QueryBlocksResponse)}, nil
+				return []any{icpledger.QueryBlocksResponse{
+					*new(uint64),
+					*new(*[]byte),
+					[]icpledger.Block{{
+						*new(*[]byte),
+						icpledger.Transaction{
+							*new(uint64),
+							*new(*[]byte),
+							*new(*icpledger.Operation),
+							icpledger.TimeStamp{
+								*new(uint64),
+							},
+						},
+						icpledger.TimeStamp{
+							*new(uint64),
+						},
+					}},
+					*new(uint64),
+					[]struct {
+						Start    icpledger.BlockIndex     `ic:"start"`
+						Length   uint64                   `ic:"length"`
+						Callback icpledger.QueryArchiveFn `ic:"callback"`
+					}{
+
+						{
+							*new(uint64),
+							*new(uint64),
+							*new(struct { /* NOT SUPPORTED */
+							}),
+						}},
+				}}, nil
 			},
 		},
 	})
@@ -117,7 +159,10 @@ func Test_QueryBlocks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 icpledger.GetBlocksArgs
+	var a0 = icpledger.GetBlocksArgs{
+		*new(uint64),
+		*new(uint64),
+	}
 	if _, err := a.QueryBlocks(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -131,9 +176,11 @@ func Test_Symbol(t *testing.T) {
 			Name:      "symbol",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(struct {
+				return []any{struct {
 					Symbol string `ic:"symbol"`
-				})}, nil
+				}{
+					*new(string),
+				}}, nil
 			},
 		},
 	})
@@ -154,7 +201,9 @@ func Test_Transfer(t *testing.T) {
 			Name:      "transfer",
 			Arguments: []any{new(icpledger.TransferArgs)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(icpledger.TransferResult)}, nil
+				return []any{icpledger.TransferResult{
+					Ok: new(uint64),
+				}}, nil
 			},
 		},
 	})
@@ -162,7 +211,18 @@ func Test_Transfer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 icpledger.TransferArgs
+	var a0 = icpledger.TransferArgs{
+		*new(uint64),
+		icpledger.Tokens{
+			*new(uint64),
+		},
+		icpledger.Tokens{
+			*new(uint64),
+		},
+		*new(*icpledger.SubAccount),
+		*new([]byte),
+		*new(*icpledger.TimeStamp),
+	}
 	if _, err := a.Transfer(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -176,7 +236,11 @@ func Test_TransferFee(t *testing.T) {
 			Name:      "transfer_fee",
 			Arguments: []any{new(icpledger.TransferFeeArg)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(icpledger.TransferFee)}, nil
+				return []any{icpledger.TransferFee{
+					icpledger.Tokens{
+						*new(uint64),
+					},
+				}}, nil
 			},
 		},
 	})
@@ -184,7 +248,7 @@ func Test_TransferFee(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 icpledger.TransferFeeArg
+	var a0 = icpledger.TransferFeeArg{}
 	if _, err := a.TransferFee(a0); err != nil {
 		t.Fatal(err)
 	}

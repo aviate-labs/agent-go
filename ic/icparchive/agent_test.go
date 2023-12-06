@@ -3,7 +3,7 @@ package icparchive_test
 
 import (
 	"github.com/aviate-labs/agent-go"
-
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/mock"
 	"github.com/aviate-labs/agent-go/principal"
 	"net/http/httptest"
@@ -20,7 +20,24 @@ func Test_GetBlocks(t *testing.T) {
 			Name:      "get_blocks",
 			Arguments: []any{new(icparchive.GetBlocksArgs)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(icparchive.GetBlocksResult)}, nil
+				return []any{icparchive.GetBlocksResult{
+					Ok: idl.Ptr(icparchive.BlockRange{
+						[]icparchive.Block{{
+							*new(*[]byte),
+							icparchive.Transaction{
+								*new(uint64),
+								*new(*[]byte),
+								*new(*icparchive.Operation),
+								icparchive.Timestamp{
+									*new(uint64),
+								},
+							},
+							icparchive.Timestamp{
+								*new(uint64),
+							},
+						}},
+					}),
+				}}, nil
 			},
 		},
 	})
@@ -28,7 +45,10 @@ func Test_GetBlocks(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 icparchive.GetBlocksArgs
+	var a0 = icparchive.GetBlocksArgs{
+		*new(uint64),
+		*new(uint64),
+	}
 	if _, err := a.GetBlocks(a0); err != nil {
 		t.Fatal(err)
 	}

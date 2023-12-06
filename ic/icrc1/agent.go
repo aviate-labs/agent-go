@@ -214,14 +214,14 @@ type TransferError struct {
 	InsufficientFunds *struct {
 		Balance idl.Nat `ic:"balance"`
 	} `ic:"InsufficientFunds,variant"`
-	TooOld          *struct{} `ic:"TooOld,variant"`
+	TooOld          *idl.Null `ic:"TooOld,variant"`
 	CreatedInFuture *struct {
 		LedgerTime Timestamp `ic:"ledger_time"`
 	} `ic:"CreatedInFuture,variant"`
 	Duplicate *struct {
 		DuplicateOf idl.Nat `ic:"duplicate_of"`
 	} `ic:"Duplicate,variant"`
-	TemporarilyUnavailable *struct{} `ic:"TemporarilyUnavailable,variant"`
+	TemporarilyUnavailable *idl.Null `ic:"TemporarilyUnavailable,variant"`
 	GenericError           *struct {
 		ErrorCode idl.Nat `ic:"error_code"`
 		Message   string  `ic:"message"`

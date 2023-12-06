@@ -11,6 +11,25 @@ import (
 	"github.com/aviate-labs/leb128"
 )
 
+func isVariantType(value any) bool {
+	v := reflect.ValueOf(value)
+	switch v.Kind() {
+	case reflect.Struct:
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Type().Field(i)
+			if !field.IsExported() {
+				continue
+			}
+
+			tag := ParseTags(field)
+			if tag.VariantType {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 type Variant struct {
 	Name  string
 	Value any
@@ -98,7 +117,11 @@ func (variant VariantType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) 
 func (variant VariantType) EncodeValue(value any) ([]byte, error) {
 	fs, ok := value.(Variant)
 	if !ok {
-		return nil, NewEncodeValueError(variant, varType)
+		v, err := variant.structToVariant(value)
+		if err != nil {
+			return nil, err
+		}
+		return variant.EncodeValue(*v)
 	}
 	for i, f := range variant.Fields {
 		if f.Name == fs.Name {
@@ -174,6 +197,29 @@ func (variant VariantType) UnmarshalGo(raw any, _v any) error {
 		return NewUnmarshalGoError(raw, _v)
 	}
 	return variant.unmarshalStruct(name, value, v)
+}
+
+func (variant VariantType) structToVariant(value any) (*Variant, error) {
+	v := reflect.ValueOf(value)
+	switch v.Kind() {
+	case reflect.Struct:
+		for i := 0; i < v.NumField(); i++ {
+			field := v.Type().Field(i)
+			if !field.IsExported() {
+				continue
+			}
+
+			tag := ParseTags(field)
+			if !v.Field(i).IsNil() {
+				return &Variant{
+					Name:  tag.Name,
+					Value: v.Field(i).Elem().Interface(),
+				}, nil
+			}
+		}
+	}
+	fmt.Printf("%#v\n", value)
+	return nil, fmt.Errorf("invalid value kind: %s", v.Kind())
 }
 
 func (variant VariantType) unmarshalMap(name string, value any, _v *map[string]any) error {

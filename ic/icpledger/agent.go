@@ -281,7 +281,7 @@ type TransferError struct {
 	TxTooOld *struct {
 		AllowedWindowNanos uint64 `ic:"allowed_window_nanos"`
 	} `ic:"TxTooOld,variant"`
-	TxCreatedInFuture *struct{} `ic:"TxCreatedInFuture,variant"`
+	TxCreatedInFuture *idl.Null `ic:"TxCreatedInFuture,variant"`
 	TxDuplicate       *struct {
 		DuplicateOf BlockIndex `ic:"duplicate_of"`
 	} `ic:"TxDuplicate,variant"`

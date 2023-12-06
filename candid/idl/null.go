@@ -22,7 +22,7 @@ func (NullType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 }
 
 func (NullType) EncodeValue(v any) ([]byte, error) {
-	if v != nil {
+	if _, ok := v.(Null); !ok && v != nil {
 		return nil, NewEncodeValueError(v, nullType)
 	}
 	return []byte{}, nil
