@@ -3,7 +3,7 @@ package cmc_test
 
 import (
 	"github.com/aviate-labs/agent-go"
-
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/mock"
 	"github.com/aviate-labs/agent-go/principal"
 	"net/http/httptest"
@@ -20,7 +20,14 @@ func Test_GetIcpXdrConversionRate(t *testing.T) {
 			Name:      "get_icp_xdr_conversion_rate",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(cmc.IcpXdrConversionRateResponse)}, nil
+				return []any{cmc.IcpXdrConversionRateResponse{
+					cmc.IcpXdrConversionRate{
+						*new(uint64),
+						*new(uint64),
+					},
+					*new([]byte),
+					*new([]byte),
+				}}, nil
 			},
 		},
 	})
@@ -41,7 +48,17 @@ func Test_GetSubnetTypesToSubnets(t *testing.T) {
 			Name:      "get_subnet_types_to_subnets",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(cmc.SubnetTypesToSubnetsResponse)}, nil
+				return []any{cmc.SubnetTypesToSubnetsResponse{
+					[]struct {
+						Field0 string                `ic:"0"`
+						Field1 []principal.Principal `ic:"1"`
+					}{
+
+						{
+							*new(string),
+							[]principal.Principal{*new(principal.Principal)},
+						}},
+				}}, nil
 			},
 		},
 	})
@@ -62,7 +79,9 @@ func Test_NotifyCreateCanister(t *testing.T) {
 			Name:      "notify_create_canister",
 			Arguments: []any{new(cmc.NotifyCreateCanisterArg)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(cmc.NotifyCreateCanisterResult)}, nil
+				return []any{cmc.NotifyCreateCanisterResult{
+					Ok: new(principal.Principal),
+				}}, nil
 			},
 		},
 	})
@@ -70,7 +89,11 @@ func Test_NotifyCreateCanister(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 cmc.NotifyCreateCanisterArg
+	var a0 = cmc.NotifyCreateCanisterArg{
+		*new(uint64),
+		*new(principal.Principal),
+		*new(*string),
+	}
 	if _, err := a.NotifyCreateCanister(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -84,7 +107,9 @@ func Test_NotifyTopUp(t *testing.T) {
 			Name:      "notify_top_up",
 			Arguments: []any{new(cmc.NotifyTopUpArg)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(cmc.NotifyTopUpResult)}, nil
+				return []any{cmc.NotifyTopUpResult{
+					Ok: idl.Ptr(idl.NewNat(uint(0))),
+				}}, nil
 			},
 		},
 	})
@@ -92,7 +117,10 @@ func Test_NotifyTopUp(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 cmc.NotifyTopUpArg
+	var a0 = cmc.NotifyTopUpArg{
+		*new(uint64),
+		*new(principal.Principal),
+	}
 	if _, err := a.NotifyTopUp(a0); err != nil {
 		t.Fatal(err)
 	}

@@ -49,7 +49,7 @@ func Test_Authorize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 principal.Principal
+	var a0 = *new(principal.Principal)
 	if err := a.Authorize(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -64,10 +64,13 @@ func Test_CertifiedTree(t *testing.T) {
 			Arguments: []any{new(struct {
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(struct {
+				return []any{struct {
 					Certificate []byte `ic:"certificate"`
 					Tree        []byte `ic:"tree"`
-				})}, nil
+				}{
+					*new([]byte),
+					*new([]byte),
+				}}, nil
 			},
 		},
 	})
@@ -75,8 +78,8 @@ func Test_CertifiedTree(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 struct {
-	}
+	var a0 = struct {
+	}{}
 	if _, err := a.CertifiedTree(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +101,7 @@ func Test_Clear(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.ClearArguments
+	var a0 = wallet.ClearArguments{}
 	if err := a.Clear(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -120,7 +123,19 @@ func Test_CommitBatch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.CommitBatchArguments
+	var a0 = wallet.CommitBatchArguments{
+		idl.NewNat(uint(0)),
+		[]wallet.BatchOperationKind{{
+			CreateAsset: idl.Ptr(wallet.CreateAssetArguments{
+				*new(string),
+				*new(string),
+				*new(*uint64),
+				*new(*[]wallet.HeaderField),
+				*new(*bool),
+				*new(*bool),
+			}),
+		}},
+	}
 	if err := a.CommitBatch(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +157,10 @@ func Test_CommitProposedBatch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.CommitProposedBatchArguments
+	var a0 = wallet.CommitProposedBatchArguments{
+		idl.NewNat(uint(0)),
+		*new([]byte),
+	}
 	if err := a.CommitProposedBatch(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -164,7 +182,10 @@ func Test_ComputeEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.ComputeEvidenceArguments
+	var a0 = wallet.ComputeEvidenceArguments{
+		idl.NewNat(uint(0)),
+		*new(*uint16),
+	}
 	if _, err := a.ComputeEvidence(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -186,7 +207,14 @@ func Test_CreateAsset(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.CreateAssetArguments
+	var a0 = wallet.CreateAssetArguments{
+		*new(string),
+		*new(string),
+		*new(*uint64),
+		*new(*[]wallet.HeaderField),
+		*new(*bool),
+		*new(*bool),
+	}
 	if err := a.CreateAsset(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -201,9 +229,11 @@ func Test_CreateBatch(t *testing.T) {
 			Arguments: []any{new(struct {
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(struct {
+				return []any{struct {
 					BatchId wallet.BatchId `ic:"batch_id"`
-				})}, nil
+				}{
+					idl.NewNat(uint(0)),
+				}}, nil
 			},
 		},
 	})
@@ -211,8 +241,8 @@ func Test_CreateBatch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 struct {
-	}
+	var a0 = struct {
+	}{}
 	if _, err := a.CreateBatch(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -229,9 +259,11 @@ func Test_CreateChunk(t *testing.T) {
 				Content []byte         `ic:"content"`
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(struct {
+				return []any{struct {
 					ChunkId wallet.ChunkId `ic:"chunk_id"`
-				})}, nil
+				}{
+					idl.NewNat(uint(0)),
+				}}, nil
 			},
 		},
 	})
@@ -239,9 +271,12 @@ func Test_CreateChunk(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 struct {
+	var a0 = struct {
 		BatchId wallet.BatchId `ic:"batch_id"`
 		Content []byte         `ic:"content"`
+	}{
+		idl.NewNat(uint(0)),
+		*new([]byte),
 	}
 	if _, err := a.CreateChunk(a0); err != nil {
 		t.Fatal(err)
@@ -264,7 +299,7 @@ func Test_Deauthorize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 principal.Principal
+	var a0 = *new(principal.Principal)
 	if err := a.Deauthorize(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -286,7 +321,9 @@ func Test_DeleteAsset(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.DeleteAssetArguments
+	var a0 = wallet.DeleteAssetArguments{
+		*new(string),
+	}
 	if err := a.DeleteAsset(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -308,7 +345,9 @@ func Test_DeleteBatch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.DeleteBatchArguments
+	var a0 = wallet.DeleteBatchArguments{
+		idl.NewNat(uint(0)),
+	}
 	if err := a.DeleteBatch(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -325,13 +364,19 @@ func Test_Get(t *testing.T) {
 				AcceptEncodings []string   `ic:"accept_encodings"`
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(struct {
+				return []any{struct {
 					Content         []byte  `ic:"content"`
 					ContentType     string  `ic:"content_type"`
 					ContentEncoding string  `ic:"content_encoding"`
 					Sha256          *[]byte `ic:"sha256,omitempty"`
 					TotalLength     idl.Nat `ic:"total_length"`
-				})}, nil
+				}{
+					*new([]byte),
+					*new(string),
+					*new(string),
+					*new(*[]byte),
+					idl.NewNat(uint(0)),
+				}}, nil
 			},
 		},
 	})
@@ -339,9 +384,12 @@ func Test_Get(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 struct {
+	var a0 = struct {
 		Key             wallet.Key `ic:"key"`
 		AcceptEncodings []string   `ic:"accept_encodings"`
+	}{
+		*new(string),
+		[]string{*new(string)},
 	}
 	if _, err := a.Get(a0); err != nil {
 		t.Fatal(err)
@@ -356,12 +404,17 @@ func Test_GetAssetProperties(t *testing.T) {
 			Name:      "get_asset_properties",
 			Arguments: []any{new(wallet.Key)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(struct {
+				return []any{struct {
 					MaxAge         *uint64               `ic:"max_age,omitempty"`
 					Headers        *[]wallet.HeaderField `ic:"headers,omitempty"`
 					AllowRawAccess *bool                 `ic:"allow_raw_access,omitempty"`
 					IsAliased      *bool                 `ic:"is_aliased,omitempty"`
-				})}, nil
+				}{
+					*new(*uint64),
+					*new(*[]wallet.HeaderField),
+					*new(*bool),
+					*new(*bool),
+				}}, nil
 			},
 		},
 	})
@@ -369,7 +422,7 @@ func Test_GetAssetProperties(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.Key
+	var a0 = *new(string)
 	if _, err := a.GetAssetProperties(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -388,9 +441,11 @@ func Test_GetChunk(t *testing.T) {
 				Sha256          *[]byte    `ic:"sha256,omitempty"`
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(struct {
+				return []any{struct {
 					Content []byte `ic:"content"`
-				})}, nil
+				}{
+					*new([]byte),
+				}}, nil
 			},
 		},
 	})
@@ -398,11 +453,16 @@ func Test_GetChunk(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 struct {
+	var a0 = struct {
 		Key             wallet.Key `ic:"key"`
 		ContentEncoding string     `ic:"content_encoding"`
 		Index           idl.Nat    `ic:"index"`
 		Sha256          *[]byte    `ic:"sha256,omitempty"`
+	}{
+		*new(string),
+		*new(string),
+		idl.NewNat(uint(0)),
+		*new(*[]byte),
 	}
 	if _, err := a.GetChunk(a0); err != nil {
 		t.Fatal(err)
@@ -425,7 +485,12 @@ func Test_GrantPermission(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.GrantPermission
+	var a0 = wallet.GrantPermission{
+		*new(principal.Principal),
+		wallet.Permission{
+			Commit: new(idl.Null),
+		},
+	}
 	if err := a.GrantPermission(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -439,7 +504,15 @@ func Test_HttpRequest(t *testing.T) {
 			Name:      "http_request",
 			Arguments: []any{new(wallet.HttpRequest)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(wallet.HttpResponse)}, nil
+				return []any{wallet.HttpResponse{
+					*new(uint16),
+					[]wallet.HeaderField{{
+						*new(string),
+						*new(string),
+					}},
+					*new([]byte),
+					*new(*wallet.StreamingStrategy),
+				}}, nil
 			},
 		},
 	})
@@ -447,7 +520,16 @@ func Test_HttpRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.HttpRequest
+	var a0 = wallet.HttpRequest{
+		*new(string),
+		*new(string),
+		[]wallet.HeaderField{{
+			*new(string),
+			*new(string),
+		}},
+		*new([]byte),
+		*new(*uint16),
+	}
 	if _, err := a.HttpRequest(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -469,7 +551,12 @@ func Test_HttpRequestStreamingCallback(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.StreamingCallbackToken
+	var a0 = wallet.StreamingCallbackToken{
+		*new(string),
+		*new(string),
+		idl.NewNat(uint(0)),
+		*new(*[]byte),
+	}
 	if _, err := a.HttpRequestStreamingCallback(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -484,7 +571,7 @@ func Test_List(t *testing.T) {
 			Arguments: []any{new(struct {
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new([]struct {
+				return []any{[]struct {
 					Key         wallet.Key `ic:"key"`
 					ContentType string     `ic:"content_type"`
 					Encodings   []struct {
@@ -493,7 +580,25 @@ func Test_List(t *testing.T) {
 						Length          idl.Nat     `ic:"length"`
 						Modified        wallet.Time `ic:"modified"`
 					} `ic:"encodings"`
-				})}, nil
+				}{
+
+					{
+						*new(string),
+						*new(string),
+						[]struct {
+							ContentEncoding string      `ic:"content_encoding"`
+							Sha256          *[]byte     `ic:"sha256,omitempty"`
+							Length          idl.Nat     `ic:"length"`
+							Modified        wallet.Time `ic:"modified"`
+						}{
+
+							{
+								*new(string),
+								*new(*[]byte),
+								idl.NewNat(uint(0)),
+								idl.NewInt(0),
+							}},
+					}}}, nil
 			},
 		},
 	})
@@ -501,8 +606,8 @@ func Test_List(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 struct {
-	}
+	var a0 = struct {
+	}{}
 	if _, err := a.List(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -516,7 +621,7 @@ func Test_ListAuthorized(t *testing.T) {
 			Name:      "list_authorized",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new([]principal.Principal)}, nil
+				return []any{[]principal.Principal{*new(principal.Principal)}}, nil
 			},
 		},
 	})
@@ -537,7 +642,7 @@ func Test_ListPermitted(t *testing.T) {
 			Name:      "list_permitted",
 			Arguments: []any{new(wallet.ListPermitted)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new([]principal.Principal)}, nil
+				return []any{[]principal.Principal{*new(principal.Principal)}}, nil
 			},
 		},
 	})
@@ -545,7 +650,11 @@ func Test_ListPermitted(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.ListPermitted
+	var a0 = wallet.ListPermitted{
+		wallet.Permission{
+			Commit: new(idl.Null),
+		},
+	}
 	if _, err := a.ListPermitted(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -567,7 +676,19 @@ func Test_ProposeCommitBatch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.CommitBatchArguments
+	var a0 = wallet.CommitBatchArguments{
+		idl.NewNat(uint(0)),
+		[]wallet.BatchOperationKind{{
+			CreateAsset: idl.Ptr(wallet.CreateAssetArguments{
+				*new(string),
+				*new(string),
+				*new(*uint64),
+				*new(*[]wallet.HeaderField),
+				*new(*bool),
+				*new(*bool),
+			}),
+		}},
+	}
 	if err := a.ProposeCommitBatch(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -589,7 +710,12 @@ func Test_RevokePermission(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.RevokePermission
+	var a0 = wallet.RevokePermission{
+		*new(principal.Principal),
+		wallet.Permission{
+			Commit: new(idl.Null),
+		},
+	}
 	if err := a.RevokePermission(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -611,7 +737,12 @@ func Test_SetAssetContent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.SetAssetContentArguments
+	var a0 = wallet.SetAssetContentArguments{
+		*new(string),
+		*new(string),
+		[]wallet.ChunkId{idl.NewNat(uint(0))},
+		*new(*[]byte),
+	}
 	if err := a.SetAssetContent(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -633,7 +764,13 @@ func Test_SetAssetProperties(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.SetAssetPropertiesArguments
+	var a0 = wallet.SetAssetPropertiesArguments{
+		*new(string),
+		*new(**uint64),
+		*new(**[]wallet.HeaderField),
+		*new(**bool),
+		*new(**bool),
+	}
 	if err := a.SetAssetProperties(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -661,12 +798,18 @@ func Test_Store(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 struct {
+	var a0 = struct {
 		Key             wallet.Key `ic:"key"`
 		ContentType     string     `ic:"content_type"`
 		ContentEncoding string     `ic:"content_encoding"`
 		Content         []byte     `ic:"content"`
 		Sha256          *[]byte    `ic:"sha256,omitempty"`
+	}{
+		*new(string),
+		*new(string),
+		*new(string),
+		*new([]byte),
+		*new(*[]byte),
 	}
 	if err := a.Store(a0); err != nil {
 		t.Fatal(err)
@@ -710,7 +853,10 @@ func Test_UnsetAssetContent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.UnsetAssetContentArguments
+	var a0 = wallet.UnsetAssetContentArguments{
+		*new(string),
+		*new(string),
+	}
 	if err := a.UnsetAssetContent(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -724,7 +870,9 @@ func Test_ValidateCommitProposedBatch(t *testing.T) {
 			Name:      "validate_commit_proposed_batch",
 			Arguments: []any{new(wallet.CommitProposedBatchArguments)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(wallet.ValidationResult)}, nil
+				return []any{wallet.ValidationResult{
+					Ok: new(string),
+				}}, nil
 			},
 		},
 	})
@@ -732,7 +880,10 @@ func Test_ValidateCommitProposedBatch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.CommitProposedBatchArguments
+	var a0 = wallet.CommitProposedBatchArguments{
+		idl.NewNat(uint(0)),
+		*new([]byte),
+	}
 	if _, err := a.ValidateCommitProposedBatch(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -746,7 +897,9 @@ func Test_ValidateGrantPermission(t *testing.T) {
 			Name:      "validate_grant_permission",
 			Arguments: []any{new(wallet.GrantPermission)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(wallet.ValidationResult)}, nil
+				return []any{wallet.ValidationResult{
+					Ok: new(string),
+				}}, nil
 			},
 		},
 	})
@@ -754,7 +907,12 @@ func Test_ValidateGrantPermission(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.GrantPermission
+	var a0 = wallet.GrantPermission{
+		*new(principal.Principal),
+		wallet.Permission{
+			Commit: new(idl.Null),
+		},
+	}
 	if _, err := a.ValidateGrantPermission(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -768,7 +926,9 @@ func Test_ValidateRevokePermission(t *testing.T) {
 			Name:      "validate_revoke_permission",
 			Arguments: []any{new(wallet.RevokePermission)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(wallet.ValidationResult)}, nil
+				return []any{wallet.ValidationResult{
+					Ok: new(string),
+				}}, nil
 			},
 		},
 	})
@@ -776,7 +936,12 @@ func Test_ValidateRevokePermission(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 wallet.RevokePermission
+	var a0 = wallet.RevokePermission{
+		*new(principal.Principal),
+		wallet.Permission{
+			Commit: new(idl.Null),
+		},
+	}
 	if _, err := a.ValidateRevokePermission(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -790,7 +955,9 @@ func Test_ValidateTakeOwnership(t *testing.T) {
 			Name:      "validate_take_ownership",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(wallet.ValidationResult)}, nil
+				return []any{wallet.ValidationResult{
+					Ok: new(string),
+				}}, nil
 			},
 		},
 	})

@@ -100,7 +100,7 @@ type CyclesCanisterInitPayload struct {
 
 type ExchangeRateCanister struct {
 	Set   *principal.Principal `ic:"Set,variant"`
-	Unset *struct{}            `ic:"Unset,variant"`
+	Unset *idl.Null            `ic:"Unset,variant"`
 }
 
 type IcpXdrConversionRate struct {
@@ -130,7 +130,7 @@ type NotifyError struct {
 		Reason     string      `ic:"reason"`
 		BlockIndex *BlockIndex `ic:"block_index,omitempty"`
 	} `ic:"Refunded,variant"`
-	Processing         *struct{}   `ic:"Processing,variant"`
+	Processing         *idl.Null   `ic:"Processing,variant"`
 	TransactionTooOld  *BlockIndex `ic:"TransactionTooOld,variant"`
 	InvalidTransaction *string     `ic:"InvalidTransaction,variant"`
 	Other              *struct {

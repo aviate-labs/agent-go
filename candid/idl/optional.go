@@ -8,6 +8,10 @@ import (
 	"reflect"
 )
 
+func Ptr[a any](v a) *a {
+	return &v
+}
+
 // OptionalType is the type of an optional value.
 type OptionalType struct {
 	Type Type

@@ -20,7 +20,7 @@ func Test_Icrc1BalanceOf(t *testing.T) {
 			Name:      "icrc1_balance_of",
 			Arguments: []any{new(icrc1.Account)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(idl.Nat)}, nil
+				return []any{idl.NewNat(uint(0))}, nil
 			},
 		},
 	})
@@ -28,7 +28,10 @@ func Test_Icrc1BalanceOf(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 icrc1.Account
+	var a0 = icrc1.Account{
+		*new(principal.Principal),
+		*new(*icrc1.Subaccount),
+	}
 	if _, err := a.Icrc1BalanceOf(a0); err != nil {
 		t.Fatal(err)
 	}
@@ -63,7 +66,7 @@ func Test_Icrc1Fee(t *testing.T) {
 			Name:      "icrc1_fee",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(idl.Nat)}, nil
+				return []any{idl.NewNat(uint(0))}, nil
 			},
 		},
 	})
@@ -84,10 +87,17 @@ func Test_Icrc1Metadata(t *testing.T) {
 			Name:      "icrc1_metadata",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new([]struct {
+				return []any{[]struct {
 					Field0 string      `ic:"0"`
 					Field1 icrc1.Value `ic:"1"`
-				})}, nil
+				}{
+
+					{
+						*new(string),
+						icrc1.Value{
+							Nat: idl.Ptr(idl.NewNat(uint(0))),
+						},
+					}}}, nil
 			},
 		},
 	})
@@ -150,10 +160,15 @@ func Test_Icrc1SupportedStandards(t *testing.T) {
 			Name:      "icrc1_supported_standards",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new([]struct {
+				return []any{[]struct {
 					Name string `ic:"name"`
 					Url  string `ic:"url"`
-				})}, nil
+				}{
+
+					{
+						*new(string),
+						*new(string),
+					}}}, nil
 			},
 		},
 	})
@@ -195,7 +210,7 @@ func Test_Icrc1TotalSupply(t *testing.T) {
 			Name:      "icrc1_total_supply",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(idl.Nat)}, nil
+				return []any{idl.NewNat(uint(0))}, nil
 			},
 		},
 	})
@@ -216,10 +231,12 @@ func Test_Icrc1Transfer(t *testing.T) {
 			Name:      "icrc1_transfer",
 			Arguments: []any{new(icrc1.TransferArgs)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(struct {
+				return []any{struct {
 					Ok  *idl.Nat             `ic:"Ok,variant"`
 					Err *icrc1.TransferError `ic:"Err,variant"`
-				})}, nil
+				}{
+					Ok: idl.Ptr(idl.NewNat(uint(0))),
+				}}, nil
 			},
 		},
 	})
@@ -227,7 +244,17 @@ func Test_Icrc1Transfer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 icrc1.TransferArgs
+	var a0 = icrc1.TransferArgs{
+		*new(*icrc1.Subaccount),
+		icrc1.Account{
+			*new(principal.Principal),
+			*new(*icrc1.Subaccount),
+		},
+		idl.NewNat(uint(0)),
+		*new(*idl.Nat),
+		*new(*[]byte),
+		*new(*icrc1.Timestamp),
+	}
 	if _, err := a.Icrc1Transfer(a0); err != nil {
 		t.Fatal(err)
 	}
