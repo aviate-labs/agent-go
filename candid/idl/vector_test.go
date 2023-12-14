@@ -1,6 +1,7 @@
 package idl_test
 
 import (
+	"errors"
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"testing"
 )
@@ -18,7 +19,8 @@ func TestVectorType_UnmarshalGo(t *testing.T) {
 		if err == nil {
 			t.Fatal("expected error")
 		} else {
-			_, ok := err.(*idl.UnmarshalGoError)
+			var unmarshalGoError *idl.UnmarshalGoError
+			ok := errors.As(err, &unmarshalGoError)
 			if !ok {
 				t.Fatal("expected UnmarshalGoError")
 			}
@@ -85,5 +87,27 @@ func TestVectorType_UnmarshalGo(t *testing.T) {
 		expectErr(t, (idl.VectorType{
 			Type: idl.IntType{},
 		}).UnmarshalGo([2]any{}, &nv))
+	})
+}
+
+func TestVectorType_empty(t *testing.T) {
+	typ := idl.VectorType{Type: idl.Nat8Type()}
+
+	var x []byte
+	t.Run("non-nil", func(t *testing.T) {
+		if err := typ.UnmarshalGo([]byte{}, &x); err != nil {
+			t.Fatal(err)
+		}
+		if x == nil {
+			t.Error("expected non-nil")
+		}
+	})
+	t.Run("nil", func(t *testing.T) {
+		if err := typ.UnmarshalGo(nil, &x); err != nil {
+			t.Fatal(err)
+		}
+		if x != nil {
+			t.Error("expected nil")
+		}
 	})
 }

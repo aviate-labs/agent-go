@@ -106,6 +106,11 @@ func (vec VectorType) UnmarshalGo(raw any, _v any) error {
 		return nil
 	}
 
+	if v.Kind() == reflect.Slice && v.IsNil() {
+		// Create new slice.
+		v.Set(reflect.MakeSlice(v.Type(), 0, 0))
+	}
+
 	rv := reflect.ValueOf(raw)
 	if v.Kind() == reflect.Array {
 		// Check if array is big enough.
