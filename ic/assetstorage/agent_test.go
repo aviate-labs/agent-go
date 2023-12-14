@@ -65,8 +65,8 @@ func Test_CertifiedTree(t *testing.T) {
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{struct {
-					Certificate []byte `ic:"certificate"`
-					Tree        []byte `ic:"tree"`
+					Certificate []byte `ic:"certificate" json:"certificate"`
+					Tree        []byte `ic:"tree" json:"tree"`
 				}{
 					*new([]byte),
 					*new([]byte),
@@ -230,7 +230,7 @@ func Test_CreateBatch(t *testing.T) {
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{struct {
-					BatchId assetstorage.BatchId `ic:"batch_id"`
+					BatchId assetstorage.BatchId `ic:"batch_id" json:"batch_id"`
 				}{
 					idl.NewNat(uint(0)),
 				}}, nil
@@ -255,12 +255,12 @@ func Test_CreateChunk(t *testing.T) {
 		{
 			Name: "create_chunk",
 			Arguments: []any{new(struct {
-				BatchId assetstorage.BatchId `ic:"batch_id"`
-				Content []byte               `ic:"content"`
+				BatchId assetstorage.BatchId `ic:"batch_id" json:"batch_id"`
+				Content []byte               `ic:"content" json:"content"`
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{struct {
-					ChunkId assetstorage.ChunkId `ic:"chunk_id"`
+					ChunkId assetstorage.ChunkId `ic:"chunk_id" json:"chunk_id"`
 				}{
 					idl.NewNat(uint(0)),
 				}}, nil
@@ -272,8 +272,8 @@ func Test_CreateChunk(t *testing.T) {
 	}
 
 	var a0 = struct {
-		BatchId assetstorage.BatchId `ic:"batch_id"`
-		Content []byte               `ic:"content"`
+		BatchId assetstorage.BatchId `ic:"batch_id" json:"batch_id"`
+		Content []byte               `ic:"content" json:"content"`
 	}{
 		idl.NewNat(uint(0)),
 		*new([]byte),
@@ -360,16 +360,16 @@ func Test_Get(t *testing.T) {
 		{
 			Name: "get",
 			Arguments: []any{new(struct {
-				Key             assetstorage.Key `ic:"key"`
-				AcceptEncodings []string         `ic:"accept_encodings"`
+				Key             assetstorage.Key `ic:"key" json:"key"`
+				AcceptEncodings []string         `ic:"accept_encodings" json:"accept_encodings"`
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{struct {
-					Content         []byte  `ic:"content"`
-					ContentType     string  `ic:"content_type"`
-					ContentEncoding string  `ic:"content_encoding"`
-					Sha256          *[]byte `ic:"sha256,omitempty"`
-					TotalLength     idl.Nat `ic:"total_length"`
+					Content         []byte  `ic:"content" json:"content"`
+					ContentType     string  `ic:"content_type" json:"content_type"`
+					ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
+					Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
+					TotalLength     idl.Nat `ic:"total_length" json:"total_length"`
 				}{
 					*new([]byte),
 					*new(string),
@@ -385,8 +385,8 @@ func Test_Get(t *testing.T) {
 	}
 
 	var a0 = struct {
-		Key             assetstorage.Key `ic:"key"`
-		AcceptEncodings []string         `ic:"accept_encodings"`
+		Key             assetstorage.Key `ic:"key" json:"key"`
+		AcceptEncodings []string         `ic:"accept_encodings" json:"accept_encodings"`
 	}{
 		*new(string),
 		[]string{*new(string)},
@@ -405,10 +405,10 @@ func Test_GetAssetProperties(t *testing.T) {
 			Arguments: []any{new(assetstorage.Key)},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{struct {
-					MaxAge         *uint64                     `ic:"max_age,omitempty"`
-					Headers        *[]assetstorage.HeaderField `ic:"headers,omitempty"`
-					AllowRawAccess *bool                       `ic:"allow_raw_access,omitempty"`
-					IsAliased      *bool                       `ic:"is_aliased,omitempty"`
+					MaxAge         *uint64                     `ic:"max_age,omitempty" json:"max_age,omitempty"`
+					Headers        *[]assetstorage.HeaderField `ic:"headers,omitempty" json:"headers,omitempty"`
+					AllowRawAccess *bool                       `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
+					IsAliased      *bool                       `ic:"is_aliased,omitempty" json:"is_aliased,omitempty"`
 				}{
 					*new(*uint64),
 					*new(*[]assetstorage.HeaderField),
@@ -435,14 +435,14 @@ func Test_GetChunk(t *testing.T) {
 		{
 			Name: "get_chunk",
 			Arguments: []any{new(struct {
-				Key             assetstorage.Key `ic:"key"`
-				ContentEncoding string           `ic:"content_encoding"`
-				Index           idl.Nat          `ic:"index"`
-				Sha256          *[]byte          `ic:"sha256,omitempty"`
+				Key             assetstorage.Key `ic:"key" json:"key"`
+				ContentEncoding string           `ic:"content_encoding" json:"content_encoding"`
+				Index           idl.Nat          `ic:"index" json:"index"`
+				Sha256          *[]byte          `ic:"sha256,omitempty" json:"sha256,omitempty"`
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{struct {
-					Content []byte `ic:"content"`
+					Content []byte `ic:"content" json:"content"`
 				}{
 					*new([]byte),
 				}}, nil
@@ -454,10 +454,10 @@ func Test_GetChunk(t *testing.T) {
 	}
 
 	var a0 = struct {
-		Key             assetstorage.Key `ic:"key"`
-		ContentEncoding string           `ic:"content_encoding"`
-		Index           idl.Nat          `ic:"index"`
-		Sha256          *[]byte          `ic:"sha256,omitempty"`
+		Key             assetstorage.Key `ic:"key" json:"key"`
+		ContentEncoding string           `ic:"content_encoding" json:"content_encoding"`
+		Index           idl.Nat          `ic:"index" json:"index"`
+		Sha256          *[]byte          `ic:"sha256,omitempty" json:"sha256,omitempty"`
 	}{
 		*new(string),
 		*new(string),
@@ -572,24 +572,24 @@ func Test_List(t *testing.T) {
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{[]struct {
-					Key         assetstorage.Key `ic:"key"`
-					ContentType string           `ic:"content_type"`
+					Key         assetstorage.Key `ic:"key" json:"key"`
+					ContentType string           `ic:"content_type" json:"content_type"`
 					Encodings   []struct {
-						ContentEncoding string            `ic:"content_encoding"`
-						Sha256          *[]byte           `ic:"sha256,omitempty"`
-						Length          idl.Nat           `ic:"length"`
-						Modified        assetstorage.Time `ic:"modified"`
-					} `ic:"encodings"`
+						ContentEncoding string            `ic:"content_encoding" json:"content_encoding"`
+						Sha256          *[]byte           `ic:"sha256,omitempty" json:"sha256,omitempty"`
+						Length          idl.Nat           `ic:"length" json:"length"`
+						Modified        assetstorage.Time `ic:"modified" json:"modified"`
+					} `ic:"encodings" json:"encodings"`
 				}{
 
 					{
 						*new(string),
 						*new(string),
 						[]struct {
-							ContentEncoding string            `ic:"content_encoding"`
-							Sha256          *[]byte           `ic:"sha256,omitempty"`
-							Length          idl.Nat           `ic:"length"`
-							Modified        assetstorage.Time `ic:"modified"`
+							ContentEncoding string            `ic:"content_encoding" json:"content_encoding"`
+							Sha256          *[]byte           `ic:"sha256,omitempty" json:"sha256,omitempty"`
+							Length          idl.Nat           `ic:"length" json:"length"`
+							Modified        assetstorage.Time `ic:"modified" json:"modified"`
 						}{
 
 							{
@@ -783,11 +783,11 @@ func Test_Store(t *testing.T) {
 		{
 			Name: "store",
 			Arguments: []any{new(struct {
-				Key             assetstorage.Key `ic:"key"`
-				ContentType     string           `ic:"content_type"`
-				ContentEncoding string           `ic:"content_encoding"`
-				Content         []byte           `ic:"content"`
-				Sha256          *[]byte          `ic:"sha256,omitempty"`
+				Key             assetstorage.Key `ic:"key" json:"key"`
+				ContentType     string           `ic:"content_type" json:"content_type"`
+				ContentEncoding string           `ic:"content_encoding" json:"content_encoding"`
+				Content         []byte           `ic:"content" json:"content"`
+				Sha256          *[]byte          `ic:"sha256,omitempty" json:"sha256,omitempty"`
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{}, nil
@@ -799,11 +799,11 @@ func Test_Store(t *testing.T) {
 	}
 
 	var a0 = struct {
-		Key             assetstorage.Key `ic:"key"`
-		ContentType     string           `ic:"content_type"`
-		ContentEncoding string           `ic:"content_encoding"`
-		Content         []byte           `ic:"content"`
-		Sha256          *[]byte          `ic:"sha256,omitempty"`
+		Key             assetstorage.Key `ic:"key" json:"key"`
+		ContentType     string           `ic:"content_type" json:"content_type"`
+		ContentEncoding string           `ic:"content_encoding" json:"content_encoding"`
+		Content         []byte           `ic:"content" json:"content"`
+		Sha256          *[]byte          `ic:"sha256,omitempty" json:"sha256,omitempty"`
 	}{
 		*new(string),
 		*new(string),

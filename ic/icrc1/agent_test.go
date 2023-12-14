@@ -88,8 +88,8 @@ func Test_Icrc1Metadata(t *testing.T) {
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{[]struct {
-					Field0 string      `ic:"0"`
-					Field1 icrc1.Value `ic:"1"`
+					Field0 string      `ic:"0" json:"0"`
+					Field1 icrc1.Value `ic:"1" json:"1"`
 				}{
 
 					{
@@ -161,8 +161,8 @@ func Test_Icrc1SupportedStandards(t *testing.T) {
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{[]struct {
-					Name string `ic:"name"`
-					Url  string `ic:"url"`
+					Name string `ic:"name" json:"name"`
+					Url  string `ic:"url" json:"url"`
 				}{
 
 					{

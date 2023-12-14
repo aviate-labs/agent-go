@@ -9,7 +9,7 @@ import (
 )
 
 type AccountBalanceArgs struct {
-	Account AccountIdentifier `ic:"account"`
+	Account AccountIdentifier `ic:"account" json:"account"`
 }
 
 type AccountIdentifier = []byte
@@ -62,10 +62,10 @@ func (a Agent) Archives() (*Archives, error) {
 
 // Decimals calls the "decimals" method on the "icpledger" canister.
 func (a Agent) Decimals() (*struct {
-	Decimals uint32 `ic:"decimals"`
+	Decimals uint32 `ic:"decimals" json:"decimals"`
 }, error) {
 	var r0 struct {
-		Decimals uint32 `ic:"decimals"`
+		Decimals uint32 `ic:"decimals" json:"decimals"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -80,10 +80,10 @@ func (a Agent) Decimals() (*struct {
 
 // Name calls the "name" method on the "icpledger" canister.
 func (a Agent) Name() (*struct {
-	Name string `ic:"name"`
+	Name string `ic:"name" json:"name"`
 }, error) {
 	var r0 struct {
-		Name string `ic:"name"`
+		Name string `ic:"name" json:"name"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -112,10 +112,10 @@ func (a Agent) QueryBlocks(arg0 GetBlocksArgs) (*QueryBlocksResponse, error) {
 
 // Symbol calls the "symbol" method on the "icpledger" canister.
 func (a Agent) Symbol() (*struct {
-	Symbol string `ic:"symbol"`
+	Symbol string `ic:"symbol" json:"symbol"`
 }, error) {
 	var r0 struct {
-		Symbol string `ic:"symbol"`
+		Symbol string `ic:"symbol" json:"symbol"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -157,71 +157,71 @@ func (a Agent) TransferFee(arg0 TransferFeeArg) (*TransferFee, error) {
 }
 
 type Archive struct {
-	CanisterId principal.Principal `ic:"canister_id"`
+	CanisterId principal.Principal `ic:"canister_id" json:"canister_id"`
 }
 
 type Archives struct {
-	Archives []Archive `ic:"archives"`
+	Archives []Archive `ic:"archives" json:"archives"`
 }
 
 type Block struct {
-	ParentHash  *[]byte     `ic:"parent_hash,omitempty"`
-	Transaction Transaction `ic:"transaction"`
-	Timestamp   TimeStamp   `ic:"timestamp"`
+	ParentHash  *[]byte     `ic:"parent_hash,omitempty" json:"parent_hash,omitempty"`
+	Transaction Transaction `ic:"transaction" json:"transaction"`
+	Timestamp   TimeStamp   `ic:"timestamp" json:"timestamp"`
 }
 
 type BlockIndex = uint64
 
 type BlockRange struct {
-	Blocks []Block `ic:"blocks"`
+	Blocks []Block `ic:"blocks" json:"blocks"`
 }
 
 type GetBlocksArgs struct {
-	Start  BlockIndex `ic:"start"`
-	Length uint64     `ic:"length"`
+	Start  BlockIndex `ic:"start" json:"start"`
+	Length uint64     `ic:"length" json:"length"`
 }
 
 type Memo = uint64
 
 type Operation struct {
 	Mint *struct {
-		To     AccountIdentifier `ic:"to"`
-		Amount Tokens            `ic:"amount"`
+		To     AccountIdentifier `ic:"to" json:"to"`
+		Amount Tokens            `ic:"amount" json:"amount"`
 	} `ic:"Mint,variant"`
 	Burn *struct {
-		From   AccountIdentifier `ic:"from"`
-		Amount Tokens            `ic:"amount"`
+		From   AccountIdentifier `ic:"from" json:"from"`
+		Amount Tokens            `ic:"amount" json:"amount"`
 	} `ic:"Burn,variant"`
 	Transfer *struct {
-		From   AccountIdentifier `ic:"from"`
-		To     AccountIdentifier `ic:"to"`
-		Amount Tokens            `ic:"amount"`
-		Fee    Tokens            `ic:"fee"`
+		From   AccountIdentifier `ic:"from" json:"from"`
+		To     AccountIdentifier `ic:"to" json:"to"`
+		Amount Tokens            `ic:"amount" json:"amount"`
+		Fee    Tokens            `ic:"fee" json:"fee"`
 	} `ic:"Transfer,variant"`
 	Approve *struct {
-		From         AccountIdentifier `ic:"from"`
-		Spender      AccountIdentifier `ic:"spender"`
-		AllowanceE8s idl.Int           `ic:"allowance_e8s"`
-		Fee          Tokens            `ic:"fee"`
-		ExpiresAt    *TimeStamp        `ic:"expires_at,omitempty"`
+		From         AccountIdentifier `ic:"from" json:"from"`
+		Spender      AccountIdentifier `ic:"spender" json:"spender"`
+		AllowanceE8s idl.Int           `ic:"allowance_e8s" json:"allowance_e8s"`
+		Fee          Tokens            `ic:"fee" json:"fee"`
+		ExpiresAt    *TimeStamp        `ic:"expires_at,omitempty" json:"expires_at,omitempty"`
 	} `ic:"Approve,variant"`
 	TransferFrom *struct {
-		From    AccountIdentifier `ic:"from"`
-		To      AccountIdentifier `ic:"to"`
-		Spender AccountIdentifier `ic:"spender"`
-		Amount  Tokens            `ic:"amount"`
-		Fee     Tokens            `ic:"fee"`
+		From    AccountIdentifier `ic:"from" json:"from"`
+		To      AccountIdentifier `ic:"to" json:"to"`
+		Spender AccountIdentifier `ic:"spender" json:"spender"`
+		Amount  Tokens            `ic:"amount" json:"amount"`
+		Fee     Tokens            `ic:"fee" json:"fee"`
 	} `ic:"TransferFrom,variant"`
 }
 
 type QueryArchiveError struct {
 	BadFirstBlockIndex *struct {
-		RequestedIndex  BlockIndex `ic:"requested_index"`
-		FirstValidIndex BlockIndex `ic:"first_valid_index"`
+		RequestedIndex  BlockIndex `ic:"requested_index" json:"requested_index"`
+		FirstValidIndex BlockIndex `ic:"first_valid_index" json:"first_valid_index"`
 	} `ic:"BadFirstBlockIndex,variant"`
 	Other *struct {
-		ErrorCode    uint64 `ic:"error_code"`
-		ErrorMessage string `ic:"error_message"`
+		ErrorCode    uint64 `ic:"error_code" json:"error_code"`
+		ErrorMessage string `ic:"error_message" json:"error_message"`
 	} `ic:"Other,variant"`
 }
 
@@ -234,61 +234,61 @@ type QueryArchiveResult struct {
 }
 
 type QueryBlocksResponse struct {
-	ChainLength     uint64     `ic:"chain_length"`
-	Certificate     *[]byte    `ic:"certificate,omitempty"`
-	Blocks          []Block    `ic:"blocks"`
-	FirstBlockIndex BlockIndex `ic:"first_block_index"`
+	ChainLength     uint64     `ic:"chain_length" json:"chain_length"`
+	Certificate     *[]byte    `ic:"certificate,omitempty" json:"certificate,omitempty"`
+	Blocks          []Block    `ic:"blocks" json:"blocks"`
+	FirstBlockIndex BlockIndex `ic:"first_block_index" json:"first_block_index"`
 	ArchivedBlocks  []struct {
-		Start    BlockIndex     `ic:"start"`
-		Length   uint64         `ic:"length"`
-		Callback QueryArchiveFn `ic:"callback"`
-	} `ic:"archived_blocks"`
+		Start    BlockIndex     `ic:"start" json:"start"`
+		Length   uint64         `ic:"length" json:"length"`
+		Callback QueryArchiveFn `ic:"callback" json:"callback"`
+	} `ic:"archived_blocks" json:"archived_blocks"`
 }
 
 type SubAccount = []byte
 
 type TimeStamp struct {
-	TimestampNanos uint64 `ic:"timestamp_nanos"`
+	TimestampNanos uint64 `ic:"timestamp_nanos" json:"timestamp_nanos"`
 }
 
 type Tokens struct {
-	E8s uint64 `ic:"e8s"`
+	E8s uint64 `ic:"e8s" json:"e8s"`
 }
 
 type Transaction struct {
-	Memo          Memo       `ic:"memo"`
-	Icrc1Memo     *[]byte    `ic:"icrc1_memo,omitempty"`
-	Operation     *Operation `ic:"operation,omitempty"`
-	CreatedAtTime TimeStamp  `ic:"created_at_time"`
+	Memo          Memo       `ic:"memo" json:"memo"`
+	Icrc1Memo     *[]byte    `ic:"icrc1_memo,omitempty" json:"icrc1_memo,omitempty"`
+	Operation     *Operation `ic:"operation,omitempty" json:"operation,omitempty"`
+	CreatedAtTime TimeStamp  `ic:"created_at_time" json:"created_at_time"`
 }
 
 type TransferArgs struct {
-	Memo           Memo              `ic:"memo"`
-	Amount         Tokens            `ic:"amount"`
-	Fee            Tokens            `ic:"fee"`
-	FromSubaccount *SubAccount       `ic:"from_subaccount,omitempty"`
-	To             AccountIdentifier `ic:"to"`
-	CreatedAtTime  *TimeStamp        `ic:"created_at_time,omitempty"`
+	Memo           Memo              `ic:"memo" json:"memo"`
+	Amount         Tokens            `ic:"amount" json:"amount"`
+	Fee            Tokens            `ic:"fee" json:"fee"`
+	FromSubaccount *SubAccount       `ic:"from_subaccount,omitempty" json:"from_subaccount,omitempty"`
+	To             AccountIdentifier `ic:"to" json:"to"`
+	CreatedAtTime  *TimeStamp        `ic:"created_at_time,omitempty" json:"created_at_time,omitempty"`
 }
 
 type TransferError struct {
 	BadFee *struct {
-		ExpectedFee Tokens `ic:"expected_fee"`
+		ExpectedFee Tokens `ic:"expected_fee" json:"expected_fee"`
 	} `ic:"BadFee,variant"`
 	InsufficientFunds *struct {
-		Balance Tokens `ic:"balance"`
+		Balance Tokens `ic:"balance" json:"balance"`
 	} `ic:"InsufficientFunds,variant"`
 	TxTooOld *struct {
-		AllowedWindowNanos uint64 `ic:"allowed_window_nanos"`
+		AllowedWindowNanos uint64 `ic:"allowed_window_nanos" json:"allowed_window_nanos"`
 	} `ic:"TxTooOld,variant"`
 	TxCreatedInFuture *idl.Null `ic:"TxCreatedInFuture,variant"`
 	TxDuplicate       *struct {
-		DuplicateOf BlockIndex `ic:"duplicate_of"`
+		DuplicateOf BlockIndex `ic:"duplicate_of" json:"duplicate_of"`
 	} `ic:"TxDuplicate,variant"`
 }
 
 type TransferFee struct {
-	TransferFee Tokens `ic:"transfer_fee"`
+	TransferFee Tokens `ic:"transfer_fee" json:"transfer_fee"`
 }
 
 type TransferFeeArg struct {

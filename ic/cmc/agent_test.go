@@ -50,8 +50,8 @@ func Test_GetSubnetTypesToSubnets(t *testing.T) {
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{cmc.SubnetTypesToSubnetsResponse{
 					[]struct {
-						Field0 string                `ic:"0"`
-						Field1 []principal.Principal `ic:"1"`
+						Field0 string                `ic:"0" json:"0"`
+						Field1 []principal.Principal `ic:"1" json:"1"`
 					}{
 
 						{

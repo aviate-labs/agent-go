@@ -56,12 +56,12 @@ func (a Agent) Authorize(arg0 principal.Principal) error {
 // CertifiedTree calls the "certified_tree" method on the "assetstorage" canister.
 func (a Agent) CertifiedTree(arg0 struct {
 }) (*struct {
-	Certificate []byte `ic:"certificate"`
-	Tree        []byte `ic:"tree"`
+	Certificate []byte `ic:"certificate" json:"certificate"`
+	Tree        []byte `ic:"tree" json:"tree"`
 }, error) {
 	var r0 struct {
-		Certificate []byte `ic:"certificate"`
-		Tree        []byte `ic:"tree"`
+		Certificate []byte `ic:"certificate" json:"certificate"`
+		Tree        []byte `ic:"tree" json:"tree"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -143,10 +143,10 @@ func (a Agent) CreateAsset(arg0 CreateAssetArguments) error {
 // CreateBatch calls the "create_batch" method on the "assetstorage" canister.
 func (a Agent) CreateBatch(arg0 struct {
 }) (*struct {
-	BatchId BatchId `ic:"batch_id"`
+	BatchId BatchId `ic:"batch_id" json:"batch_id"`
 }, error) {
 	var r0 struct {
-		BatchId BatchId `ic:"batch_id"`
+		BatchId BatchId `ic:"batch_id" json:"batch_id"`
 	}
 	if err := a.a.Call(
 		a.canisterId,
@@ -161,13 +161,13 @@ func (a Agent) CreateBatch(arg0 struct {
 
 // CreateChunk calls the "create_chunk" method on the "assetstorage" canister.
 func (a Agent) CreateChunk(arg0 struct {
-	BatchId BatchId `ic:"batch_id"`
-	Content []byte  `ic:"content"`
+	BatchId BatchId `ic:"batch_id" json:"batch_id"`
+	Content []byte  `ic:"content" json:"content"`
 }) (*struct {
-	ChunkId ChunkId `ic:"chunk_id"`
+	ChunkId ChunkId `ic:"chunk_id" json:"chunk_id"`
 }, error) {
 	var r0 struct {
-		ChunkId ChunkId `ic:"chunk_id"`
+		ChunkId ChunkId `ic:"chunk_id" json:"chunk_id"`
 	}
 	if err := a.a.Call(
 		a.canisterId,
@@ -221,21 +221,21 @@ func (a Agent) DeleteBatch(arg0 DeleteBatchArguments) error {
 
 // Get calls the "get" method on the "assetstorage" canister.
 func (a Agent) Get(arg0 struct {
-	Key             Key      `ic:"key"`
-	AcceptEncodings []string `ic:"accept_encodings"`
+	Key             Key      `ic:"key" json:"key"`
+	AcceptEncodings []string `ic:"accept_encodings" json:"accept_encodings"`
 }) (*struct {
-	Content         []byte  `ic:"content"`
-	ContentType     string  `ic:"content_type"`
-	ContentEncoding string  `ic:"content_encoding"`
-	Sha256          *[]byte `ic:"sha256,omitempty"`
-	TotalLength     idl.Nat `ic:"total_length"`
+	Content         []byte  `ic:"content" json:"content"`
+	ContentType     string  `ic:"content_type" json:"content_type"`
+	ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
+	Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
+	TotalLength     idl.Nat `ic:"total_length" json:"total_length"`
 }, error) {
 	var r0 struct {
-		Content         []byte  `ic:"content"`
-		ContentType     string  `ic:"content_type"`
-		ContentEncoding string  `ic:"content_encoding"`
-		Sha256          *[]byte `ic:"sha256,omitempty"`
-		TotalLength     idl.Nat `ic:"total_length"`
+		Content         []byte  `ic:"content" json:"content"`
+		ContentType     string  `ic:"content_type" json:"content_type"`
+		ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
+		Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
+		TotalLength     idl.Nat `ic:"total_length" json:"total_length"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -250,16 +250,16 @@ func (a Agent) Get(arg0 struct {
 
 // GetAssetProperties calls the "get_asset_properties" method on the "assetstorage" canister.
 func (a Agent) GetAssetProperties(key Key) (*struct {
-	MaxAge         *uint64        `ic:"max_age,omitempty"`
-	Headers        *[]HeaderField `ic:"headers,omitempty"`
-	AllowRawAccess *bool          `ic:"allow_raw_access,omitempty"`
-	IsAliased      *bool          `ic:"is_aliased,omitempty"`
+	MaxAge         *uint64        `ic:"max_age,omitempty" json:"max_age,omitempty"`
+	Headers        *[]HeaderField `ic:"headers,omitempty" json:"headers,omitempty"`
+	AllowRawAccess *bool          `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
+	IsAliased      *bool          `ic:"is_aliased,omitempty" json:"is_aliased,omitempty"`
 }, error) {
 	var r0 struct {
-		MaxAge         *uint64        `ic:"max_age,omitempty"`
-		Headers        *[]HeaderField `ic:"headers,omitempty"`
-		AllowRawAccess *bool          `ic:"allow_raw_access,omitempty"`
-		IsAliased      *bool          `ic:"is_aliased,omitempty"`
+		MaxAge         *uint64        `ic:"max_age,omitempty" json:"max_age,omitempty"`
+		Headers        *[]HeaderField `ic:"headers,omitempty" json:"headers,omitempty"`
+		AllowRawAccess *bool          `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
+		IsAliased      *bool          `ic:"is_aliased,omitempty" json:"is_aliased,omitempty"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -274,15 +274,15 @@ func (a Agent) GetAssetProperties(key Key) (*struct {
 
 // GetChunk calls the "get_chunk" method on the "assetstorage" canister.
 func (a Agent) GetChunk(arg0 struct {
-	Key             Key     `ic:"key"`
-	ContentEncoding string  `ic:"content_encoding"`
-	Index           idl.Nat `ic:"index"`
-	Sha256          *[]byte `ic:"sha256,omitempty"`
+	Key             Key     `ic:"key" json:"key"`
+	ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
+	Index           idl.Nat `ic:"index" json:"index"`
+	Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
 }) (*struct {
-	Content []byte `ic:"content"`
+	Content []byte `ic:"content" json:"content"`
 }, error) {
 	var r0 struct {
-		Content []byte `ic:"content"`
+		Content []byte `ic:"content" json:"content"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -339,24 +339,24 @@ func (a Agent) HttpRequestStreamingCallback(token StreamingCallbackToken) (**Str
 // List calls the "list" method on the "assetstorage" canister.
 func (a Agent) List(arg0 struct {
 }) (*[]struct {
-	Key         Key    `ic:"key"`
-	ContentType string `ic:"content_type"`
+	Key         Key    `ic:"key" json:"key"`
+	ContentType string `ic:"content_type" json:"content_type"`
 	Encodings   []struct {
-		ContentEncoding string  `ic:"content_encoding"`
-		Sha256          *[]byte `ic:"sha256,omitempty"`
-		Length          idl.Nat `ic:"length"`
-		Modified        Time    `ic:"modified"`
-	} `ic:"encodings"`
+		ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
+		Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
+		Length          idl.Nat `ic:"length" json:"length"`
+		Modified        Time    `ic:"modified" json:"modified"`
+	} `ic:"encodings" json:"encodings"`
 }, error) {
 	var r0 []struct {
-		Key         Key    `ic:"key"`
-		ContentType string `ic:"content_type"`
+		Key         Key    `ic:"key" json:"key"`
+		ContentType string `ic:"content_type" json:"content_type"`
 		Encodings   []struct {
-			ContentEncoding string  `ic:"content_encoding"`
-			Sha256          *[]byte `ic:"sha256,omitempty"`
-			Length          idl.Nat `ic:"length"`
-			Modified        Time    `ic:"modified"`
-		} `ic:"encodings"`
+			ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
+			Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
+			Length          idl.Nat `ic:"length" json:"length"`
+			Modified        Time    `ic:"modified" json:"modified"`
+		} `ic:"encodings" json:"encodings"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -451,11 +451,11 @@ func (a Agent) SetAssetProperties(arg0 SetAssetPropertiesArguments) error {
 
 // Store calls the "store" method on the "assetstorage" canister.
 func (a Agent) Store(arg0 struct {
-	Key             Key     `ic:"key"`
-	ContentType     string  `ic:"content_type"`
-	ContentEncoding string  `ic:"content_encoding"`
-	Content         []byte  `ic:"content"`
-	Sha256          *[]byte `ic:"sha256,omitempty"`
+	Key             Key     `ic:"key" json:"key"`
+	ContentType     string  `ic:"content_type" json:"content_type"`
+	ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
+	Content         []byte  `ic:"content" json:"content"`
+	Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
 }) error {
 	if err := a.a.Call(
 		a.canisterId,
@@ -567,66 +567,66 @@ type ClearArguments struct {
 }
 
 type CommitBatchArguments struct {
-	BatchId    BatchId              `ic:"batch_id"`
-	Operations []BatchOperationKind `ic:"operations"`
+	BatchId    BatchId              `ic:"batch_id" json:"batch_id"`
+	Operations []BatchOperationKind `ic:"operations" json:"operations"`
 }
 
 type CommitProposedBatchArguments struct {
-	BatchId  BatchId `ic:"batch_id"`
-	Evidence []byte  `ic:"evidence"`
+	BatchId  BatchId `ic:"batch_id" json:"batch_id"`
+	Evidence []byte  `ic:"evidence" json:"evidence"`
 }
 
 type ComputeEvidenceArguments struct {
-	BatchId       BatchId `ic:"batch_id"`
-	MaxIterations *uint16 `ic:"max_iterations,omitempty"`
+	BatchId       BatchId `ic:"batch_id" json:"batch_id"`
+	MaxIterations *uint16 `ic:"max_iterations,omitempty" json:"max_iterations,omitempty"`
 }
 
 type CreateAssetArguments struct {
-	Key            Key            `ic:"key"`
-	ContentType    string         `ic:"content_type"`
-	MaxAge         *uint64        `ic:"max_age,omitempty"`
-	Headers        *[]HeaderField `ic:"headers,omitempty"`
-	EnableAliasing *bool          `ic:"enable_aliasing,omitempty"`
-	AllowRawAccess *bool          `ic:"allow_raw_access,omitempty"`
+	Key            Key            `ic:"key" json:"key"`
+	ContentType    string         `ic:"content_type" json:"content_type"`
+	MaxAge         *uint64        `ic:"max_age,omitempty" json:"max_age,omitempty"`
+	Headers        *[]HeaderField `ic:"headers,omitempty" json:"headers,omitempty"`
+	EnableAliasing *bool          `ic:"enable_aliasing,omitempty" json:"enable_aliasing,omitempty"`
+	AllowRawAccess *bool          `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
 }
 
 type DeleteAssetArguments struct {
-	Key Key `ic:"key"`
+	Key Key `ic:"key" json:"key"`
 }
 
 type DeleteBatchArguments struct {
-	BatchId BatchId `ic:"batch_id"`
+	BatchId BatchId `ic:"batch_id" json:"batch_id"`
 }
 
 type GrantPermission struct {
-	ToPrincipal principal.Principal `ic:"to_principal"`
-	Permission  Permission          `ic:"permission"`
+	ToPrincipal principal.Principal `ic:"to_principal" json:"to_principal"`
+	Permission  Permission          `ic:"permission" json:"permission"`
 }
 
 type HeaderField struct {
-	Field0 string `ic:"0"`
-	Field1 string `ic:"1"`
+	Field0 string `ic:"0" json:"0"`
+	Field1 string `ic:"1" json:"1"`
 }
 
 type HttpRequest struct {
-	Method             string        `ic:"method"`
-	Url                string        `ic:"url"`
-	Headers            []HeaderField `ic:"headers"`
-	Body               []byte        `ic:"body"`
-	CertificateVersion *uint16       `ic:"certificate_version,omitempty"`
+	Method             string        `ic:"method" json:"method"`
+	Url                string        `ic:"url" json:"url"`
+	Headers            []HeaderField `ic:"headers" json:"headers"`
+	Body               []byte        `ic:"body" json:"body"`
+	CertificateVersion *uint16       `ic:"certificate_version,omitempty" json:"certificate_version,omitempty"`
 }
 
 type HttpResponse struct {
-	StatusCode        uint16             `ic:"status_code"`
-	Headers           []HeaderField      `ic:"headers"`
-	Body              []byte             `ic:"body"`
-	StreamingStrategy *StreamingStrategy `ic:"streaming_strategy,omitempty"`
+	StatusCode        uint16             `ic:"status_code" json:"status_code"`
+	Headers           []HeaderField      `ic:"headers" json:"headers"`
+	Body              []byte             `ic:"body" json:"body"`
+	StreamingStrategy *StreamingStrategy `ic:"streaming_strategy,omitempty" json:"streaming_strategy,omitempty"`
 }
 
 type Key = string
 
 type ListPermitted struct {
-	Permission Permission `ic:"permission"`
+	Permission Permission `ic:"permission" json:"permission"`
 }
 
 type Permission struct {
@@ -636,50 +636,50 @@ type Permission struct {
 }
 
 type RevokePermission struct {
-	OfPrincipal principal.Principal `ic:"of_principal"`
-	Permission  Permission          `ic:"permission"`
+	OfPrincipal principal.Principal `ic:"of_principal" json:"of_principal"`
+	Permission  Permission          `ic:"permission" json:"permission"`
 }
 
 type SetAssetContentArguments struct {
-	Key             Key       `ic:"key"`
-	ContentEncoding string    `ic:"content_encoding"`
-	ChunkIds        []ChunkId `ic:"chunk_ids"`
-	Sha256          *[]byte   `ic:"sha256,omitempty"`
+	Key             Key       `ic:"key" json:"key"`
+	ContentEncoding string    `ic:"content_encoding" json:"content_encoding"`
+	ChunkIds        []ChunkId `ic:"chunk_ids" json:"chunk_ids"`
+	Sha256          *[]byte   `ic:"sha256,omitempty" json:"sha256,omitempty"`
 }
 
 type SetAssetPropertiesArguments struct {
-	Key            Key             `ic:"key"`
-	MaxAge         **uint64        `ic:"max_age,omitempty"`
-	Headers        **[]HeaderField `ic:"headers,omitempty"`
-	AllowRawAccess **bool          `ic:"allow_raw_access,omitempty"`
-	IsAliased      **bool          `ic:"is_aliased,omitempty"`
+	Key            Key             `ic:"key" json:"key"`
+	MaxAge         **uint64        `ic:"max_age,omitempty" json:"max_age,omitempty"`
+	Headers        **[]HeaderField `ic:"headers,omitempty" json:"headers,omitempty"`
+	AllowRawAccess **bool          `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
+	IsAliased      **bool          `ic:"is_aliased,omitempty" json:"is_aliased,omitempty"`
 }
 
 type StreamingCallbackHttpResponse struct {
-	Body  []byte                  `ic:"body"`
-	Token *StreamingCallbackToken `ic:"token,omitempty"`
+	Body  []byte                  `ic:"body" json:"body"`
+	Token *StreamingCallbackToken `ic:"token,omitempty" json:"token,omitempty"`
 }
 
 type StreamingCallbackToken struct {
-	Key             Key     `ic:"key"`
-	ContentEncoding string  `ic:"content_encoding"`
-	Index           idl.Nat `ic:"index"`
-	Sha256          *[]byte `ic:"sha256,omitempty"`
+	Key             Key     `ic:"key" json:"key"`
+	ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
+	Index           idl.Nat `ic:"index" json:"index"`
+	Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
 }
 
 type StreamingStrategy struct {
 	Callback *struct {
 		Callback struct { /* NOT SUPPORTED */
-		} `ic:"callback"`
-		Token StreamingCallbackToken `ic:"token"`
+		} `ic:"callback" json:"callback"`
+		Token StreamingCallbackToken `ic:"token" json:"token"`
 	} `ic:"Callback,variant"`
 }
 
 type Time = idl.Int
 
 type UnsetAssetContentArguments struct {
-	Key             Key    `ic:"key"`
-	ContentEncoding string `ic:"content_encoding"`
+	Key             Key    `ic:"key" json:"key"`
+	ContentEncoding string `ic:"content_encoding" json:"content_encoding"`
 }
 
 type ValidationResult struct {
