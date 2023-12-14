@@ -43,30 +43,30 @@ func (a Agent) GetBlocks(arg0 GetBlocksArgs) (*GetBlocksResult, error) {
 }
 
 type Block struct {
-	ParentHash  *[]byte     `ic:"parent_hash,omitempty"`
-	Transaction Transaction `ic:"transaction"`
-	Timestamp   Timestamp   `ic:"timestamp"`
+	ParentHash  *[]byte     `ic:"parent_hash,omitempty" json:"parent_hash,omitempty"`
+	Transaction Transaction `ic:"transaction" json:"transaction"`
+	Timestamp   Timestamp   `ic:"timestamp" json:"timestamp"`
 }
 
 type BlockIndex = uint64
 
 type BlockRange struct {
-	Blocks []Block `ic:"blocks"`
+	Blocks []Block `ic:"blocks" json:"blocks"`
 }
 
 type GetBlocksArgs struct {
-	Start  BlockIndex `ic:"start"`
-	Length uint64     `ic:"length"`
+	Start  BlockIndex `ic:"start" json:"start"`
+	Length uint64     `ic:"length" json:"length"`
 }
 
 type GetBlocksError struct {
 	BadFirstBlockIndex *struct {
-		RequestedIndex  BlockIndex `ic:"requested_index"`
-		FirstValidIndex BlockIndex `ic:"first_valid_index"`
+		RequestedIndex  BlockIndex `ic:"requested_index" json:"requested_index"`
+		FirstValidIndex BlockIndex `ic:"first_valid_index" json:"first_valid_index"`
 	} `ic:"BadFirstBlockIndex,variant"`
 	Other *struct {
-		ErrorCode    uint64 `ic:"error_code"`
-		ErrorMessage string `ic:"error_message"`
+		ErrorCode    uint64 `ic:"error_code" json:"error_code"`
+		ErrorMessage string `ic:"error_message" json:"error_message"`
 	} `ic:"Other,variant"`
 }
 
@@ -79,46 +79,46 @@ type Memo = uint64
 
 type Operation struct {
 	Mint *struct {
-		To     AccountIdentifier `ic:"to"`
-		Amount Tokens            `ic:"amount"`
+		To     AccountIdentifier `ic:"to" json:"to"`
+		Amount Tokens            `ic:"amount" json:"amount"`
 	} `ic:"Mint,variant"`
 	Burn *struct {
-		From   AccountIdentifier `ic:"from"`
-		Amount Tokens            `ic:"amount"`
+		From   AccountIdentifier `ic:"from" json:"from"`
+		Amount Tokens            `ic:"amount" json:"amount"`
 	} `ic:"Burn,variant"`
 	Transfer *struct {
-		From   AccountIdentifier `ic:"from"`
-		To     AccountIdentifier `ic:"to"`
-		Amount Tokens            `ic:"amount"`
-		Fee    Tokens            `ic:"fee"`
+		From   AccountIdentifier `ic:"from" json:"from"`
+		To     AccountIdentifier `ic:"to" json:"to"`
+		Amount Tokens            `ic:"amount" json:"amount"`
+		Fee    Tokens            `ic:"fee" json:"fee"`
 	} `ic:"Transfer,variant"`
 	Approve *struct {
-		From         AccountIdentifier `ic:"from"`
-		Spender      AccountIdentifier `ic:"spender"`
-		AllowanceE8s idl.Int           `ic:"allowance_e8s"`
-		Fee          Tokens            `ic:"fee"`
-		ExpiresAt    *Timestamp        `ic:"expires_at,omitempty"`
+		From         AccountIdentifier `ic:"from" json:"from"`
+		Spender      AccountIdentifier `ic:"spender" json:"spender"`
+		AllowanceE8s idl.Int           `ic:"allowance_e8s" json:"allowance_e8s"`
+		Fee          Tokens            `ic:"fee" json:"fee"`
+		ExpiresAt    *Timestamp        `ic:"expires_at,omitempty" json:"expires_at,omitempty"`
 	} `ic:"Approve,variant"`
 	TransferFrom *struct {
-		From    AccountIdentifier `ic:"from"`
-		To      AccountIdentifier `ic:"to"`
-		Spender AccountIdentifier `ic:"spender"`
-		Amount  Tokens            `ic:"amount"`
-		Fee     Tokens            `ic:"fee"`
+		From    AccountIdentifier `ic:"from" json:"from"`
+		To      AccountIdentifier `ic:"to" json:"to"`
+		Spender AccountIdentifier `ic:"spender" json:"spender"`
+		Amount  Tokens            `ic:"amount" json:"amount"`
+		Fee     Tokens            `ic:"fee" json:"fee"`
 	} `ic:"TransferFrom,variant"`
 }
 
 type Timestamp struct {
-	TimestampNanos uint64 `ic:"timestamp_nanos"`
+	TimestampNanos uint64 `ic:"timestamp_nanos" json:"timestamp_nanos"`
 }
 
 type Tokens struct {
-	E8s uint64 `ic:"e8s"`
+	E8s uint64 `ic:"e8s" json:"e8s"`
 }
 
 type Transaction struct {
-	Memo          Memo       `ic:"memo"`
-	Icrc1Memo     *[]byte    `ic:"icrc1_memo,omitempty"`
-	Operation     *Operation `ic:"operation,omitempty"`
-	CreatedAtTime Timestamp  `ic:"created_at_time"`
+	Memo          Memo       `ic:"memo" json:"memo"`
+	Icrc1Memo     *[]byte    `ic:"icrc1_memo,omitempty" json:"icrc1_memo,omitempty"`
+	Operation     *Operation `ic:"operation,omitempty" json:"operation,omitempty"`
+	CreatedAtTime Timestamp  `ic:"created_at_time" json:"created_at_time"`
 }

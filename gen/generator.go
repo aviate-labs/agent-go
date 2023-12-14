@@ -681,7 +681,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 			if strings.HasPrefix(r.typ, "*") {
 				tag += ",omitempty" // optional value.
 			}
-			record += fmt.Sprintf("\t%-*s %-*s `ic:\"%s\"`\n", sizeName, r.name, sizeType, r.typ, tag)
+			record += fmt.Sprintf("\t%-*s %-*s `ic:\"%s\" json:\"%s\"`\n", sizeName, r.name, sizeType, r.typ, tag, tag)
 		}
 		return fmt.Sprintf("struct {\n%s}", record)
 	case did.Variant:

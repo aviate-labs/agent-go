@@ -9,8 +9,8 @@ import (
 )
 
 type Account struct {
-	Owner      principal.Principal `ic:"owner"`
-	Subaccount *Subaccount         `ic:"subaccount,omitempty"`
+	Owner      principal.Principal `ic:"owner" json:"owner"`
+	Subaccount *Subaccount         `ic:"subaccount,omitempty" json:"subaccount,omitempty"`
 }
 
 // Agent is a client for the "icrc1" canister.
@@ -75,12 +75,12 @@ func (a Agent) Icrc1Fee() (*idl.Nat, error) {
 
 // Icrc1Metadata calls the "icrc1_metadata" method on the "icrc1" canister.
 func (a Agent) Icrc1Metadata() (*[]struct {
-	Field0 string `ic:"0"`
-	Field1 Value  `ic:"1"`
+	Field0 string `ic:"0" json:"0"`
+	Field1 Value  `ic:"1" json:"1"`
 }, error) {
 	var r0 []struct {
-		Field0 string `ic:"0"`
-		Field1 Value  `ic:"1"`
+		Field0 string `ic:"0" json:"0"`
+		Field1 Value  `ic:"1" json:"1"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -123,12 +123,12 @@ func (a Agent) Icrc1Name() (*string, error) {
 
 // Icrc1SupportedStandards calls the "icrc1_supported_standards" method on the "icrc1" canister.
 func (a Agent) Icrc1SupportedStandards() (*[]struct {
-	Name string `ic:"name"`
-	Url  string `ic:"url"`
+	Name string `ic:"name" json:"name"`
+	Url  string `ic:"url" json:"url"`
 }, error) {
 	var r0 []struct {
-		Name string `ic:"name"`
-		Url  string `ic:"url"`
+		Name string `ic:"name" json:"name"`
+		Url  string `ic:"url" json:"url"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
@@ -196,35 +196,35 @@ type Subaccount = []byte
 type Timestamp = uint64
 
 type TransferArgs struct {
-	FromSubaccount *Subaccount `ic:"from_subaccount,omitempty"`
-	To             Account     `ic:"to"`
-	Amount         idl.Nat     `ic:"amount"`
-	Fee            *idl.Nat    `ic:"fee,omitempty"`
-	Memo           *[]byte     `ic:"memo,omitempty"`
-	CreatedAtTime  *Timestamp  `ic:"created_at_time,omitempty"`
+	FromSubaccount *Subaccount `ic:"from_subaccount,omitempty" json:"from_subaccount,omitempty"`
+	To             Account     `ic:"to" json:"to"`
+	Amount         idl.Nat     `ic:"amount" json:"amount"`
+	Fee            *idl.Nat    `ic:"fee,omitempty" json:"fee,omitempty"`
+	Memo           *[]byte     `ic:"memo,omitempty" json:"memo,omitempty"`
+	CreatedAtTime  *Timestamp  `ic:"created_at_time,omitempty" json:"created_at_time,omitempty"`
 }
 
 type TransferError struct {
 	BadFee *struct {
-		ExpectedFee idl.Nat `ic:"expected_fee"`
+		ExpectedFee idl.Nat `ic:"expected_fee" json:"expected_fee"`
 	} `ic:"BadFee,variant"`
 	BadBurn *struct {
-		MinBurnAmount idl.Nat `ic:"min_burn_amount"`
+		MinBurnAmount idl.Nat `ic:"min_burn_amount" json:"min_burn_amount"`
 	} `ic:"BadBurn,variant"`
 	InsufficientFunds *struct {
-		Balance idl.Nat `ic:"balance"`
+		Balance idl.Nat `ic:"balance" json:"balance"`
 	} `ic:"InsufficientFunds,variant"`
 	TooOld          *idl.Null `ic:"TooOld,variant"`
 	CreatedInFuture *struct {
-		LedgerTime Timestamp `ic:"ledger_time"`
+		LedgerTime Timestamp `ic:"ledger_time" json:"ledger_time"`
 	} `ic:"CreatedInFuture,variant"`
 	Duplicate *struct {
-		DuplicateOf idl.Nat `ic:"duplicate_of"`
+		DuplicateOf idl.Nat `ic:"duplicate_of" json:"duplicate_of"`
 	} `ic:"Duplicate,variant"`
 	TemporarilyUnavailable *idl.Null `ic:"TemporarilyUnavailable,variant"`
 	GenericError           *struct {
-		ErrorCode idl.Nat `ic:"error_code"`
-		Message   string  `ic:"message"`
+		ErrorCode idl.Nat `ic:"error_code" json:"error_code"`
+		Message   string  `ic:"message" json:"message"`
 	} `ic:"GenericError,variant"`
 }
 

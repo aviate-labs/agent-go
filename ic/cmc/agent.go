@@ -9,7 +9,7 @@ import (
 )
 
 type AccountIdentifier struct {
-	Bytes []byte `ic:"bytes"`
+	Bytes []byte `ic:"bytes" json:"bytes"`
 }
 
 // Agent is a client for the "cmc" canister.
@@ -91,11 +91,11 @@ type BlockIndex = uint64
 type Cycles = idl.Nat
 
 type CyclesCanisterInitPayload struct {
-	LedgerCanisterId       *principal.Principal  `ic:"ledger_canister_id,omitempty"`
-	GovernanceCanisterId   *principal.Principal  `ic:"governance_canister_id,omitempty"`
-	MintingAccountId       *AccountIdentifier    `ic:"minting_account_id,omitempty"`
-	LastPurgedNotification *uint64               `ic:"last_purged_notification,omitempty"`
-	ExchangeRateCanister   *ExchangeRateCanister `ic:"exchange_rate_canister,omitempty"`
+	LedgerCanisterId       *principal.Principal  `ic:"ledger_canister_id,omitempty" json:"ledger_canister_id,omitempty"`
+	GovernanceCanisterId   *principal.Principal  `ic:"governance_canister_id,omitempty" json:"governance_canister_id,omitempty"`
+	MintingAccountId       *AccountIdentifier    `ic:"minting_account_id,omitempty" json:"minting_account_id,omitempty"`
+	LastPurgedNotification *uint64               `ic:"last_purged_notification,omitempty" json:"last_purged_notification,omitempty"`
+	ExchangeRateCanister   *ExchangeRateCanister `ic:"exchange_rate_canister,omitempty" json:"exchange_rate_canister,omitempty"`
 }
 
 type ExchangeRateCanister struct {
@@ -104,20 +104,20 @@ type ExchangeRateCanister struct {
 }
 
 type IcpXdrConversionRate struct {
-	TimestampSeconds   uint64 `ic:"timestamp_seconds"`
-	XdrPermyriadPerIcp uint64 `ic:"xdr_permyriad_per_icp"`
+	TimestampSeconds   uint64 `ic:"timestamp_seconds" json:"timestamp_seconds"`
+	XdrPermyriadPerIcp uint64 `ic:"xdr_permyriad_per_icp" json:"xdr_permyriad_per_icp"`
 }
 
 type IcpXdrConversionRateResponse struct {
-	Data        IcpXdrConversionRate `ic:"data"`
-	HashTree    []byte               `ic:"hash_tree"`
-	Certificate []byte               `ic:"certificate"`
+	Data        IcpXdrConversionRate `ic:"data" json:"data"`
+	HashTree    []byte               `ic:"hash_tree" json:"hash_tree"`
+	Certificate []byte               `ic:"certificate" json:"certificate"`
 }
 
 type NotifyCreateCanisterArg struct {
-	BlockIndex BlockIndex          `ic:"block_index"`
-	Controller principal.Principal `ic:"controller"`
-	SubnetType *string             `ic:"subnet_type,omitempty"`
+	BlockIndex BlockIndex          `ic:"block_index" json:"block_index"`
+	Controller principal.Principal `ic:"controller" json:"controller"`
+	SubnetType *string             `ic:"subnet_type,omitempty" json:"subnet_type,omitempty"`
 }
 
 type NotifyCreateCanisterResult struct {
@@ -127,21 +127,21 @@ type NotifyCreateCanisterResult struct {
 
 type NotifyError struct {
 	Refunded *struct {
-		Reason     string      `ic:"reason"`
-		BlockIndex *BlockIndex `ic:"block_index,omitempty"`
+		Reason     string      `ic:"reason" json:"reason"`
+		BlockIndex *BlockIndex `ic:"block_index,omitempty" json:"block_index,omitempty"`
 	} `ic:"Refunded,variant"`
 	Processing         *idl.Null   `ic:"Processing,variant"`
 	TransactionTooOld  *BlockIndex `ic:"TransactionTooOld,variant"`
 	InvalidTransaction *string     `ic:"InvalidTransaction,variant"`
 	Other              *struct {
-		ErrorCode    uint64 `ic:"error_code"`
-		ErrorMessage string `ic:"error_message"`
+		ErrorCode    uint64 `ic:"error_code" json:"error_code"`
+		ErrorMessage string `ic:"error_message" json:"error_message"`
 	} `ic:"Other,variant"`
 }
 
 type NotifyTopUpArg struct {
-	BlockIndex BlockIndex          `ic:"block_index"`
-	CanisterId principal.Principal `ic:"canister_id"`
+	BlockIndex BlockIndex          `ic:"block_index" json:"block_index"`
+	CanisterId principal.Principal `ic:"canister_id" json:"canister_id"`
 }
 
 type NotifyTopUpResult struct {
@@ -151,7 +151,7 @@ type NotifyTopUpResult struct {
 
 type SubnetTypesToSubnetsResponse struct {
 	Data []struct {
-		Field0 string                `ic:"0"`
-		Field1 []principal.Principal `ic:"1"`
-	} `ic:"data"`
+		Field0 string                `ic:"0" json:"0"`
+		Field1 []principal.Principal `ic:"1" json:"1"`
+	} `ic:"data" json:"data"`
 }

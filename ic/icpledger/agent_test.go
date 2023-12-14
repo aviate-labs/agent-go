@@ -72,7 +72,7 @@ func Test_Decimals(t *testing.T) {
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{struct {
-					Decimals uint32 `ic:"decimals"`
+					Decimals uint32 `ic:"decimals" json:"decimals"`
 				}{
 					*new(uint32),
 				}}, nil
@@ -97,7 +97,7 @@ func Test_Name(t *testing.T) {
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{struct {
-					Name string `ic:"name"`
+					Name string `ic:"name" json:"name"`
 				}{
 					*new(string),
 				}}, nil
@@ -140,9 +140,9 @@ func Test_QueryBlocks(t *testing.T) {
 					}},
 					*new(uint64),
 					[]struct {
-						Start    icpledger.BlockIndex     `ic:"start"`
-						Length   uint64                   `ic:"length"`
-						Callback icpledger.QueryArchiveFn `ic:"callback"`
+						Start    icpledger.BlockIndex     `ic:"start" json:"start"`
+						Length   uint64                   `ic:"length" json:"length"`
+						Callback icpledger.QueryArchiveFn `ic:"callback" json:"callback"`
 					}{
 
 						{
@@ -177,7 +177,7 @@ func Test_Symbol(t *testing.T) {
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
 				return []any{struct {
-					Symbol string `ic:"symbol"`
+					Symbol string `ic:"symbol" json:"symbol"`
 				}{
 					*new(string),
 				}}, nil
