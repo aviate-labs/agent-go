@@ -3,104 +3,101 @@ import T "types";
 
 import { principalOfBlob } = "mo:⛔";
 
-actor class wallet() : async actor {} {
-    public query func api_version() : async (Nat16) {
-        (38652)
+actor class _wallet() : async actor {} {
+    public query func wallet_api_version() : async (Text) {
+        ("12501942321308663592")
     };
-    public query func get(arg0 : { key : T.Key; accept_encodings : [Text] }) : async ({ content : Blob; content_type : Text; content_encoding : Text; sha256 : ?Blob; total_length : Nat }) {
-        ({ content = "x287F06984DD27FAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B"; content_type = "13842832487040869502"; content_encoding = "9207851698408531338"; sha256 = ?"x7B1BCA3A098396CB5C620BF809689EE32C89B845322F01379CB07CF44C41BFC6"; total_length = 15226500214129345624 })
+    public query func name() : async (?Text) {
+        (?"12501942321308663592")
     };
-    public query func get_chunk(arg0 : { key : T.Key; content_encoding : Text; index : Nat; sha256 : ?Blob }) : async ({ content : Blob }) {
-        ({ content = "x287F06984DD27FAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B" })
-    };
-    public query func list(arg0 : {  }) : async ([{ key : T.Key; content_type : Text; encodings : [{ content_encoding : Text; sha256 : ?Blob; length : Nat; modified : T.Time }] }]) {
-        ([ { key = "7404491806706941354"; content_type = "10285557685837050495"; encodings = [ { content_encoding = "6353661455985592489"; sha256 = ?"x7EE44EF3CD9E1B8A251E9C55DCC87B1BCA3A098396CB5C620BF809689EE32C89"; length = 8643670682807763247; modified = 10342561696286982476 }, { content_encoding = "15226500214129345624"; sha256 = ?"x9614DC1B2711874D3E6FE25E3A8F72C632E3513A5F5E92AF8BF9CEF5969C068E"; length = 9589032066643545779; modified = 5539044620517515997 }, { content_encoding = "1923756884486142631"; sha256 = ?"x1D8C751BCB77BB0746C29470D17024B544336AECB870087656C06A2339BC49BC"; length = 2653383589281119158; modified = 10428971936530044628 }, { content_encoding = "7786994376157721829"; sha256 = ?"x84C261981FA00B16B635580B470ABE60197656644765CA6F5488D5E4A7A530B0"; length = 14150654805229633014; modified = 8157667525784526154 }, { content_encoding = "13234612580036397592"; sha256 = ?"x7A74B6930B2F2C16BB7A5A5071CC53F4577AC3864C4C583CF068857E9B69403F"; length = 2326156757508477903; modified = 13534220423551798816 }, { content_encoding = "17298645943394680105"; sha256 = ?"x1D71DBBBA4BD4FE4384BFDF2965F7F9ED9195ABCD5F15EA919870B1305B6FBEA"; length = 7193462899950823818; modified = 5372797585040004340 } ] }, { key = "8405210950166936129"; content_type = "13851258177473485163"; encodings = [ { content_encoding = "10165017509674453068"; sha256 = ?"x3E35C32D75D3C4784E82EAAF4E3162231C6ED7DC02090A31DDC9A189CA85FAFB"; length = 9076123652376596064; modified = 13788132375959277386 }, { content_encoding = "10818449170260277067"; sha256 = ?"xC0FBF50AE9F93AF1C4CDDD15F8511661030D29CA18CD734D791C7A26999F921C"; length = 15936827406159436595; modified = 1077672755291584990 }, { content_encoding = "16003893191925063214"; sha256 = ?"x3C85ECB90741D9ACC5033E6346556F9DFB82D7E06BDB7DA0FCB214B94F717AD2"; length = 4730893632513896881; modified = 13772962967874715627 }, { content_encoding = "6859593430023241065"; sha256 = ?"x76D889905ABF73E5097448C3AC58856465CC7F7283739F38CCD7E97B29B53311"; length = 14445486139781075996; modified = 9938180212790421664 } ] }, { key = "9101864922507107316"; content_type = "1536328808225679195"; encodings = [ { content_encoding = "13231498797124074758"; sha256 = ?"x94F5F07C5016E89FF5A0DD8105640A16418B9B471476359529B6F56DB15E24BB"; length = 17387340558135946525; modified = 11977568734881657944 } ] }, { key = "8679673755513378830"; content_type = "10491644904757661466"; encodings = [ { content_encoding = "1562262160616910768"; sha256 = ?"x5ACC94A73AF8C7183D527B00A4376396249EB14513AB937A9AC8FCB67AB53FB8"; length = 7727076029448843586; modified = 2343418153347362432 }, { content_encoding = "7201485676058401090"; sha256 = ?"x57331E8D5B453222B9C7CC43D1DC5BBA2095F24CB92AB1930CCAEA0285B7A568"; length = 8789469013259815246; modified = 14122149734664040066 } ] } ])
-    };
-    public query func certified_tree(arg0 : {  }) : async ({ certificate : Blob; tree : Blob }) {
-        ({ certificate = "x287F06984DD27FAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B"; tree = "x7EE44EF3CD9E1B8A251E9C55DCC87B1BCA3A098396CB5C620BF809689EE32C89" })
-    };
-    public shared func create_batch(arg0 : {  }) : async ({ batch_id : T.BatchId }) {
-        ({ batch_id = 12501942321308663592 })
-    };
-    public shared func create_chunk(arg0 : { batch_id : T.BatchId; content : Blob }) : async ({ chunk_id : T.ChunkId }) {
-        ({ chunk_id = 12501942321308663592 })
-    };
-    public shared func commit_batch(arg0 : T.CommitBatchArguments) : async () {
+    public shared func set_name(_arg0 : Text) : async () {
         ()
     };
-    public shared func propose_commit_batch(arg0 : T.CommitBatchArguments) : async () {
-        ()
-    };
-    public shared func commit_proposed_batch(arg0 : T.CommitProposedBatchArguments) : async () {
-        ()
-    };
-    public shared func compute_evidence(arg0 : T.ComputeEvidenceArguments) : async (?Blob) {
-        (?"x287F06984DD27FAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B")
-    };
-    public shared func delete_batch(arg0 : T.DeleteBatchArguments) : async () {
-        ()
-    };
-    public shared func create_asset(arg0 : T.CreateAssetArguments) : async () {
-        ()
-    };
-    public shared func set_asset_content(arg0 : T.SetAssetContentArguments) : async () {
-        ()
-    };
-    public shared func unset_asset_content(arg0 : T.UnsetAssetContentArguments) : async () {
-        ()
-    };
-    public shared func delete_asset(arg0 : T.DeleteAssetArguments) : async () {
-        ()
-    };
-    public shared func clear(arg0 : T.ClearArguments) : async () {
-        ()
-    };
-    public shared func store(arg0 : { key : T.Key; content_type : Text; content_encoding : Text; content : Blob; sha256 : ?Blob }) : async () {
-        ()
-    };
-    public query func http_request(arg0 : T.HttpRequest) : async (T.HttpResponse) {
-        ({ status_code = 38652; headers = [ ( "10285557685837050495", "16344125491934207374" ), ( "6353661455985592489", "13842832487040869502" ), ( "9207851698408531338", "7031951943849876347" ), ( "10982038652290489547", "12408056582236857246" ) ]; body = "x2F01379CB07CF44C41BFC610298858C4967345654F9614DC1B2711874D3E6FE2"; streaming_strategy = ?#Callback({ callback = { /* func */ }; token = { key = "6194084433703703134"; content_encoding = "4389663725167484054"; index = 9589032066643545779; sha256 = ?"xDD22FC38BCA3DEA73A02A6B18EB21D8C751BCB77BB0746C29470D17024B54433" } }) })
-    };
-    public query func http_request_streaming_callback(arg0 : T.StreamingCallbackToken) : async (?T.StreamingCallbackHttpResponse) {
-        (?{ body = "x287F06984DD27FAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B"; token = ?{ key = "13842832487040869502"; content_encoding = "9207851698408531338"; index = 7031951943849876347; sha256 = ?"xCB5C620BF809689EE32C89B845322F01379CB07CF44C41BFC610298858C49673" } })
-    };
-    public shared func authorize(arg0 : Principal) : async () {
-        ()
-    };
-    public shared func deauthorize(arg0 : Principal) : async () {
-        ()
-    };
-    public query func list_authorized() : async ([Principal]) {
+    public query func get_controllers() : async ([Principal]) {
         ([ principalOfBlob("xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3"), principalOfBlob("x8A251E9C55DCC87B1BCA3A098396CB5C620BF809689EE32C89B845322F01379C"), principalOfBlob("x4C41BFC610298858C4967345654F9614DC1B2711874D3E6FE25E3A8F72C632E3"), principalOfBlob("x5E92AF8BF9CEF5969C068EE637EBB34E1E18DC1513DD22FC38BCA3DEA73A02A6") ])
     };
-    public shared func grant_permission(arg0 : T.GrantPermission) : async () {
+    public shared func add_controller(_arg0 : Principal) : async () {
         ()
     };
-    public shared func revoke_permission(arg0 : T.RevokePermission) : async () {
-        ()
+    public shared func remove_controller(_arg0 : Principal) : async (T.WalletResult) {
+        (#Ok(()))
     };
-    public query func list_permitted(arg0 : T.ListPermitted) : async ([Principal]) {
+    public query func get_custodians() : async ([Principal]) {
         ([ principalOfBlob("xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3"), principalOfBlob("x8A251E9C55DCC87B1BCA3A098396CB5C620BF809689EE32C89B845322F01379C"), principalOfBlob("x4C41BFC610298858C4967345654F9614DC1B2711874D3E6FE25E3A8F72C632E3"), principalOfBlob("x5E92AF8BF9CEF5969C068EE637EBB34E1E18DC1513DD22FC38BCA3DEA73A02A6") ])
     };
-    public shared func take_ownership() : async () {
+    public shared func authorize(_arg0 : Principal) : async () {
         ()
     };
-    public query func get_asset_properties(arg0 : T.Key) : async ({ max_age : ?Nat64; headers : ?[T.HeaderField]; allow_raw_access : ?Bool; is_aliased : ?Bool }) {
-        ({ max_age = ?12501942321308663592; headers = ?[ ( "10285557685837050495", "16344125491934207374" ), ( "6353661455985592489", "13842832487040869502" ), ( "9207851698408531338", "7031951943849876347" ), ( "10982038652290489547", "12408056582236857246" ) ]; allow_raw_access = ?false; is_aliased = ?true })
+    public shared func deauthorize(_arg0 : Principal) : async (T.WalletResult) {
+        (#Ok(()))
     };
-    public shared func set_asset_properties(arg0 : T.SetAssetPropertiesArguments) : async () {
+    public query func wallet_balance() : async ({ amount : Nat64 }) {
+        ({ amount = 12501942321308663592 })
+    };
+    public query func wallet_balance128() : async ({ amount : Nat }) {
+        ({ amount = 12501942321308663592 })
+    };
+    public shared func wallet_send(_arg0 : { canister : Principal; amount : Nat64 }) : async (T.WalletResult) {
+        (#Ok(()))
+    };
+    public shared func wallet_send128(_arg0 : { canister : Principal; amount : Nat }) : async (T.WalletResult) {
+        (#Ok(()))
+    };
+    public shared func wallet_receive(_arg0 : ?T.ReceiveOptions) : async () {
         ()
     };
-    public shared func validate_grant_permission(arg0 : T.GrantPermission) : async (T.ValidationResult) {
-        (#Ok("7404491806706941354"))
+    public shared func wallet_create_canister(_arg0 : T.CreateCanisterArgs) : async (T.WalletResultCreate) {
+        (#Ok({ canister_id = principalOfBlob("xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3") }))
     };
-    public shared func validate_revoke_permission(arg0 : T.RevokePermission) : async (T.ValidationResult) {
-        (#Ok("7404491806706941354"))
+    public shared func wallet_create_canister128(_arg0 : T.CreateCanisterArgs128) : async (T.WalletResultCreate) {
+        (#Ok({ canister_id = principalOfBlob("xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3") }))
     };
-    public shared func validate_take_ownership() : async (T.ValidationResult) {
-        (#Ok("7404491806706941354"))
+    public shared func wallet_create_wallet(_arg0 : T.CreateCanisterArgs) : async (T.WalletResultCreate) {
+        (#Ok({ canister_id = principalOfBlob("xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3") }))
     };
-    public shared func validate_commit_proposed_batch(arg0 : T.CommitProposedBatchArguments) : async (T.ValidationResult) {
-        (#Ok("7404491806706941354"))
+    public shared func wallet_create_wallet128(_arg0 : T.CreateCanisterArgs128) : async (T.WalletResultCreate) {
+        (#Ok({ canister_id = principalOfBlob("xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3") }))
+    };
+    public shared func wallet_store_wallet_wasm(_arg0 : { wasm_module : Blob }) : async () {
+        ()
+    };
+    public shared func wallet_call(_arg0 : { canister : Principal; method_name : Text; args : Blob; cycles : Nat64 }) : async (T.WalletResultCall) {
+        (#Ok({ return = "xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3" }))
+    };
+    public shared func wallet_call128(_arg0 : { canister : Principal; method_name : Text; args : Blob; cycles : Nat }) : async (T.WalletResultCall) {
+        (#Ok({ return = "xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3" }))
+    };
+    public shared func add_address(_arg0 : T.AddressEntry) : async () {
+        ()
+    };
+    public query func list_addresses() : async ([T.AddressEntry]) {
+        ([ { id = principalOfBlob("xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3"); name = ?"9207851698408531338"; kind = #Canister; role = #Contact }, { id = principalOfBlob("x9EE32C89B845322F01379CB07CF44C41BFC610298858C4967345654F9614DC1B"); name = ?"18342943986503597645"; kind = #User; role = #Custodian }, { id = principalOfBlob("x969C068EE637EBB34E1E18DC1513DD22FC38BCA3DEA73A02A6B18EB21D8C751B"); name = ?"15380023008932546055"; kind = #User; role = #Controller }, { id = principalOfBlob("x39BC49BC882A10B6BBF3F350B6D2D41664A1B826BBE574D8BA20F61084C26198"); name = ?"11315935127771919894"; kind = #Unknown; role = #Controller } ])
+    };
+    public shared func remove_address(_arg0 : Principal) : async (T.WalletResult) {
+        (#Ok(()))
+    };
+    public query func get_events(_arg0 : ?{ from : ?Nat32; to : ?Nat32 }) : async ([T.Event]) {
+        ([ { id = 2949695419; timestamp = 10285557685837050495; kind = #CyclesSent({ to = principalOfBlob("xA9C81C5B6EBD2C7EE44EF3CD9E1B8A251E9C55DCC87B1BCA3A098396CB5C620B"); amount = 12408056582236857246; refund = 8643670682807763247 }) }, { id = 1447520861; timestamp = 15226500214129345624; kind = #CanisterCalled({ canister = principalOfBlob("x4D3E6FE25E3A8F72C632E3513A5F5E92AF8BF9CEF5969C068EE637EBB34E1E18"); method_name = "5539044620517515997"; cycles = 1923756884486142631 }) }, { id = 2805007336; timestamp = 15380023008932546055; kind = #CyclesReceived({ from = principalOfBlob("x70087656C06A2339BC49BC882A10B6BBF3F350B6D2D41664A1B826BBE574D8BA"); amount = 7929607626476864132; memo = ?"11315935127771919894" }) }, { id = 1415628053; timestamp = 13683296349367290469; kind = #WalletDeployed({ canister = principalOfBlob("xF6FDE26C9239614A5D20BE64DB35184AFC8405CAAA7A74B6930B2F2C16BB7A5A") }) } ])
+    };
+    public query func get_events128(_arg0 : ?{ from : ?Nat32; to : ?Nat32 }) : async ([T.Event128]) {
+        ([ { id = 2949695419; timestamp = 10285557685837050495; kind = #CyclesSent({ to = principalOfBlob("xA9C81C5B6EBD2C7EE44EF3CD9E1B8A251E9C55DCC87B1BCA3A098396CB5C620B"); amount = 12408056582236857246; refund = 8643670682807763247 }) }, { id = 1447520861; timestamp = 15226500214129345624; kind = #CanisterCalled({ canister = principalOfBlob("x4D3E6FE25E3A8F72C632E3513A5F5E92AF8BF9CEF5969C068EE637EBB34E1E18"); method_name = "5539044620517515997"; cycles = 1923756884486142631 }) }, { id = 2805007336; timestamp = 15380023008932546055; kind = #CyclesReceived({ from = principalOfBlob("x70087656C06A2339BC49BC882A10B6BBF3F350B6D2D41664A1B826BBE574D8BA"); amount = 7929607626476864132; memo = ?"11315935127771919894" }) }, { id = 1415628053; timestamp = 13683296349367290469; kind = #WalletDeployed({ canister = principalOfBlob("xF6FDE26C9239614A5D20BE64DB35184AFC8405CAAA7A74B6930B2F2C16BB7A5A") }) } ])
+    };
+    public query func get_chart(_arg0 : ?{ count : ?Nat32; precision : ?Nat64 }) : async ([(Nat64, Nat64)]) {
+        ([ ( 7404491806706941354, 10285557685837050495 ), ( 16344125491934207374, 6353661455985592489 ), ( 13842832487040869502, 9207851698408531338 ), ( 7031951943849876347, 10982038652290489547 ) ])
+    };
+    public query func list_managed_canisters(_arg0 : { from : ?Nat32; to : ?Nat32 }) : async ([T.ManagedCanisterInfo], Nat32) {
+        ([ { id = principalOfBlob("xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3"); name = ?"9207851698408531338"; created_at = 7031951943849876347 }, { id = principalOfBlob("xCB5C620BF809689EE32C89B845322F01379CB07CF44C41BFC610298858C49673"); name = ?"8829044454151951510"; created_at = 18342943986503597645 }, { id = principalOfBlob("x72C632E3513A5F5E92AF8BF9CEF5969C068EE637EBB34E1E18DC1513DD22FC38"); name = ?"1923756884486142631"; created_at = 10068773106139630621 }, { id = principalOfBlob("x0746C29470D17024B544336AECB870087656C06A2339BC49BC882A10B6BBF3F3"); name = ?"10428971936530044628"; created_at = 7786994376157721829 } ], 107831972)
+    };
+    public query func get_managed_canister_events(_arg0 : { canister : Principal; from : ?Nat32; to : ?Nat32 }) : async (?[T.ManagedCanisterEvent]) {
+        (?[ { id = 2949695419; timestamp = 10285557685837050495; kind = #Created({ cycles = 6353661455985592489 }) }, { id = 3010102092; timestamp = 9207851698408531338; kind = #Created({ cycles = 10982038652290489547 }) }, { id = 895428951; timestamp = 8643670682807763247; kind = #CyclesSent({ amount = 15226500214129345624; refund = 8829044454151951510 }) }, { id = 3774773420; timestamp = 2188532067303868018; kind = #Called({ method_name = "4389663725167484054"; cycles = 9589032066643545779 }) } ])
+    };
+    public query func get_managed_canister_events128(_arg0 : { canister : Principal; from : ?Nat32; to : ?Nat32 }) : async (?[T.ManagedCanisterEvent128]) {
+        (?[ { id = 2949695419; timestamp = 10285557685837050495; kind = #Created({ cycles = 6353661455985592489 }) }, { id = 3010102092; timestamp = 9207851698408531338; kind = #Created({ cycles = 10982038652290489547 }) }, { id = 895428951; timestamp = 8643670682807763247; kind = #CyclesSent({ amount = 15226500214129345624; refund = 8829044454151951510 }) }, { id = 3774773420; timestamp = 2188532067303868018; kind = #Called({ method_name = "4389663725167484054"; cycles = 9589032066643545779 }) } ])
+    };
+    public shared func set_short_name(_arg0 : Principal, _arg1 : ?Text) : async (?T.ManagedCanisterInfo) {
+        (?{ id = principalOfBlob("x287F06984DD27FAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B"); name = ?"13842832487040869502"; created_at = 9207851698408531338 })
+    };
+    public query func http_request(_arg0 : T.HttpRequest) : async (T.HttpResponse) {
+        ({ status_code = 38652; headers = [ ( "10285557685837050495", "16344125491934207374" ), ( "6353661455985592489", "13842832487040869502" ), ( "9207851698408531338", "7031951943849876347" ), ( "10982038652290489547", "12408056582236857246" ) ]; body = "x2F01379CB07CF44C41BFC610298858C4967345654F9614DC1B2711874D3E6FE2"; streaming_strategy = ?#Callback({ callback = { /* func */ }; token = {  } }) })
     };
 }

@@ -1,72 +1,185 @@
-// SOURCE: https://github.com/dfinity/sdk/blob/c1ecdaad0257e79cedbc19c485b86021831fa4b7/src/distributed/assetstorage.did
-
-type BatchId = nat;
-type ChunkId = nat;
-type Key = text;
-type Time = int;
-
-type CreateAssetArguments = record {
-  key: Key;
-  content_type: text;
-  max_age: opt nat64;
-  headers: opt vec HeaderField;
-  enable_aliasing: opt bool;
-  allow_raw_access: opt bool;
+type EventKind = variant {
+  CyclesSent: record {
+    to: principal;
+    amount: nat64;
+    refund: nat64;
+  };
+  CyclesReceived: record {
+    from: principal;
+    amount: nat64;
+    memo: opt text;
+  };
+  AddressAdded: record {
+    id: principal;
+    name: opt text;
+    role: Role;
+  };
+  AddressRemoved: record {
+    id: principal;
+  };
+  CanisterCreated: record {
+    canister: principal;
+    cycles: nat64;
+  };
+  CanisterCalled: record {
+    canister: principal;
+    method_name: text;
+    cycles: nat64;
+  };
+  WalletDeployed: record {
+    canister: principal;
+  }
 };
 
-// Add or change content for an asset, by content encoding
-type SetAssetContentArguments = record {
-  key: Key;
-  content_encoding: text;
-  chunk_ids: vec ChunkId;
-  sha256: opt blob;
+type EventKind128 = variant {
+  CyclesSent: record {
+    to: principal;
+    amount: nat;
+    refund: nat;
+  };
+  CyclesReceived: record {
+    from: principal;
+    amount: nat;
+    memo: opt text;
+  };
+    AddressAdded: record {
+    id: principal;
+    name: opt text;
+    role: Role;
+  };
+  AddressRemoved: record {
+    id: principal;
+  };
+  CanisterCreated: record {
+    canister: principal;
+    cycles: nat;
+  };
+  CanisterCalled: record {
+    canister: principal;
+    method_name: text;
+    cycles: nat;
+  };
+  WalletDeployed: record {
+    canister: principal;
+  };
 };
 
-// Remove content for an asset, by content encoding
-type UnsetAssetContentArguments = record {
-  key: Key;
-  content_encoding: text;
+type Event = record {
+  id: nat32;
+  timestamp: nat64;
+  kind: EventKind;
 };
 
-// Delete an asset
-type DeleteAssetArguments = record {
-  key: Key;
+type Event128 = record {
+  id: nat32;
+  timestamp: nat64;
+  kind: EventKind128;
 };
 
-// Reset everything
-type ClearArguments = record {};
-
-type BatchOperationKind = variant {
-  CreateAsset: CreateAssetArguments;
-  SetAssetContent: SetAssetContentArguments;
-
-  SetAssetProperties: SetAssetPropertiesArguments;
-
-  UnsetAssetContent: UnsetAssetContentArguments;
-  DeleteAsset: DeleteAssetArguments;
-
-  Clear: ClearArguments;
+type Role = variant {
+  Contact;
+  Custodian;
+  Controller;
 };
 
-type CommitBatchArguments = record {
-  batch_id: BatchId;
-  operations: vec BatchOperationKind
+type Kind = variant {
+  Unknown;
+  User;
+  Canister;
 };
 
-type CommitProposedBatchArguments = record {
-  batch_id: BatchId;
-  evidence: blob;
+// An entry in the address book. It must have an ID and a role.
+type AddressEntry = record {
+  id: principal;
+  name: opt text;
+  kind: Kind;
+  role: Role;
 };
 
-type ComputeEvidenceArguments = record {
-  batch_id: BatchId;
-  max_iterations: opt nat16
+type ManagedCanisterInfo = record {
+  id: principal;
+  name: opt text;
+  created_at: nat64;
 };
 
-type DeleteBatchArguments = record {
-  batch_id: BatchId;
+type ManagedCanisterEventKind = variant {
+  CyclesSent: record {
+    amount: nat64;
+    refund: nat64;
+  };
+  Called: record {
+    method_name: text;
+    cycles: nat64;
+  };
+  Created: record {
+    cycles: nat64;
+  };
 };
 
+type ManagedCanisterEventKind128 = variant {
+  CyclesSent: record {
+    amount: nat;
+    refund: nat;
+  };
+  Called: record {
+    method_name: text;
+    cycles: nat;
+  };
+  Created: record {
+    cycles: nat;
+  };
+};
+
+type ManagedCanisterEvent = record {
+  id: nat32;
+  timestamp: nat64;
+  kind: ManagedCanisterEventKind;
+};
+
+type ManagedCanisterEvent128 = record {
+  id: nat32;
+  timestamp: nat64;
+  kind: ManagedCanisterEventKind128;
+};
+
+type ReceiveOptions = record {
+  memo: opt text;
+};
+
+type WalletResultCreate = variant {
+  Ok : record { canister_id: principal };
+  Err: text;
+};
+
+type WalletResult = variant {
+  Ok : null;
+  Err : text;
+};
+
+type WalletResultCall = variant {
+  Ok : record { return: blob };
+  Err : text;
+};
+
+type CanisterSettings = record {
+  controller: opt principal;
+  controllers: opt vec principal;
+  compute_allocation: opt nat;
+  memory_allocation: opt nat;
+  freezing_threshold: opt nat;
+};
+
+type CreateCanisterArgs = record {
+  cycles: nat64;
+  settings: CanisterSettings;
+};
+
+type CreateCanisterArgs128 = record {
+  cycles: nat;
+  settings: CanisterSettings;
+};
+
+// Assets
 type HeaderField = record { text; text; };
 
 type HttpRequest = record {
@@ -74,7 +187,6 @@ type HttpRequest = record {
   url: text;
   headers: vec HeaderField;
   body: blob;
-  certificate_version: opt nat16;
 };
 
 type HttpResponse = record {
@@ -86,145 +198,85 @@ type HttpResponse = record {
 
 type StreamingCallbackHttpResponse = record {
   body: blob;
-  token: opt StreamingCallbackToken;
+  token: opt Token;
 };
 
-type StreamingCallbackToken = record {
-  key: Key;
-  content_encoding: text;
-  index: nat;
-  sha256: opt blob;
-};
+type Token = record {};
 
 type StreamingStrategy = variant {
   Callback: record {
-    callback: func (StreamingCallbackToken) -> (opt StreamingCallbackHttpResponse) query;
-    token: StreamingCallbackToken;
+    callback: func (Token) -> (StreamingCallbackHttpResponse) query;
+    token: Token;
   };
 };
 
-type SetAssetPropertiesArguments = record {
-  key: Key;
-  max_age: opt opt nat64;
-  headers: opt opt vec HeaderField;
-  allow_raw_access: opt opt bool;
-  is_aliased: opt opt bool;
-};
+service : {
+  wallet_api_version: () -> (text) query;
 
-type Permission = variant {
-  Commit;
-  ManagePermissions;
-  Prepare;
-};
+  // Wallet Name
+  name: () -> (opt text) query;
+  set_name: (text) -> ();
 
-type GrantPermission = record {
-  to_principal: principal;
-  permission: Permission;
-};
-type RevokePermission = record {
-  of_principal: principal;
-  permission: Permission;
-};
-type ListPermitted = record { permission: Permission };
+  // Controller Management
+  get_controllers: () -> (vec principal) query;
+  add_controller: (principal) -> ();
+  remove_controller: (principal) -> (WalletResult);
 
-type ValidationResult = variant { Ok : text; Err : text };
+  // Custodian Management
+  get_custodians: () -> (vec principal) query;
+  authorize: (principal) -> ();
+  deauthorize: (principal) -> (WalletResult);
 
-service: {
-  api_version: () -> (nat16) query;
+  // Cycle Management
+  wallet_balance: () -> (record { amount: nat64 }) query;
+  wallet_balance128: () -> (record { amount: nat }) query;
+  wallet_send: (record { canister: principal; amount: nat64 }) -> (WalletResult);
+  wallet_send128: (record { canister: principal; amount: nat }) -> (WalletResult);
+  wallet_receive: (opt ReceiveOptions) -> ();  // Endpoint for receiving cycles.
 
-  get: (record {
-    key: Key;
-    accept_encodings: vec text;
-  }) -> (record {
-    content: blob; // may be the entirety of the content, or just chunk index 0
-    content_type: text;
-    content_encoding: text;
-    sha256: opt blob; // sha256 of entire asset encoding, calculated by dfx and passed in SetAssetContentArguments
-    total_length: nat; // all chunks except last have size == content.size()
-  }) query;
+  // Managing canister
+  wallet_create_canister: (CreateCanisterArgs) -> (WalletResultCreate);
+  wallet_create_canister128: (CreateCanisterArgs128) -> (WalletResultCreate);
 
-  // if get() returned chunks > 1, call this to retrieve them.
-  // chunks may or may not be split up at the same boundaries as presented to create_chunk().
-  get_chunk: (record {
-    key: Key;
-    content_encoding: text;
-    index: nat;
-    sha256: opt blob;  // sha256 of entire asset encoding, calculated by dfx and passed in SetAssetContentArguments
-  }) -> (record { content: blob }) query;
+  wallet_create_wallet: (CreateCanisterArgs) -> (WalletResultCreate);
+  wallet_create_wallet128: (CreateCanisterArgs128) -> (WalletResultCreate);
 
-  list : (record {}) -> (vec record {
-    key: Key;
-    content_type: text;
-    encodings: vec record {
-      content_encoding: text;
-      sha256: opt blob; // sha256 of entire asset encoding, calculated by dfx and passed in SetAssetContentArguments
-      length: nat; // Size of this encoding's blob. Calculated when uploading assets.
-      modified: Time;
-    };
-  }) query;
-
-  certified_tree : (record {}) -> (record {
-    certificate: blob;
-    tree: blob;
-  }) query;
-
-  create_batch : (record {}) -> (record { batch_id: BatchId });
-
-  create_chunk: (record { batch_id: BatchId; content: blob }) -> (record { chunk_id: ChunkId });
-
-  // Perform all operations successfully, or reject
-  commit_batch: (CommitBatchArguments) -> ();
-
-  // Save the batch operations for later commit
-  propose_commit_batch: (CommitBatchArguments) -> ();
-
-  // Given a batch already proposed, perform all operations successfully, or reject
-  commit_proposed_batch: (CommitProposedBatchArguments) -> ();
-
-  // Compute a hash over the CommitBatchArguments.  Call until it returns Some(evidence).
-  compute_evidence: (ComputeEvidenceArguments) -> (opt blob);
-
-  // Delete a batch that has been created, or proposed for commit, but not yet committed
-  delete_batch: (DeleteBatchArguments) -> ();
-
-  create_asset: (CreateAssetArguments) -> ();
-  set_asset_content: (SetAssetContentArguments) -> ();
-  unset_asset_content: (UnsetAssetContentArguments) -> ();
-
-  delete_asset: (DeleteAssetArguments) -> ();
-
-  clear: (ClearArguments) -> ();
-
-  // Single call to create an asset with content for a single content encoding that
-  // fits within the message ingress limit.
-  store: (record {
-    key: Key;
-    content_type: text;
-    content_encoding: text;
-    content: blob;
-    sha256: opt blob
+  wallet_store_wallet_wasm: (record {
+    wasm_module: blob;
   }) -> ();
 
+  // Call Forwarding
+  wallet_call: (record {
+    canister: principal;
+    method_name: text;
+    args: blob;
+    cycles: nat64;
+  }) -> (WalletResultCall);
+  wallet_call128: (record {
+    canister: principal;
+    method_name: text;
+    args: blob;
+    cycles: nat;
+  }) -> (WalletResultCall);
+
+  // Address book
+  add_address: (address: AddressEntry) -> ();
+  list_addresses: () -> (vec AddressEntry) query;
+  remove_address: (address: principal) -> (WalletResult);
+
+  // Events
+  // If `from` is not specified, it will start 20 from the end; if `to` is not specified, it will stop at the end
+  get_events: (opt record { from: opt nat32; to: opt nat32; }) -> (vec Event) query;
+  get_events128: (opt record { from: opt nat32; to: opt nat32; }) -> (vec Event128) query;
+  get_chart: (opt record { count: opt nat32; precision: opt nat64; } ) -> (vec record { nat64; nat64; }) query;
+
+  // Managed canisters
+  list_managed_canisters: (record { from: opt nat32; to: opt nat32; }) -> (vec ManagedCanisterInfo, nat32) query;
+  // If `from` is not specified, it will start 20 from the end; if `to` is not specified, it will stop at the end
+  get_managed_canister_events: (record { canister: principal; from: opt nat32; to: opt nat32; }) -> (opt vec ManagedCanisterEvent) query;
+  get_managed_canister_events128: (record { canister: principal; from: opt nat32; to: opt nat32; }) -> (opt vec ManagedCanisterEvent128) query;
+  set_short_name: (principal, opt text) -> (opt ManagedCanisterInfo);
+
+  // Assets
   http_request: (request: HttpRequest) -> (HttpResponse) query;
-  http_request_streaming_callback: (token: StreamingCallbackToken) -> (opt StreamingCallbackHttpResponse) query;
-
-  authorize: (principal) -> ();
-  deauthorize: (principal) -> ();
-  list_authorized: () -> (vec principal) query;
-  grant_permission: (GrantPermission) -> ();
-  revoke_permission: (RevokePermission) -> ();
-  list_permitted: (ListPermitted) -> (vec principal) query;
-  take_ownership: () -> ();
-
-  get_asset_properties : (key: Key) -> (record {
-    max_age: opt nat64;
-    headers: opt vec HeaderField;
-    allow_raw_access: opt bool;
-    is_aliased: opt bool; } ) query;
-  set_asset_properties: (SetAssetPropertiesArguments) -> ();
-
-  validate_grant_permission: (GrantPermission) -> (ValidationResult);
-  validate_revoke_permission: (RevokePermission) -> (ValidationResult);
-  validate_take_ownership: () -> (ValidationResult);
-  validate_commit_proposed_batch: (CommitProposedBatchArguments) -> (ValidationResult);
 }

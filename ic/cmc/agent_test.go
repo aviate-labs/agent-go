@@ -13,6 +13,55 @@ import (
 	"github.com/aviate-labs/agent-go/ic/cmc"
 )
 
+// Test_CreateCanister tests the "create_canister" method on the "cmc" canister.
+func Test_CreateCanister(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "create_canister",
+			Arguments: []any{new(cmc.CreateCanisterArg)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{cmc.CreateCanisterResult{
+					Ok: new(principal.Principal),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = cmc.CreateCanisterArg{
+		*new(*cmc.CanisterSettings),
+		*new(*string),
+		*new(*cmc.SubnetSelection),
+	}
+	if _, err := a.CreateCanister(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_GetBuildMetadata tests the "get_build_metadata" method on the "cmc" canister.
+func Test_GetBuildMetadata(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "get_build_metadata",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new(string)}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.GetBuildMetadata(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
 // Test_GetIcpXdrConversionRate tests the "get_icp_xdr_conversion_rate" method on the "cmc" canister.
 func Test_GetIcpXdrConversionRate(t *testing.T) {
 	a, err := newAgent([]mock.Method{
@@ -36,6 +85,37 @@ func Test_GetIcpXdrConversionRate(t *testing.T) {
 	}
 
 	if _, err := a.GetIcpXdrConversionRate(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_GetPrincipalsAuthorizedToCreateCanistersToSubnets tests the "get_principals_authorized_to_create_canisters_to_subnets" method on the "cmc" canister.
+func Test_GetPrincipalsAuthorizedToCreateCanistersToSubnets(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "get_principals_authorized_to_create_canisters_to_subnets",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{cmc.PrincipalsAuthorizedToCreateCanistersToSubnetsResponse{
+					[]struct {
+						Field0 principal.Principal   `ic:"0" json:"0"`
+						Field1 []principal.Principal `ic:"1" json:"1"`
+					}{
+
+						{
+							*new(principal.Principal),
+							[]principal.Principal{*new(principal.Principal)},
+						}},
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.GetPrincipalsAuthorizedToCreateCanistersToSubnets(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -93,8 +173,42 @@ func Test_NotifyCreateCanister(t *testing.T) {
 		*new(uint64),
 		*new(principal.Principal),
 		*new(*string),
+		*new(*cmc.SubnetSelection),
+		*new(*cmc.CanisterSettings),
 	}
 	if _, err := a.NotifyCreateCanister(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_NotifyMintCycles tests the "notify_mint_cycles" method on the "cmc" canister.
+func Test_NotifyMintCycles(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "notify_mint_cycles",
+			Arguments: []any{new(cmc.NotifyMintCyclesArg)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{cmc.NotifyMintCyclesResult{
+					Ok: idl.Ptr(cmc.NotifyMintCyclesSuccess{
+						idl.NewNat(uint(0)),
+						idl.NewNat(uint(0)),
+						idl.NewNat(uint(0)),
+					}),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = cmc.NotifyMintCyclesArg{
+		*new(uint64),
+		*new(*[]byte),
+		*new(*[]byte),
+	}
+	if _, err := a.NotifyMintCycles(a0); err != nil {
 		t.Fatal(err)
 	}
 

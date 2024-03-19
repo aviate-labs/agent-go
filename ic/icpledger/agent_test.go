@@ -3,7 +3,7 @@ package icpledger_test
 
 import (
 	"github.com/aviate-labs/agent-go"
-
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/mock"
 	"github.com/aviate-labs/agent-go/principal"
 	"net/http/httptest"
@@ -34,6 +34,57 @@ func Test_AccountBalance(t *testing.T) {
 		*new([]byte),
 	}
 	if _, err := a.AccountBalance(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_AccountBalanceDfx tests the "account_balance_dfx" method on the "icpledger" canister.
+func Test_AccountBalanceDfx(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "account_balance_dfx",
+			Arguments: []any{new(icpledger.AccountBalanceArgsDfx)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{icpledger.Tokens{
+					*new(uint64),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = icpledger.AccountBalanceArgsDfx{
+		*new(string),
+	}
+	if _, err := a.AccountBalanceDfx(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_AccountIdentifier tests the "account_identifier" method on the "icpledger" canister.
+func Test_AccountIdentifier(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "account_identifier",
+			Arguments: []any{new(icpledger.Account)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new([]byte)}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = icpledger.Account{
+		*new(principal.Principal),
+		*new(*icpledger.SubAccount),
+	}
+	if _, err := a.AccountIdentifier(a0); err != nil {
 		t.Fatal(err)
 	}
 
@@ -89,6 +140,359 @@ func Test_Decimals(t *testing.T) {
 
 }
 
+// Test_Icrc1BalanceOf tests the "icrc1_balance_of" method on the "icpledger" canister.
+func Test_Icrc1BalanceOf(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc1_balance_of",
+			Arguments: []any{new(icpledger.Account)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{idl.NewNat(uint(0))}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = icpledger.Account{
+		*new(principal.Principal),
+		*new(*icpledger.SubAccount),
+	}
+	if _, err := a.Icrc1BalanceOf(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc1Decimals tests the "icrc1_decimals" method on the "icpledger" canister.
+func Test_Icrc1Decimals(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc1_decimals",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new(uint8)}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.Icrc1Decimals(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc1Fee tests the "icrc1_fee" method on the "icpledger" canister.
+func Test_Icrc1Fee(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc1_fee",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{idl.NewNat(uint(0))}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.Icrc1Fee(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc1Metadata tests the "icrc1_metadata" method on the "icpledger" canister.
+func Test_Icrc1Metadata(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc1_metadata",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{[]struct {
+					Field0 string          `ic:"0" json:"0"`
+					Field1 icpledger.Value `ic:"1" json:"1"`
+				}{
+
+					{
+						*new(string),
+						icpledger.Value{
+							Nat: idl.Ptr(idl.NewNat(uint(0))),
+						},
+					}}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.Icrc1Metadata(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc1MintingAccount tests the "icrc1_minting_account" method on the "icpledger" canister.
+func Test_Icrc1MintingAccount(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc1_minting_account",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new(*icpledger.Account)}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.Icrc1MintingAccount(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc1Name tests the "icrc1_name" method on the "icpledger" canister.
+func Test_Icrc1Name(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc1_name",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new(string)}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.Icrc1Name(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc1SupportedStandards tests the "icrc1_supported_standards" method on the "icpledger" canister.
+func Test_Icrc1SupportedStandards(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc1_supported_standards",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{[]struct {
+					Name string `ic:"name" json:"name"`
+					Url  string `ic:"url" json:"url"`
+				}{
+
+					{
+						*new(string),
+						*new(string),
+					}}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.Icrc1SupportedStandards(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc1Symbol tests the "icrc1_symbol" method on the "icpledger" canister.
+func Test_Icrc1Symbol(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc1_symbol",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new(string)}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.Icrc1Symbol(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc1TotalSupply tests the "icrc1_total_supply" method on the "icpledger" canister.
+func Test_Icrc1TotalSupply(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc1_total_supply",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{idl.NewNat(uint(0))}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.Icrc1TotalSupply(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc1Transfer tests the "icrc1_transfer" method on the "icpledger" canister.
+func Test_Icrc1Transfer(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc1_transfer",
+			Arguments: []any{new(icpledger.TransferArg)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{icpledger.Icrc1TransferResult{
+					Ok: idl.Ptr(idl.NewNat(uint(0))),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = icpledger.TransferArg{
+		*new(*icpledger.SubAccount),
+		icpledger.Account{
+			*new(principal.Principal),
+			*new(*icpledger.SubAccount),
+		},
+		idl.NewNat(uint(0)),
+		*new(*icpledger.Icrc1Tokens),
+		*new(*[]byte),
+		*new(*icpledger.Icrc1Timestamp),
+	}
+	if _, err := a.Icrc1Transfer(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc2Allowance tests the "icrc2_allowance" method on the "icpledger" canister.
+func Test_Icrc2Allowance(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc2_allowance",
+			Arguments: []any{new(icpledger.AllowanceArgs)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{icpledger.Allowance{
+					idl.NewNat(uint(0)),
+					*new(*icpledger.Icrc1Timestamp),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = icpledger.AllowanceArgs{
+		icpledger.Account{
+			*new(principal.Principal),
+			*new(*icpledger.SubAccount),
+		},
+		icpledger.Account{
+			*new(principal.Principal),
+			*new(*icpledger.SubAccount),
+		},
+	}
+	if _, err := a.Icrc2Allowance(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc2Approve tests the "icrc2_approve" method on the "icpledger" canister.
+func Test_Icrc2Approve(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc2_approve",
+			Arguments: []any{new(icpledger.ApproveArgs)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{icpledger.ApproveResult{
+					Ok: idl.Ptr(idl.NewNat(uint(0))),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = icpledger.ApproveArgs{
+		*new(*icpledger.SubAccount),
+		icpledger.Account{
+			*new(principal.Principal),
+			*new(*icpledger.SubAccount),
+		},
+		idl.NewNat(uint(0)),
+		*new(*icpledger.Icrc1Tokens),
+		*new(*icpledger.Icrc1Timestamp),
+		*new(*icpledger.Icrc1Tokens),
+		*new(*[]byte),
+		*new(*icpledger.Icrc1Timestamp),
+	}
+	if _, err := a.Icrc2Approve(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_Icrc2TransferFrom tests the "icrc2_transfer_from" method on the "icpledger" canister.
+func Test_Icrc2TransferFrom(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "icrc2_transfer_from",
+			Arguments: []any{new(icpledger.TransferFromArgs)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{icpledger.TransferFromResult{
+					Ok: idl.Ptr(idl.NewNat(uint(0))),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = icpledger.TransferFromArgs{
+		*new(*icpledger.SubAccount),
+		icpledger.Account{
+			*new(principal.Principal),
+			*new(*icpledger.SubAccount),
+		},
+		icpledger.Account{
+			*new(principal.Principal),
+			*new(*icpledger.SubAccount),
+		},
+		idl.NewNat(uint(0)),
+		*new(*icpledger.Icrc1Tokens),
+		*new(*[]byte),
+		*new(*icpledger.Icrc1Timestamp),
+	}
+	if _, err := a.Icrc2TransferFrom(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
 // Test_Name tests the "name" method on the "icpledger" canister.
 func Test_Name(t *testing.T) {
 	a, err := newAgent([]mock.Method{
@@ -139,18 +543,12 @@ func Test_QueryBlocks(t *testing.T) {
 						},
 					}},
 					*new(uint64),
-					[]struct {
-						Start    icpledger.BlockIndex     `ic:"start" json:"start"`
-						Length   uint64                   `ic:"length" json:"length"`
-						Callback icpledger.QueryArchiveFn `ic:"callback" json:"callback"`
-					}{
-
-						{
-							*new(uint64),
-							*new(uint64),
-							*new(struct { /* NOT SUPPORTED */
-							}),
-						}},
+					[]icpledger.ArchivedBlocksRange{{
+						*new(uint64),
+						*new(uint64),
+						*new(struct { /* NOT SUPPORTED */
+						}),
+					}},
 				}}, nil
 			},
 		},
@@ -164,6 +562,75 @@ func Test_QueryBlocks(t *testing.T) {
 		*new(uint64),
 	}
 	if _, err := a.QueryBlocks(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_QueryEncodedBlocks tests the "query_encoded_blocks" method on the "icpledger" canister.
+func Test_QueryEncodedBlocks(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "query_encoded_blocks",
+			Arguments: []any{new(icpledger.GetBlocksArgs)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{icpledger.QueryEncodedBlocksResponse{
+					*new(*[]byte),
+					[][]byte{*new([]byte)},
+					*new(uint64),
+					*new(uint64),
+					[]icpledger.ArchivedEncodedBlocksRange{{
+						*new(struct { /* NOT SUPPORTED */
+						}),
+						*new(uint64),
+						*new(uint64),
+					}},
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = icpledger.GetBlocksArgs{
+		*new(uint64),
+		*new(uint64),
+	}
+	if _, err := a.QueryEncodedBlocks(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_SendDfx tests the "send_dfx" method on the "icpledger" canister.
+func Test_SendDfx(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "send_dfx",
+			Arguments: []any{new(icpledger.SendArgs)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new(uint64)}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = icpledger.SendArgs{
+		*new(uint64),
+		icpledger.Tokens{
+			*new(uint64),
+		},
+		icpledger.Tokens{
+			*new(uint64),
+		},
+		*new(*icpledger.SubAccount),
+		*new(string),
+		*new(*icpledger.TimeStamp),
+	}
+	if _, err := a.SendDfx(a0); err != nil {
 		t.Fatal(err)
 	}
 

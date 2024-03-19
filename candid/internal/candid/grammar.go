@@ -341,7 +341,9 @@ func Func(p *ast.Parser) (*ast.Node, error) {
 			TypeStrings: NodeTypes,
 			Value: op.And{
 				"func",
-				Sp,
+				op.Optional(
+					Sp,
+				),
 				FuncType,
 			},
 		},

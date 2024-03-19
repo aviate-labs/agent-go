@@ -8,9 +8,7 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
-type AccountIdentifier struct {
-	Bytes []byte `ic:"bytes" json:"bytes"`
-}
+type AccountIdentifier = string
 
 // Agent is a client for the "cmc" canister.
 type Agent struct {
@@ -30,12 +28,54 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 	}, nil
 }
 
+// CreateCanister calls the "create_canister" method on the "cmc" canister.
+func (a Agent) CreateCanister(arg0 CreateCanisterArg) (*CreateCanisterResult, error) {
+	var r0 CreateCanisterResult
+	if err := a.a.Call(
+		a.canisterId,
+		"create_canister",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// GetBuildMetadata calls the "get_build_metadata" method on the "cmc" canister.
+func (a Agent) GetBuildMetadata() (*string, error) {
+	var r0 string
+	if err := a.a.Query(
+		a.canisterId,
+		"get_build_metadata",
+		[]any{},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 // GetIcpXdrConversionRate calls the "get_icp_xdr_conversion_rate" method on the "cmc" canister.
 func (a Agent) GetIcpXdrConversionRate() (*IcpXdrConversionRateResponse, error) {
 	var r0 IcpXdrConversionRateResponse
 	if err := a.a.Query(
 		a.canisterId,
 		"get_icp_xdr_conversion_rate",
+		[]any{},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// GetPrincipalsAuthorizedToCreateCanistersToSubnets calls the "get_principals_authorized_to_create_canisters_to_subnets" method on the "cmc" canister.
+func (a Agent) GetPrincipalsAuthorizedToCreateCanistersToSubnets() (*PrincipalsAuthorizedToCreateCanistersToSubnetsResponse, error) {
+	var r0 PrincipalsAuthorizedToCreateCanistersToSubnetsResponse
+	if err := a.a.Query(
+		a.canisterId,
+		"get_principals_authorized_to_create_canisters_to_subnets",
 		[]any{},
 		[]any{&r0},
 	); err != nil {
@@ -72,6 +112,20 @@ func (a Agent) NotifyCreateCanister(arg0 NotifyCreateCanisterArg) (*NotifyCreate
 	return &r0, nil
 }
 
+// NotifyMintCycles calls the "notify_mint_cycles" method on the "cmc" canister.
+func (a Agent) NotifyMintCycles(arg0 NotifyMintCyclesArg) (*NotifyMintCyclesResult, error) {
+	var r0 NotifyMintCyclesResult
+	if err := a.a.Call(
+		a.canisterId,
+		"notify_mint_cycles",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 // NotifyTopUp calls the "notify_top_up" method on the "cmc" canister.
 func (a Agent) NotifyTopUp(arg0 NotifyTopUpArg) (*NotifyTopUpResult, error) {
 	var r0 NotifyTopUpResult
@@ -88,6 +142,39 @@ func (a Agent) NotifyTopUp(arg0 NotifyTopUpArg) (*NotifyTopUpResult, error) {
 
 type BlockIndex = uint64
 
+type CanisterSettings struct {
+	Controller          *principal.Principal   `ic:"controller,omitempty" json:"controller,omitempty"`
+	Controllers         *[]principal.Principal `ic:"controllers,omitempty" json:"controllers,omitempty"`
+	ComputeAllocation   *idl.Nat               `ic:"compute_allocation,omitempty" json:"compute_allocation,omitempty"`
+	MemoryAllocation    *idl.Nat               `ic:"memory_allocation,omitempty" json:"memory_allocation,omitempty"`
+	FreezingThreshold   *idl.Nat               `ic:"freezing_threshold,omitempty" json:"freezing_threshold,omitempty"`
+	ReservedCyclesLimit *idl.Nat               `ic:"reserved_cycles_limit,omitempty" json:"reserved_cycles_limit,omitempty"`
+	LogVisibility       *LogVisibility         `ic:"log_visibility,omitempty" json:"log_visibility,omitempty"`
+	WasmMemoryLimit     *idl.Nat               `ic:"wasm_memory_limit,omitempty" json:"wasm_memory_limit,omitempty"`
+}
+
+type CreateCanisterArg struct {
+	Settings        *CanisterSettings `ic:"settings,omitempty" json:"settings,omitempty"`
+	SubnetType      *string           `ic:"subnet_type,omitempty" json:"subnet_type,omitempty"`
+	SubnetSelection *SubnetSelection  `ic:"subnet_selection,omitempty" json:"subnet_selection,omitempty"`
+}
+
+type CreateCanisterError struct {
+	Refunded *struct {
+		RefundAmount idl.Nat `ic:"refund_amount" json:"refund_amount"`
+		CreateError  string  `ic:"create_error" json:"create_error"`
+	} `ic:"Refunded,variant"`
+	RefundFailed *struct {
+		CreateError string `ic:"create_error" json:"create_error"`
+		RefundError string `ic:"refund_error" json:"refund_error"`
+	} `ic:"RefundFailed,variant"`
+}
+
+type CreateCanisterResult struct {
+	Ok  *principal.Principal `ic:"Ok,variant"`
+	Err *CreateCanisterError `ic:"Err,variant"`
+}
+
 type Cycles = idl.Nat
 
 type CyclesCanisterInitPayload struct {
@@ -96,6 +183,7 @@ type CyclesCanisterInitPayload struct {
 	MintingAccountId       *AccountIdentifier    `ic:"minting_account_id,omitempty" json:"minting_account_id,omitempty"`
 	LastPurgedNotification *uint64               `ic:"last_purged_notification,omitempty" json:"last_purged_notification,omitempty"`
 	ExchangeRateCanister   *ExchangeRateCanister `ic:"exchange_rate_canister,omitempty" json:"exchange_rate_canister,omitempty"`
+	CyclesLedgerCanisterId *principal.Principal  `ic:"cycles_ledger_canister_id,omitempty" json:"cycles_ledger_canister_id,omitempty"`
 }
 
 type ExchangeRateCanister struct {
@@ -114,10 +202,19 @@ type IcpXdrConversionRateResponse struct {
 	Certificate []byte               `ic:"certificate" json:"certificate"`
 }
 
+type LogVisibility struct {
+	Controllers *idl.Null `ic:"controllers,variant"`
+	Public      *idl.Null `ic:"public,variant"`
+}
+
+type Memo = *[]byte
+
 type NotifyCreateCanisterArg struct {
-	BlockIndex BlockIndex          `ic:"block_index" json:"block_index"`
-	Controller principal.Principal `ic:"controller" json:"controller"`
-	SubnetType *string             `ic:"subnet_type,omitempty" json:"subnet_type,omitempty"`
+	BlockIndex      BlockIndex          `ic:"block_index" json:"block_index"`
+	Controller      principal.Principal `ic:"controller" json:"controller"`
+	SubnetType      *string             `ic:"subnet_type,omitempty" json:"subnet_type,omitempty"`
+	SubnetSelection *SubnetSelection    `ic:"subnet_selection,omitempty" json:"subnet_selection,omitempty"`
+	Settings        *CanisterSettings   `ic:"settings,omitempty" json:"settings,omitempty"`
 }
 
 type NotifyCreateCanisterResult struct {
@@ -139,6 +236,23 @@ type NotifyError struct {
 	} `ic:"Other,variant"`
 }
 
+type NotifyMintCyclesArg struct {
+	BlockIndex   BlockIndex `ic:"block_index" json:"block_index"`
+	ToSubaccount Subaccount `ic:"to_subaccount" json:"to_subaccount"`
+	DepositMemo  Memo       `ic:"deposit_memo" json:"deposit_memo"`
+}
+
+type NotifyMintCyclesResult struct {
+	Ok  *NotifyMintCyclesSuccess `ic:"Ok,variant"`
+	Err *NotifyError             `ic:"Err,variant"`
+}
+
+type NotifyMintCyclesSuccess struct {
+	BlockIndex idl.Nat `ic:"block_index" json:"block_index"`
+	Minted     idl.Nat `ic:"minted" json:"minted"`
+	Balance    idl.Nat `ic:"balance" json:"balance"`
+}
+
 type NotifyTopUpArg struct {
 	BlockIndex BlockIndex          `ic:"block_index" json:"block_index"`
 	CanisterId principal.Principal `ic:"canister_id" json:"canister_id"`
@@ -147,6 +261,26 @@ type NotifyTopUpArg struct {
 type NotifyTopUpResult struct {
 	Ok  *Cycles      `ic:"Ok,variant"`
 	Err *NotifyError `ic:"Err,variant"`
+}
+
+type PrincipalsAuthorizedToCreateCanistersToSubnetsResponse struct {
+	Data []struct {
+		Field0 principal.Principal   `ic:"0" json:"0"`
+		Field1 []principal.Principal `ic:"1" json:"1"`
+	} `ic:"data" json:"data"`
+}
+
+type Subaccount = *[]byte
+
+type SubnetFilter struct {
+	SubnetType *string `ic:"subnet_type,omitempty" json:"subnet_type,omitempty"`
+}
+
+type SubnetSelection struct {
+	Subnet *struct {
+		Subnet principal.Principal `ic:"subnet" json:"subnet"`
+	} `ic:"Subnet,variant"`
+	Filter *SubnetFilter `ic:"Filter,variant"`
 }
 
 type SubnetTypesToSubnetsResponse struct {

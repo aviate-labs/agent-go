@@ -3,7 +3,7 @@ import T "types";
 
 import { principalOfBlob } = "mo:⛔";
 
-actor class icrc1() : async actor {} {
+actor class _icrc1() : async actor {} {
     public query func icrc1_metadata() : async ([(Text, T.Value)]) {
         ([ ( "8461085577816129895", #Int(5878529396228072694) ), ( "17086874607426100806", #Text("10709273831789307773") ), ( "16878655614376436083", #Int(6759167820548538355) ), ( "18292591075080601467", #Nat(17811010120847317546) ), ( "18177279855461275382", #Int(5653783580888133841) ), ( "7999443096767709278", #Int(18374081214496534973) ) ])
     };
@@ -25,10 +25,10 @@ actor class icrc1() : async actor {} {
     public query func icrc1_minting_account() : async (?T.Account) {
         (?{ owner = principalOfBlob("xF273F5F14EF71A6741E91781D06B5D360F3EE11F56F6A4DD0F57BB94465E46E1"); subaccount = ?"xBE56FB9FA308657D273052CFFB9E73610FB5DA073D79779DC770CD9DF3FF0B39" })
     };
-    public query func icrc1_balance_of(arg0 : T.Account) : async (Nat) {
+    public query func icrc1_balance_of(_arg0 : T.Account) : async (Nat) {
         (15860260956177527794)
     };
-    public shared func icrc1_transfer(arg0 : T.TransferArgs) : async ({ #Ok : Nat; #Err : T.TransferError }) {
+    public shared func icrc1_transfer(_arg0 : T.TransferArgs) : async ({ #Ok : Nat; #Err : T.TransferError }) {
         (#Ok(8461085577816129895))
     };
     public query func icrc1_supported_standards() : async ([{ name : Text; url : Text }]) {

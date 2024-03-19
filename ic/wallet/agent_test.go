@@ -13,14 +13,14 @@ import (
 	"github.com/aviate-labs/agent-go/ic/wallet"
 )
 
-// Test_ApiVersion tests the "api_version" method on the "wallet" canister.
-func Test_ApiVersion(t *testing.T) {
+// Test_AddAddress tests the "add_address" method on the "wallet" canister.
+func Test_AddAddress(t *testing.T) {
 	a, err := newAgent([]mock.Method{
 		{
-			Name:      "api_version",
-			Arguments: []any{},
+			Name:      "add_address",
+			Arguments: []any{new(wallet.AddressEntry)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(uint16)}, nil
+				return []any{}, nil
 			},
 		},
 	})
@@ -28,7 +28,39 @@ func Test_ApiVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := a.ApiVersion(); err != nil {
+	var a0 = wallet.AddressEntry{
+		*new(principal.Principal),
+		*new(*string),
+		wallet.Kind{
+			Unknown: new(idl.Null),
+		},
+		wallet.Role{
+			Contact: new(idl.Null),
+		},
+	}
+	if err := a.AddAddress(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_AddController tests the "add_controller" method on the "wallet" canister.
+func Test_AddController(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "add_controller",
+			Arguments: []any{new(principal.Principal)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = *new(principal.Principal)
+	if err := a.AddController(a0); err != nil {
 		t.Fatal(err)
 	}
 
@@ -56,234 +88,6 @@ func Test_Authorize(t *testing.T) {
 
 }
 
-// Test_CertifiedTree tests the "certified_tree" method on the "wallet" canister.
-func Test_CertifiedTree(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name: "certified_tree",
-			Arguments: []any{new(struct {
-			})},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{struct {
-					Certificate []byte `ic:"certificate" json:"certificate"`
-					Tree        []byte `ic:"tree" json:"tree"`
-				}{
-					*new([]byte),
-					*new([]byte),
-				}}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = struct {
-	}{}
-	if _, err := a.CertifiedTree(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_Clear tests the "clear" method on the "wallet" canister.
-func Test_Clear(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "clear",
-			Arguments: []any{new(wallet.ClearArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.ClearArguments{}
-	if err := a.Clear(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_CommitBatch tests the "commit_batch" method on the "wallet" canister.
-func Test_CommitBatch(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "commit_batch",
-			Arguments: []any{new(wallet.CommitBatchArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.CommitBatchArguments{
-		idl.NewNat(uint(0)),
-		[]wallet.BatchOperationKind{{
-			CreateAsset: idl.Ptr(wallet.CreateAssetArguments{
-				*new(string),
-				*new(string),
-				*new(*uint64),
-				*new(*[]wallet.HeaderField),
-				*new(*bool),
-				*new(*bool),
-			}),
-		}},
-	}
-	if err := a.CommitBatch(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_CommitProposedBatch tests the "commit_proposed_batch" method on the "wallet" canister.
-func Test_CommitProposedBatch(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "commit_proposed_batch",
-			Arguments: []any{new(wallet.CommitProposedBatchArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.CommitProposedBatchArguments{
-		idl.NewNat(uint(0)),
-		*new([]byte),
-	}
-	if err := a.CommitProposedBatch(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_ComputeEvidence tests the "compute_evidence" method on the "wallet" canister.
-func Test_ComputeEvidence(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "compute_evidence",
-			Arguments: []any{new(wallet.ComputeEvidenceArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(*[]byte)}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.ComputeEvidenceArguments{
-		idl.NewNat(uint(0)),
-		*new(*uint16),
-	}
-	if _, err := a.ComputeEvidence(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_CreateAsset tests the "create_asset" method on the "wallet" canister.
-func Test_CreateAsset(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "create_asset",
-			Arguments: []any{new(wallet.CreateAssetArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.CreateAssetArguments{
-		*new(string),
-		*new(string),
-		*new(*uint64),
-		*new(*[]wallet.HeaderField),
-		*new(*bool),
-		*new(*bool),
-	}
-	if err := a.CreateAsset(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_CreateBatch tests the "create_batch" method on the "wallet" canister.
-func Test_CreateBatch(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name: "create_batch",
-			Arguments: []any{new(struct {
-			})},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{struct {
-					BatchId wallet.BatchId `ic:"batch_id" json:"batch_id"`
-				}{
-					idl.NewNat(uint(0)),
-				}}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = struct {
-	}{}
-	if _, err := a.CreateBatch(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_CreateChunk tests the "create_chunk" method on the "wallet" canister.
-func Test_CreateChunk(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name: "create_chunk",
-			Arguments: []any{new(struct {
-				BatchId wallet.BatchId `ic:"batch_id" json:"batch_id"`
-				Content []byte         `ic:"content" json:"content"`
-			})},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{struct {
-					ChunkId wallet.ChunkId `ic:"chunk_id" json:"chunk_id"`
-				}{
-					idl.NewNat(uint(0)),
-				}}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = struct {
-		BatchId wallet.BatchId `ic:"batch_id" json:"batch_id"`
-		Content []byte         `ic:"content" json:"content"`
-	}{
-		idl.NewNat(uint(0)),
-		*new([]byte),
-	}
-	if _, err := a.CreateChunk(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
 // Test_Deauthorize tests the "deauthorize" method on the "wallet" canister.
 func Test_Deauthorize(t *testing.T) {
 	a, err := newAgent([]mock.Method{
@@ -291,7 +95,9 @@ func Test_Deauthorize(t *testing.T) {
 			Name:      "deauthorize",
 			Arguments: []any{new(principal.Principal)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
+				return []any{wallet.WalletResult{
+					Ok: new(idl.Null),
+				}}, nil
 			},
 		},
 	})
@@ -300,83 +106,186 @@ func Test_Deauthorize(t *testing.T) {
 	}
 
 	var a0 = *new(principal.Principal)
-	if err := a.Deauthorize(a0); err != nil {
+	if _, err := a.Deauthorize(a0); err != nil {
 		t.Fatal(err)
 	}
 
 }
 
-// Test_DeleteAsset tests the "delete_asset" method on the "wallet" canister.
-func Test_DeleteAsset(t *testing.T) {
+// Test_GetChart tests the "get_chart" method on the "wallet" canister.
+func Test_GetChart(t *testing.T) {
 	a, err := newAgent([]mock.Method{
 		{
-			Name:      "delete_asset",
-			Arguments: []any{new(wallet.DeleteAssetArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.DeleteAssetArguments{
-		*new(string),
-	}
-	if err := a.DeleteAsset(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_DeleteBatch tests the "delete_batch" method on the "wallet" canister.
-func Test_DeleteBatch(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "delete_batch",
-			Arguments: []any{new(wallet.DeleteBatchArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.DeleteBatchArguments{
-		idl.NewNat(uint(0)),
-	}
-	if err := a.DeleteBatch(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_Get tests the "get" method on the "wallet" canister.
-func Test_Get(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name: "get",
-			Arguments: []any{new(struct {
-				Key             wallet.Key `ic:"key" json:"key"`
-				AcceptEncodings []string   `ic:"accept_encodings" json:"accept_encodings"`
+			Name: "get_chart",
+			Arguments: []any{new(*struct {
+				Count     *uint32 `ic:"count,omitempty" json:"count,omitempty"`
+				Precision *uint64 `ic:"precision,omitempty" json:"precision,omitempty"`
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{struct {
-					Content         []byte  `ic:"content" json:"content"`
-					ContentType     string  `ic:"content_type" json:"content_type"`
-					ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
-					Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
-					TotalLength     idl.Nat `ic:"total_length" json:"total_length"`
+				return []any{[]struct {
+					Field0 uint64 `ic:"0" json:"0"`
+					Field1 uint64 `ic:"1" json:"1"`
 				}{
-					*new([]byte),
-					*new(string),
-					*new(string),
-					*new(*[]byte),
-					idl.NewNat(uint(0)),
-				}}, nil
+
+					{
+						*new(uint64),
+						*new(uint64),
+					}}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = *new(*struct {
+		Count     *uint32 `ic:"count,omitempty" json:"count,omitempty"`
+		Precision *uint64 `ic:"precision,omitempty" json:"precision,omitempty"`
+	})
+	if _, err := a.GetChart(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_GetControllers tests the "get_controllers" method on the "wallet" canister.
+func Test_GetControllers(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "get_controllers",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{[]principal.Principal{*new(principal.Principal)}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.GetControllers(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_GetCustodians tests the "get_custodians" method on the "wallet" canister.
+func Test_GetCustodians(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "get_custodians",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{[]principal.Principal{*new(principal.Principal)}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.GetCustodians(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_GetEvents tests the "get_events" method on the "wallet" canister.
+func Test_GetEvents(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name: "get_events",
+			Arguments: []any{new(*struct {
+				From *uint32 `ic:"from,omitempty" json:"from,omitempty"`
+				To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
+			})},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{[]wallet.Event{{
+					*new(uint32),
+					*new(uint64),
+					wallet.EventKind{
+						CyclesSent: idl.Ptr(struct {
+							To     principal.Principal `ic:"to" json:"to"`
+							Amount uint64              `ic:"amount" json:"amount"`
+							Refund uint64              `ic:"refund" json:"refund"`
+						}{
+							*new(principal.Principal),
+							*new(uint64),
+							*new(uint64),
+						}),
+					},
+				}}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = *new(*struct {
+		From *uint32 `ic:"from,omitempty" json:"from,omitempty"`
+		To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
+	})
+	if _, err := a.GetEvents(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_GetEvents128 tests the "get_events128" method on the "wallet" canister.
+func Test_GetEvents128(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name: "get_events128",
+			Arguments: []any{new(*struct {
+				From *uint32 `ic:"from,omitempty" json:"from,omitempty"`
+				To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
+			})},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{[]wallet.Event128{{
+					*new(uint32),
+					*new(uint64),
+					wallet.EventKind128{
+						CyclesSent: idl.Ptr(struct {
+							To     principal.Principal `ic:"to" json:"to"`
+							Amount idl.Nat             `ic:"amount" json:"amount"`
+							Refund idl.Nat             `ic:"refund" json:"refund"`
+						}{
+							*new(principal.Principal),
+							idl.NewNat(uint(0)),
+							idl.NewNat(uint(0)),
+						}),
+					},
+				}}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = *new(*struct {
+		From *uint32 `ic:"from,omitempty" json:"from,omitempty"`
+		To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
+	})
+	if _, err := a.GetEvents128(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_GetManagedCanisterEvents tests the "get_managed_canister_events" method on the "wallet" canister.
+func Test_GetManagedCanisterEvents(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name: "get_managed_canister_events",
+			Arguments: []any{new(struct {
+				Canister principal.Principal `ic:"canister" json:"canister"`
+				From     *uint32             `ic:"from,omitempty" json:"from,omitempty"`
+				To       *uint32             `ic:"to,omitempty" json:"to,omitempty"`
+			})},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new(*[]wallet.ManagedCanisterEvent)}, nil
 			},
 		},
 	})
@@ -385,113 +294,49 @@ func Test_Get(t *testing.T) {
 	}
 
 	var a0 = struct {
-		Key             wallet.Key `ic:"key" json:"key"`
-		AcceptEncodings []string   `ic:"accept_encodings" json:"accept_encodings"`
+		Canister principal.Principal `ic:"canister" json:"canister"`
+		From     *uint32             `ic:"from,omitempty" json:"from,omitempty"`
+		To       *uint32             `ic:"to,omitempty" json:"to,omitempty"`
 	}{
-		*new(string),
-		[]string{*new(string)},
-	}
-	if _, err := a.Get(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_GetAssetProperties tests the "get_asset_properties" method on the "wallet" canister.
-func Test_GetAssetProperties(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "get_asset_properties",
-			Arguments: []any{new(wallet.Key)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{struct {
-					MaxAge         *uint64               `ic:"max_age,omitempty" json:"max_age,omitempty"`
-					Headers        *[]wallet.HeaderField `ic:"headers,omitempty" json:"headers,omitempty"`
-					AllowRawAccess *bool                 `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
-					IsAliased      *bool                 `ic:"is_aliased,omitempty" json:"is_aliased,omitempty"`
-				}{
-					*new(*uint64),
-					*new(*[]wallet.HeaderField),
-					*new(*bool),
-					*new(*bool),
-				}}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = *new(string)
-	if _, err := a.GetAssetProperties(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_GetChunk tests the "get_chunk" method on the "wallet" canister.
-func Test_GetChunk(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name: "get_chunk",
-			Arguments: []any{new(struct {
-				Key             wallet.Key `ic:"key" json:"key"`
-				ContentEncoding string     `ic:"content_encoding" json:"content_encoding"`
-				Index           idl.Nat    `ic:"index" json:"index"`
-				Sha256          *[]byte    `ic:"sha256,omitempty" json:"sha256,omitempty"`
-			})},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{struct {
-					Content []byte `ic:"content" json:"content"`
-				}{
-					*new([]byte),
-				}}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = struct {
-		Key             wallet.Key `ic:"key" json:"key"`
-		ContentEncoding string     `ic:"content_encoding" json:"content_encoding"`
-		Index           idl.Nat    `ic:"index" json:"index"`
-		Sha256          *[]byte    `ic:"sha256,omitempty" json:"sha256,omitempty"`
-	}{
-		*new(string),
-		*new(string),
-		idl.NewNat(uint(0)),
-		*new(*[]byte),
-	}
-	if _, err := a.GetChunk(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_GrantPermission tests the "grant_permission" method on the "wallet" canister.
-func Test_GrantPermission(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "grant_permission",
-			Arguments: []any{new(wallet.GrantPermission)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.GrantPermission{
 		*new(principal.Principal),
-		wallet.Permission{
-			Commit: new(idl.Null),
-		},
+		*new(*uint32),
+		*new(*uint32),
 	}
-	if err := a.GrantPermission(a0); err != nil {
+	if _, err := a.GetManagedCanisterEvents(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_GetManagedCanisterEvents128 tests the "get_managed_canister_events128" method on the "wallet" canister.
+func Test_GetManagedCanisterEvents128(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name: "get_managed_canister_events128",
+			Arguments: []any{new(struct {
+				Canister principal.Principal `ic:"canister" json:"canister"`
+				From     *uint32             `ic:"from,omitempty" json:"from,omitempty"`
+				To       *uint32             `ic:"to,omitempty" json:"to,omitempty"`
+			})},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new(*[]wallet.ManagedCanisterEvent128)}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = struct {
+		Canister principal.Principal `ic:"canister" json:"canister"`
+		From     *uint32             `ic:"from,omitempty" json:"from,omitempty"`
+		To       *uint32             `ic:"to,omitempty" json:"to,omitempty"`
+	}{
+		*new(principal.Principal),
+		*new(*uint32),
+		*new(*uint32),
+	}
+	if _, err := a.GetManagedCanisterEvents128(a0); err != nil {
 		t.Fatal(err)
 	}
 
@@ -528,7 +373,6 @@ func Test_HttpRequest(t *testing.T) {
 			*new(string),
 		}},
 		*new([]byte),
-		*new(*uint16),
 	}
 	if _, err := a.HttpRequest(a0); err != nil {
 		t.Fatal(err)
@@ -536,92 +380,23 @@ func Test_HttpRequest(t *testing.T) {
 
 }
 
-// Test_HttpRequestStreamingCallback tests the "http_request_streaming_callback" method on the "wallet" canister.
-func Test_HttpRequestStreamingCallback(t *testing.T) {
+// Test_ListAddresses tests the "list_addresses" method on the "wallet" canister.
+func Test_ListAddresses(t *testing.T) {
 	a, err := newAgent([]mock.Method{
 		{
-			Name:      "http_request_streaming_callback",
-			Arguments: []any{new(wallet.StreamingCallbackToken)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{*new(*wallet.StreamingCallbackHttpResponse)}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.StreamingCallbackToken{
-		*new(string),
-		*new(string),
-		idl.NewNat(uint(0)),
-		*new(*[]byte),
-	}
-	if _, err := a.HttpRequestStreamingCallback(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_List tests the "list" method on the "wallet" canister.
-func Test_List(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name: "list",
-			Arguments: []any{new(struct {
-			})},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{[]struct {
-					Key         wallet.Key `ic:"key" json:"key"`
-					ContentType string     `ic:"content_type" json:"content_type"`
-					Encodings   []struct {
-						ContentEncoding string      `ic:"content_encoding" json:"content_encoding"`
-						Sha256          *[]byte     `ic:"sha256,omitempty" json:"sha256,omitempty"`
-						Length          idl.Nat     `ic:"length" json:"length"`
-						Modified        wallet.Time `ic:"modified" json:"modified"`
-					} `ic:"encodings" json:"encodings"`
-				}{
-
-					{
-						*new(string),
-						*new(string),
-						[]struct {
-							ContentEncoding string      `ic:"content_encoding" json:"content_encoding"`
-							Sha256          *[]byte     `ic:"sha256,omitempty" json:"sha256,omitempty"`
-							Length          idl.Nat     `ic:"length" json:"length"`
-							Modified        wallet.Time `ic:"modified" json:"modified"`
-						}{
-
-							{
-								*new(string),
-								*new(*[]byte),
-								idl.NewNat(uint(0)),
-								idl.NewInt(0),
-							}},
-					}}}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = struct {
-	}{}
-	if _, err := a.List(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_ListAuthorized tests the "list_authorized" method on the "wallet" canister.
-func Test_ListAuthorized(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "list_authorized",
+			Name:      "list_addresses",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{[]principal.Principal{*new(principal.Principal)}}, nil
+				return []any{[]wallet.AddressEntry{{
+					*new(principal.Principal),
+					*new(*string),
+					wallet.Kind{
+						Unknown: new(idl.Null),
+					},
+					wallet.Role{
+						Contact: new(idl.Null),
+					},
+				}}}, nil
 			},
 		},
 	})
@@ -629,168 +404,27 @@ func Test_ListAuthorized(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := a.ListAuthorized(); err != nil {
+	if _, err := a.ListAddresses(); err != nil {
 		t.Fatal(err)
 	}
 
 }
 
-// Test_ListPermitted tests the "list_permitted" method on the "wallet" canister.
-func Test_ListPermitted(t *testing.T) {
+// Test_ListManagedCanisters tests the "list_managed_canisters" method on the "wallet" canister.
+func Test_ListManagedCanisters(t *testing.T) {
 	a, err := newAgent([]mock.Method{
 		{
-			Name:      "list_permitted",
-			Arguments: []any{new(wallet.ListPermitted)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{[]principal.Principal{*new(principal.Principal)}}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.ListPermitted{
-		wallet.Permission{
-			Commit: new(idl.Null),
-		},
-	}
-	if _, err := a.ListPermitted(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_ProposeCommitBatch tests the "propose_commit_batch" method on the "wallet" canister.
-func Test_ProposeCommitBatch(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "propose_commit_batch",
-			Arguments: []any{new(wallet.CommitBatchArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.CommitBatchArguments{
-		idl.NewNat(uint(0)),
-		[]wallet.BatchOperationKind{{
-			CreateAsset: idl.Ptr(wallet.CreateAssetArguments{
-				*new(string),
-				*new(string),
-				*new(*uint64),
-				*new(*[]wallet.HeaderField),
-				*new(*bool),
-				*new(*bool),
-			}),
-		}},
-	}
-	if err := a.ProposeCommitBatch(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_RevokePermission tests the "revoke_permission" method on the "wallet" canister.
-func Test_RevokePermission(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "revoke_permission",
-			Arguments: []any{new(wallet.RevokePermission)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.RevokePermission{
-		*new(principal.Principal),
-		wallet.Permission{
-			Commit: new(idl.Null),
-		},
-	}
-	if err := a.RevokePermission(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_SetAssetContent tests the "set_asset_content" method on the "wallet" canister.
-func Test_SetAssetContent(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "set_asset_content",
-			Arguments: []any{new(wallet.SetAssetContentArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.SetAssetContentArguments{
-		*new(string),
-		*new(string),
-		[]wallet.ChunkId{idl.NewNat(uint(0))},
-		*new(*[]byte),
-	}
-	if err := a.SetAssetContent(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_SetAssetProperties tests the "set_asset_properties" method on the "wallet" canister.
-func Test_SetAssetProperties(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "set_asset_properties",
-			Arguments: []any{new(wallet.SetAssetPropertiesArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.SetAssetPropertiesArguments{
-		*new(string),
-		*new(**uint64),
-		*new(**[]wallet.HeaderField),
-		*new(**bool),
-		*new(**bool),
-	}
-	if err := a.SetAssetProperties(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_Store tests the "store" method on the "wallet" canister.
-func Test_Store(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name: "store",
+			Name: "list_managed_canisters",
 			Arguments: []any{new(struct {
-				Key             wallet.Key `ic:"key" json:"key"`
-				ContentType     string     `ic:"content_type" json:"content_type"`
-				ContentEncoding string     `ic:"content_encoding" json:"content_encoding"`
-				Content         []byte     `ic:"content" json:"content"`
-				Sha256          *[]byte    `ic:"sha256,omitempty" json:"sha256,omitempty"`
+				From *uint32 `ic:"from,omitempty" json:"from,omitempty"`
+				To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
 			})},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
+				return []any{[]wallet.ManagedCanisterInfo{{
+					*new(principal.Principal),
+					*new(*string),
+					*new(uint64),
+				}}, *new(uint32)}, nil
 			},
 		},
 	})
@@ -799,32 +433,26 @@ func Test_Store(t *testing.T) {
 	}
 
 	var a0 = struct {
-		Key             wallet.Key `ic:"key" json:"key"`
-		ContentType     string     `ic:"content_type" json:"content_type"`
-		ContentEncoding string     `ic:"content_encoding" json:"content_encoding"`
-		Content         []byte     `ic:"content" json:"content"`
-		Sha256          *[]byte    `ic:"sha256,omitempty" json:"sha256,omitempty"`
+		From *uint32 `ic:"from,omitempty" json:"from,omitempty"`
+		To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
 	}{
-		*new(string),
-		*new(string),
-		*new(string),
-		*new([]byte),
-		*new(*[]byte),
+		*new(*uint32),
+		*new(*uint32),
 	}
-	if err := a.Store(a0); err != nil {
+	if _, _, err := a.ListManagedCanisters(a0); err != nil {
 		t.Fatal(err)
 	}
 
 }
 
-// Test_TakeOwnership tests the "take_ownership" method on the "wallet" canister.
-func Test_TakeOwnership(t *testing.T) {
+// Test_Name tests the "name" method on the "wallet" canister.
+func Test_Name(t *testing.T) {
 	a, err := newAgent([]mock.Method{
 		{
-			Name:      "take_ownership",
+			Name:      "name",
 			Arguments: []any{},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
+				return []any{*new(*string)}, nil
 			},
 		},
 	})
@@ -832,46 +460,21 @@ func Test_TakeOwnership(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := a.TakeOwnership(); err != nil {
+	if _, err := a.Name(); err != nil {
 		t.Fatal(err)
 	}
 
 }
 
-// Test_UnsetAssetContent tests the "unset_asset_content" method on the "wallet" canister.
-func Test_UnsetAssetContent(t *testing.T) {
+// Test_RemoveAddress tests the "remove_address" method on the "wallet" canister.
+func Test_RemoveAddress(t *testing.T) {
 	a, err := newAgent([]mock.Method{
 		{
-			Name:      "unset_asset_content",
-			Arguments: []any{new(wallet.UnsetAssetContentArguments)},
+			Name:      "remove_address",
+			Arguments: []any{new(principal.Principal)},
 			Handler: func(request mock.Request) ([]any, error) {
-				return []any{}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.UnsetAssetContentArguments{
-		*new(string),
-		*new(string),
-	}
-	if err := a.UnsetAssetContent(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_ValidateCommitProposedBatch tests the "validate_commit_proposed_batch" method on the "wallet" canister.
-func Test_ValidateCommitProposedBatch(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "validate_commit_proposed_batch",
-			Arguments: []any{new(wallet.CommitProposedBatchArguments)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{wallet.ValidationResult{
-					Ok: new(string),
+				return []any{wallet.WalletResult{
+					Ok: new(idl.Null),
 				}}, nil
 			},
 		},
@@ -880,92 +483,498 @@ func Test_ValidateCommitProposedBatch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var a0 = wallet.CommitProposedBatchArguments{
+	var a0 = *new(principal.Principal)
+	if _, err := a.RemoveAddress(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_RemoveController tests the "remove_controller" method on the "wallet" canister.
+func Test_RemoveController(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "remove_controller",
+			Arguments: []any{new(principal.Principal)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{wallet.WalletResult{
+					Ok: new(idl.Null),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = *new(principal.Principal)
+	if _, err := a.RemoveController(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_SetName tests the "set_name" method on the "wallet" canister.
+func Test_SetName(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "set_name",
+			Arguments: []any{new(string)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = *new(string)
+	if err := a.SetName(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_SetShortName tests the "set_short_name" method on the "wallet" canister.
+func Test_SetShortName(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "set_short_name",
+			Arguments: []any{new(principal.Principal), new(*string)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new(*wallet.ManagedCanisterInfo)}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = *new(principal.Principal)
+	var a1 = *new(*string)
+	if _, err := a.SetShortName(a0, a1); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletApiVersion tests the "wallet_api_version" method on the "wallet" canister.
+func Test_WalletApiVersion(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "wallet_api_version",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{*new(string)}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.WalletApiVersion(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletBalance tests the "wallet_balance" method on the "wallet" canister.
+func Test_WalletBalance(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "wallet_balance",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{struct {
+					Amount uint64 `ic:"amount" json:"amount"`
+				}{
+					*new(uint64),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.WalletBalance(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletBalance128 tests the "wallet_balance128" method on the "wallet" canister.
+func Test_WalletBalance128(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "wallet_balance128",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{struct {
+					Amount idl.Nat `ic:"amount" json:"amount"`
+				}{
+					idl.NewNat(uint(0)),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.WalletBalance128(); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletCall tests the "wallet_call" method on the "wallet" canister.
+func Test_WalletCall(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name: "wallet_call",
+			Arguments: []any{new(struct {
+				Canister   principal.Principal `ic:"canister" json:"canister"`
+				MethodName string              `ic:"method_name" json:"method_name"`
+				Args       []byte              `ic:"args" json:"args"`
+				Cycles     uint64              `ic:"cycles" json:"cycles"`
+			})},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{wallet.WalletResultCall{
+					Ok: idl.Ptr(struct {
+						Return []byte `ic:"return" json:"return"`
+					}{
+						*new([]byte),
+					}),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = struct {
+		Canister   principal.Principal `ic:"canister" json:"canister"`
+		MethodName string              `ic:"method_name" json:"method_name"`
+		Args       []byte              `ic:"args" json:"args"`
+		Cycles     uint64              `ic:"cycles" json:"cycles"`
+	}{
+		*new(principal.Principal),
+		*new(string),
+		*new([]byte),
+		*new(uint64),
+	}
+	if _, err := a.WalletCall(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletCall128 tests the "wallet_call128" method on the "wallet" canister.
+func Test_WalletCall128(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name: "wallet_call128",
+			Arguments: []any{new(struct {
+				Canister   principal.Principal `ic:"canister" json:"canister"`
+				MethodName string              `ic:"method_name" json:"method_name"`
+				Args       []byte              `ic:"args" json:"args"`
+				Cycles     idl.Nat             `ic:"cycles" json:"cycles"`
+			})},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{wallet.WalletResultCall{
+					Ok: idl.Ptr(struct {
+						Return []byte `ic:"return" json:"return"`
+					}{
+						*new([]byte),
+					}),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = struct {
+		Canister   principal.Principal `ic:"canister" json:"canister"`
+		MethodName string              `ic:"method_name" json:"method_name"`
+		Args       []byte              `ic:"args" json:"args"`
+		Cycles     idl.Nat             `ic:"cycles" json:"cycles"`
+	}{
+		*new(principal.Principal),
+		*new(string),
+		*new([]byte),
 		idl.NewNat(uint(0)),
+	}
+	if _, err := a.WalletCall128(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletCreateCanister tests the "wallet_create_canister" method on the "wallet" canister.
+func Test_WalletCreateCanister(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "wallet_create_canister",
+			Arguments: []any{new(wallet.CreateCanisterArgs)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{wallet.WalletResultCreate{
+					Ok: idl.Ptr(struct {
+						CanisterId principal.Principal `ic:"canister_id" json:"canister_id"`
+					}{
+						*new(principal.Principal),
+					}),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = wallet.CreateCanisterArgs{
+		*new(uint64),
+		wallet.CanisterSettings{
+			*new(*principal.Principal),
+			*new(*[]principal.Principal),
+			*new(*idl.Nat),
+			*new(*idl.Nat),
+			*new(*idl.Nat),
+		},
+	}
+	if _, err := a.WalletCreateCanister(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletCreateCanister128 tests the "wallet_create_canister128" method on the "wallet" canister.
+func Test_WalletCreateCanister128(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "wallet_create_canister128",
+			Arguments: []any{new(wallet.CreateCanisterArgs128)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{wallet.WalletResultCreate{
+					Ok: idl.Ptr(struct {
+						CanisterId principal.Principal `ic:"canister_id" json:"canister_id"`
+					}{
+						*new(principal.Principal),
+					}),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = wallet.CreateCanisterArgs128{
+		idl.NewNat(uint(0)),
+		wallet.CanisterSettings{
+			*new(*principal.Principal),
+			*new(*[]principal.Principal),
+			*new(*idl.Nat),
+			*new(*idl.Nat),
+			*new(*idl.Nat),
+		},
+	}
+	if _, err := a.WalletCreateCanister128(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletCreateWallet tests the "wallet_create_wallet" method on the "wallet" canister.
+func Test_WalletCreateWallet(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "wallet_create_wallet",
+			Arguments: []any{new(wallet.CreateCanisterArgs)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{wallet.WalletResultCreate{
+					Ok: idl.Ptr(struct {
+						CanisterId principal.Principal `ic:"canister_id" json:"canister_id"`
+					}{
+						*new(principal.Principal),
+					}),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = wallet.CreateCanisterArgs{
+		*new(uint64),
+		wallet.CanisterSettings{
+			*new(*principal.Principal),
+			*new(*[]principal.Principal),
+			*new(*idl.Nat),
+			*new(*idl.Nat),
+			*new(*idl.Nat),
+		},
+	}
+	if _, err := a.WalletCreateWallet(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletCreateWallet128 tests the "wallet_create_wallet128" method on the "wallet" canister.
+func Test_WalletCreateWallet128(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "wallet_create_wallet128",
+			Arguments: []any{new(wallet.CreateCanisterArgs128)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{wallet.WalletResultCreate{
+					Ok: idl.Ptr(struct {
+						CanisterId principal.Principal `ic:"canister_id" json:"canister_id"`
+					}{
+						*new(principal.Principal),
+					}),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = wallet.CreateCanisterArgs128{
+		idl.NewNat(uint(0)),
+		wallet.CanisterSettings{
+			*new(*principal.Principal),
+			*new(*[]principal.Principal),
+			*new(*idl.Nat),
+			*new(*idl.Nat),
+			*new(*idl.Nat),
+		},
+	}
+	if _, err := a.WalletCreateWallet128(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletReceive tests the "wallet_receive" method on the "wallet" canister.
+func Test_WalletReceive(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "wallet_receive",
+			Arguments: []any{new(*wallet.ReceiveOptions)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = *new(*wallet.ReceiveOptions)
+	if err := a.WalletReceive(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletSend tests the "wallet_send" method on the "wallet" canister.
+func Test_WalletSend(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name: "wallet_send",
+			Arguments: []any{new(struct {
+				Canister principal.Principal `ic:"canister" json:"canister"`
+				Amount   uint64              `ic:"amount" json:"amount"`
+			})},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{wallet.WalletResult{
+					Ok: new(idl.Null),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = struct {
+		Canister principal.Principal `ic:"canister" json:"canister"`
+		Amount   uint64              `ic:"amount" json:"amount"`
+	}{
+		*new(principal.Principal),
+		*new(uint64),
+	}
+	if _, err := a.WalletSend(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletSend128 tests the "wallet_send128" method on the "wallet" canister.
+func Test_WalletSend128(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name: "wallet_send128",
+			Arguments: []any{new(struct {
+				Canister principal.Principal `ic:"canister" json:"canister"`
+				Amount   idl.Nat             `ic:"amount" json:"amount"`
+			})},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{wallet.WalletResult{
+					Ok: new(idl.Null),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = struct {
+		Canister principal.Principal `ic:"canister" json:"canister"`
+		Amount   idl.Nat             `ic:"amount" json:"amount"`
+	}{
+		*new(principal.Principal),
+		idl.NewNat(uint(0)),
+	}
+	if _, err := a.WalletSend128(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_WalletStoreWalletWasm tests the "wallet_store_wallet_wasm" method on the "wallet" canister.
+func Test_WalletStoreWalletWasm(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name: "wallet_store_wallet_wasm",
+			Arguments: []any{new(struct {
+				WasmModule []byte `ic:"wasm_module" json:"wasm_module"`
+			})},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = struct {
+		WasmModule []byte `ic:"wasm_module" json:"wasm_module"`
+	}{
 		*new([]byte),
 	}
-	if _, err := a.ValidateCommitProposedBatch(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_ValidateGrantPermission tests the "validate_grant_permission" method on the "wallet" canister.
-func Test_ValidateGrantPermission(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "validate_grant_permission",
-			Arguments: []any{new(wallet.GrantPermission)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{wallet.ValidationResult{
-					Ok: new(string),
-				}}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.GrantPermission{
-		*new(principal.Principal),
-		wallet.Permission{
-			Commit: new(idl.Null),
-		},
-	}
-	if _, err := a.ValidateGrantPermission(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_ValidateRevokePermission tests the "validate_revoke_permission" method on the "wallet" canister.
-func Test_ValidateRevokePermission(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "validate_revoke_permission",
-			Arguments: []any{new(wallet.RevokePermission)},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{wallet.ValidationResult{
-					Ok: new(string),
-				}}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var a0 = wallet.RevokePermission{
-		*new(principal.Principal),
-		wallet.Permission{
-			Commit: new(idl.Null),
-		},
-	}
-	if _, err := a.ValidateRevokePermission(a0); err != nil {
-		t.Fatal(err)
-	}
-
-}
-
-// Test_ValidateTakeOwnership tests the "validate_take_ownership" method on the "wallet" canister.
-func Test_ValidateTakeOwnership(t *testing.T) {
-	a, err := newAgent([]mock.Method{
-		{
-			Name:      "validate_take_ownership",
-			Arguments: []any{},
-			Handler: func(request mock.Request) ([]any, error) {
-				return []any{wallet.ValidationResult{
-					Ok: new(string),
-				}}, nil
-			},
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := a.ValidateTakeOwnership(); err != nil {
+	if err := a.WalletStoreWalletWasm(a0); err != nil {
 		t.Fatal(err)
 	}
 

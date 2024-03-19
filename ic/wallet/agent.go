@@ -8,6 +8,13 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
+type AddressEntry struct {
+	Id   principal.Principal `ic:"id" json:"id"`
+	Name *string             `ic:"name,omitempty" json:"name,omitempty"`
+	Kind Kind                `ic:"kind" json:"kind"`
+	Role Role                `ic:"role" json:"role"`
+}
+
 // Agent is a client for the "wallet" canister.
 type Agent struct {
 	a          *agent.Agent
@@ -26,18 +33,30 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 	}, nil
 }
 
-// ApiVersion calls the "api_version" method on the "wallet" canister.
-func (a Agent) ApiVersion() (*uint16, error) {
-	var r0 uint16
-	if err := a.a.Query(
+// AddAddress calls the "add_address" method on the "wallet" canister.
+func (a Agent) AddAddress(address AddressEntry) error {
+	if err := a.a.Call(
 		a.canisterId,
-		"api_version",
+		"add_address",
+		[]any{address},
 		[]any{},
-		[]any{&r0},
 	); err != nil {
-		return nil, err
+		return err
 	}
-	return &r0, nil
+	return nil
+}
+
+// AddController calls the "add_controller" method on the "wallet" canister.
+func (a Agent) AddController(arg0 principal.Principal) error {
+	if err := a.a.Call(
+		a.canisterId,
+		"add_controller",
+		[]any{arg0},
+		[]any{},
+	); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Authorize calls the "authorize" method on the "wallet" canister.
@@ -53,193 +72,35 @@ func (a Agent) Authorize(arg0 principal.Principal) error {
 	return nil
 }
 
-// CertifiedTree calls the "certified_tree" method on the "wallet" canister.
-func (a Agent) CertifiedTree(arg0 struct {
-}) (*struct {
-	Certificate []byte `ic:"certificate" json:"certificate"`
-	Tree        []byte `ic:"tree" json:"tree"`
-}, error) {
-	var r0 struct {
-		Certificate []byte `ic:"certificate" json:"certificate"`
-		Tree        []byte `ic:"tree" json:"tree"`
-	}
-	if err := a.a.Query(
-		a.canisterId,
-		"certified_tree",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
-// Clear calls the "clear" method on the "wallet" canister.
-func (a Agent) Clear(arg0 ClearArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
-		"clear",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-// CommitBatch calls the "commit_batch" method on the "wallet" canister.
-func (a Agent) CommitBatch(arg0 CommitBatchArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
-		"commit_batch",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-// CommitProposedBatch calls the "commit_proposed_batch" method on the "wallet" canister.
-func (a Agent) CommitProposedBatch(arg0 CommitProposedBatchArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
-		"commit_proposed_batch",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-// ComputeEvidence calls the "compute_evidence" method on the "wallet" canister.
-func (a Agent) ComputeEvidence(arg0 ComputeEvidenceArguments) (**[]byte, error) {
-	var r0 *[]byte
-	if err := a.a.Call(
-		a.canisterId,
-		"compute_evidence",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
-// CreateAsset calls the "create_asset" method on the "wallet" canister.
-func (a Agent) CreateAsset(arg0 CreateAssetArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
-		"create_asset",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-// CreateBatch calls the "create_batch" method on the "wallet" canister.
-func (a Agent) CreateBatch(arg0 struct {
-}) (*struct {
-	BatchId BatchId `ic:"batch_id" json:"batch_id"`
-}, error) {
-	var r0 struct {
-		BatchId BatchId `ic:"batch_id" json:"batch_id"`
-	}
-	if err := a.a.Call(
-		a.canisterId,
-		"create_batch",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
-// CreateChunk calls the "create_chunk" method on the "wallet" canister.
-func (a Agent) CreateChunk(arg0 struct {
-	BatchId BatchId `ic:"batch_id" json:"batch_id"`
-	Content []byte  `ic:"content" json:"content"`
-}) (*struct {
-	ChunkId ChunkId `ic:"chunk_id" json:"chunk_id"`
-}, error) {
-	var r0 struct {
-		ChunkId ChunkId `ic:"chunk_id" json:"chunk_id"`
-	}
-	if err := a.a.Call(
-		a.canisterId,
-		"create_chunk",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
 // Deauthorize calls the "deauthorize" method on the "wallet" canister.
-func (a Agent) Deauthorize(arg0 principal.Principal) error {
+func (a Agent) Deauthorize(arg0 principal.Principal) (*WalletResult, error) {
+	var r0 WalletResult
 	if err := a.a.Call(
 		a.canisterId,
 		"deauthorize",
 		[]any{arg0},
-		[]any{},
+		[]any{&r0},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &r0, nil
 }
 
-// DeleteAsset calls the "delete_asset" method on the "wallet" canister.
-func (a Agent) DeleteAsset(arg0 DeleteAssetArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
-		"delete_asset",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-// DeleteBatch calls the "delete_batch" method on the "wallet" canister.
-func (a Agent) DeleteBatch(arg0 DeleteBatchArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
-		"delete_batch",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-// Get calls the "get" method on the "wallet" canister.
-func (a Agent) Get(arg0 struct {
-	Key             Key      `ic:"key" json:"key"`
-	AcceptEncodings []string `ic:"accept_encodings" json:"accept_encodings"`
-}) (*struct {
-	Content         []byte  `ic:"content" json:"content"`
-	ContentType     string  `ic:"content_type" json:"content_type"`
-	ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
-	Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
-	TotalLength     idl.Nat `ic:"total_length" json:"total_length"`
+// GetChart calls the "get_chart" method on the "wallet" canister.
+func (a Agent) GetChart(arg0 *struct {
+	Count     *uint32 `ic:"count,omitempty" json:"count,omitempty"`
+	Precision *uint64 `ic:"precision,omitempty" json:"precision,omitempty"`
+}) (*[]struct {
+	Field0 uint64 `ic:"0" json:"0"`
+	Field1 uint64 `ic:"1" json:"1"`
 }, error) {
-	var r0 struct {
-		Content         []byte  `ic:"content" json:"content"`
-		ContentType     string  `ic:"content_type" json:"content_type"`
-		ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
-		Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
-		TotalLength     idl.Nat `ic:"total_length" json:"total_length"`
+	var r0 []struct {
+		Field0 uint64 `ic:"0" json:"0"`
+		Field1 uint64 `ic:"1" json:"1"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
-		"get",
+		"get_chart",
 		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
@@ -248,64 +109,102 @@ func (a Agent) Get(arg0 struct {
 	return &r0, nil
 }
 
-// GetAssetProperties calls the "get_asset_properties" method on the "wallet" canister.
-func (a Agent) GetAssetProperties(key Key) (*struct {
-	MaxAge         *uint64        `ic:"max_age,omitempty" json:"max_age,omitempty"`
-	Headers        *[]HeaderField `ic:"headers,omitempty" json:"headers,omitempty"`
-	AllowRawAccess *bool          `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
-	IsAliased      *bool          `ic:"is_aliased,omitempty" json:"is_aliased,omitempty"`
-}, error) {
-	var r0 struct {
-		MaxAge         *uint64        `ic:"max_age,omitempty" json:"max_age,omitempty"`
-		Headers        *[]HeaderField `ic:"headers,omitempty" json:"headers,omitempty"`
-		AllowRawAccess *bool          `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
-		IsAliased      *bool          `ic:"is_aliased,omitempty" json:"is_aliased,omitempty"`
-	}
+// GetControllers calls the "get_controllers" method on the "wallet" canister.
+func (a Agent) GetControllers() (*[]principal.Principal, error) {
+	var r0 []principal.Principal
 	if err := a.a.Query(
 		a.canisterId,
-		"get_asset_properties",
-		[]any{key},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
-// GetChunk calls the "get_chunk" method on the "wallet" canister.
-func (a Agent) GetChunk(arg0 struct {
-	Key             Key     `ic:"key" json:"key"`
-	ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
-	Index           idl.Nat `ic:"index" json:"index"`
-	Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
-}) (*struct {
-	Content []byte `ic:"content" json:"content"`
-}, error) {
-	var r0 struct {
-		Content []byte `ic:"content" json:"content"`
-	}
-	if err := a.a.Query(
-		a.canisterId,
-		"get_chunk",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
-// GrantPermission calls the "grant_permission" method on the "wallet" canister.
-func (a Agent) GrantPermission(arg0 GrantPermission) error {
-	if err := a.a.Call(
-		a.canisterId,
-		"grant_permission",
-		[]any{arg0},
+		"get_controllers",
 		[]any{},
+		[]any{&r0},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &r0, nil
+}
+
+// GetCustodians calls the "get_custodians" method on the "wallet" canister.
+func (a Agent) GetCustodians() (*[]principal.Principal, error) {
+	var r0 []principal.Principal
+	if err := a.a.Query(
+		a.canisterId,
+		"get_custodians",
+		[]any{},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// GetEvents calls the "get_events" method on the "wallet" canister.
+func (a Agent) GetEvents(arg0 *struct {
+	From *uint32 `ic:"from,omitempty" json:"from,omitempty"`
+	To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
+}) (*[]Event, error) {
+	var r0 []Event
+	if err := a.a.Query(
+		a.canisterId,
+		"get_events",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// GetEvents128 calls the "get_events128" method on the "wallet" canister.
+func (a Agent) GetEvents128(arg0 *struct {
+	From *uint32 `ic:"from,omitempty" json:"from,omitempty"`
+	To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
+}) (*[]Event128, error) {
+	var r0 []Event128
+	if err := a.a.Query(
+		a.canisterId,
+		"get_events128",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// GetManagedCanisterEvents calls the "get_managed_canister_events" method on the "wallet" canister.
+func (a Agent) GetManagedCanisterEvents(arg0 struct {
+	Canister principal.Principal `ic:"canister" json:"canister"`
+	From     *uint32             `ic:"from,omitempty" json:"from,omitempty"`
+	To       *uint32             `ic:"to,omitempty" json:"to,omitempty"`
+}) (**[]ManagedCanisterEvent, error) {
+	var r0 *[]ManagedCanisterEvent
+	if err := a.a.Query(
+		a.canisterId,
+		"get_managed_canister_events",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// GetManagedCanisterEvents128 calls the "get_managed_canister_events128" method on the "wallet" canister.
+func (a Agent) GetManagedCanisterEvents128(arg0 struct {
+	Canister principal.Principal `ic:"canister" json:"canister"`
+	From     *uint32             `ic:"from,omitempty" json:"from,omitempty"`
+	To       *uint32             `ic:"to,omitempty" json:"to,omitempty"`
+}) (**[]ManagedCanisterEvent128, error) {
+	var r0 *[]ManagedCanisterEvent128
+	if err := a.a.Query(
+		a.canisterId,
+		"get_managed_canister_events128",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
 }
 
 // HttpRequest calls the "http_request" method on the "wallet" canister.
@@ -322,13 +221,13 @@ func (a Agent) HttpRequest(request HttpRequest) (*HttpResponse, error) {
 	return &r0, nil
 }
 
-// HttpRequestStreamingCallback calls the "http_request_streaming_callback" method on the "wallet" canister.
-func (a Agent) HttpRequestStreamingCallback(token StreamingCallbackToken) (**StreamingCallbackHttpResponse, error) {
-	var r0 *StreamingCallbackHttpResponse
+// ListAddresses calls the "list_addresses" method on the "wallet" canister.
+func (a Agent) ListAddresses() (*[]AddressEntry, error) {
+	var r0 []AddressEntry
 	if err := a.a.Query(
 		a.canisterId,
-		"http_request_streaming_callback",
-		[]any{token},
+		"list_addresses",
+		[]any{},
 		[]any{&r0},
 	); err != nil {
 		return nil, err
@@ -336,45 +235,117 @@ func (a Agent) HttpRequestStreamingCallback(token StreamingCallbackToken) (**Str
 	return &r0, nil
 }
 
-// List calls the "list" method on the "wallet" canister.
-func (a Agent) List(arg0 struct {
-}) (*[]struct {
-	Key         Key    `ic:"key" json:"key"`
-	ContentType string `ic:"content_type" json:"content_type"`
-	Encodings   []struct {
-		ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
-		Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
-		Length          idl.Nat `ic:"length" json:"length"`
-		Modified        Time    `ic:"modified" json:"modified"`
-	} `ic:"encodings" json:"encodings"`
+// ListManagedCanisters calls the "list_managed_canisters" method on the "wallet" canister.
+func (a Agent) ListManagedCanisters(arg0 struct {
+	From *uint32 `ic:"from,omitempty" json:"from,omitempty"`
+	To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
+}) (*[]ManagedCanisterInfo, *uint32, error) {
+	var r0 []ManagedCanisterInfo
+	var r1 uint32
+	if err := a.a.Query(
+		a.canisterId,
+		"list_managed_canisters",
+		[]any{arg0},
+		[]any{&r0, &r1},
+	); err != nil {
+		return nil, nil, err
+	}
+	return &r0, &r1, nil
+}
+
+// Name calls the "name" method on the "wallet" canister.
+func (a Agent) Name() (**string, error) {
+	var r0 *string
+	if err := a.a.Query(
+		a.canisterId,
+		"name",
+		[]any{},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// RemoveAddress calls the "remove_address" method on the "wallet" canister.
+func (a Agent) RemoveAddress(address principal.Principal) (*WalletResult, error) {
+	var r0 WalletResult
+	if err := a.a.Call(
+		a.canisterId,
+		"remove_address",
+		[]any{address},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// RemoveController calls the "remove_controller" method on the "wallet" canister.
+func (a Agent) RemoveController(arg0 principal.Principal) (*WalletResult, error) {
+	var r0 WalletResult
+	if err := a.a.Call(
+		a.canisterId,
+		"remove_controller",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// SetName calls the "set_name" method on the "wallet" canister.
+func (a Agent) SetName(arg0 string) error {
+	if err := a.a.Call(
+		a.canisterId,
+		"set_name",
+		[]any{arg0},
+		[]any{},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+// SetShortName calls the "set_short_name" method on the "wallet" canister.
+func (a Agent) SetShortName(arg0 principal.Principal, arg1 *string) (**ManagedCanisterInfo, error) {
+	var r0 *ManagedCanisterInfo
+	if err := a.a.Call(
+		a.canisterId,
+		"set_short_name",
+		[]any{arg0, arg1},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// WalletApiVersion calls the "wallet_api_version" method on the "wallet" canister.
+func (a Agent) WalletApiVersion() (*string, error) {
+	var r0 string
+	if err := a.a.Query(
+		a.canisterId,
+		"wallet_api_version",
+		[]any{},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// WalletBalance calls the "wallet_balance" method on the "wallet" canister.
+func (a Agent) WalletBalance() (*struct {
+	Amount uint64 `ic:"amount" json:"amount"`
 }, error) {
-	var r0 []struct {
-		Key         Key    `ic:"key" json:"key"`
-		ContentType string `ic:"content_type" json:"content_type"`
-		Encodings   []struct {
-			ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
-			Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
-			Length          idl.Nat `ic:"length" json:"length"`
-			Modified        Time    `ic:"modified" json:"modified"`
-		} `ic:"encodings" json:"encodings"`
+	var r0 struct {
+		Amount uint64 `ic:"amount" json:"amount"`
 	}
 	if err := a.a.Query(
 		a.canisterId,
-		"list",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
-// ListAuthorized calls the "list_authorized" method on the "wallet" canister.
-func (a Agent) ListAuthorized() (*[]principal.Principal, error) {
-	var r0 []principal.Principal
-	if err := a.a.Query(
-		a.canisterId,
-		"list_authorized",
+		"wallet_balance",
 		[]any{},
 		[]any{&r0},
 	); err != nil {
@@ -383,12 +354,35 @@ func (a Agent) ListAuthorized() (*[]principal.Principal, error) {
 	return &r0, nil
 }
 
-// ListPermitted calls the "list_permitted" method on the "wallet" canister.
-func (a Agent) ListPermitted(arg0 ListPermitted) (*[]principal.Principal, error) {
-	var r0 []principal.Principal
+// WalletBalance128 calls the "wallet_balance128" method on the "wallet" canister.
+func (a Agent) WalletBalance128() (*struct {
+	Amount idl.Nat `ic:"amount" json:"amount"`
+}, error) {
+	var r0 struct {
+		Amount idl.Nat `ic:"amount" json:"amount"`
+	}
 	if err := a.a.Query(
 		a.canisterId,
-		"list_permitted",
+		"wallet_balance128",
+		[]any{},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// WalletCall calls the "wallet_call" method on the "wallet" canister.
+func (a Agent) WalletCall(arg0 struct {
+	Canister   principal.Principal `ic:"canister" json:"canister"`
+	MethodName string              `ic:"method_name" json:"method_name"`
+	Args       []byte              `ic:"args" json:"args"`
+	Cycles     uint64              `ic:"cycles" json:"cycles"`
+}) (*WalletResultCall, error) {
+	var r0 WalletResultCall
+	if err := a.a.Call(
+		a.canisterId,
+		"wallet_call",
 		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
@@ -397,11 +391,86 @@ func (a Agent) ListPermitted(arg0 ListPermitted) (*[]principal.Principal, error)
 	return &r0, nil
 }
 
-// ProposeCommitBatch calls the "propose_commit_batch" method on the "wallet" canister.
-func (a Agent) ProposeCommitBatch(arg0 CommitBatchArguments) error {
+// WalletCall128 calls the "wallet_call128" method on the "wallet" canister.
+func (a Agent) WalletCall128(arg0 struct {
+	Canister   principal.Principal `ic:"canister" json:"canister"`
+	MethodName string              `ic:"method_name" json:"method_name"`
+	Args       []byte              `ic:"args" json:"args"`
+	Cycles     idl.Nat             `ic:"cycles" json:"cycles"`
+}) (*WalletResultCall, error) {
+	var r0 WalletResultCall
 	if err := a.a.Call(
 		a.canisterId,
-		"propose_commit_batch",
+		"wallet_call128",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// WalletCreateCanister calls the "wallet_create_canister" method on the "wallet" canister.
+func (a Agent) WalletCreateCanister(arg0 CreateCanisterArgs) (*WalletResultCreate, error) {
+	var r0 WalletResultCreate
+	if err := a.a.Call(
+		a.canisterId,
+		"wallet_create_canister",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// WalletCreateCanister128 calls the "wallet_create_canister128" method on the "wallet" canister.
+func (a Agent) WalletCreateCanister128(arg0 CreateCanisterArgs128) (*WalletResultCreate, error) {
+	var r0 WalletResultCreate
+	if err := a.a.Call(
+		a.canisterId,
+		"wallet_create_canister128",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// WalletCreateWallet calls the "wallet_create_wallet" method on the "wallet" canister.
+func (a Agent) WalletCreateWallet(arg0 CreateCanisterArgs) (*WalletResultCreate, error) {
+	var r0 WalletResultCreate
+	if err := a.a.Call(
+		a.canisterId,
+		"wallet_create_wallet",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// WalletCreateWallet128 calls the "wallet_create_wallet128" method on the "wallet" canister.
+func (a Agent) WalletCreateWallet128(arg0 CreateCanisterArgs128) (*WalletResultCreate, error) {
+	var r0 WalletResultCreate
+	if err := a.a.Call(
+		a.canisterId,
+		"wallet_create_wallet128",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// WalletReceive calls the "wallet_receive" method on the "wallet" canister.
+func (a Agent) WalletReceive(arg0 *ReceiveOptions) error {
+	if err := a.a.Call(
+		a.canisterId,
+		"wallet_receive",
 		[]any{arg0},
 		[]any{},
 	); err != nil {
@@ -410,56 +479,47 @@ func (a Agent) ProposeCommitBatch(arg0 CommitBatchArguments) error {
 	return nil
 }
 
-// RevokePermission calls the "revoke_permission" method on the "wallet" canister.
-func (a Agent) RevokePermission(arg0 RevokePermission) error {
+// WalletSend calls the "wallet_send" method on the "wallet" canister.
+func (a Agent) WalletSend(arg0 struct {
+	Canister principal.Principal `ic:"canister" json:"canister"`
+	Amount   uint64              `ic:"amount" json:"amount"`
+}) (*WalletResult, error) {
+	var r0 WalletResult
 	if err := a.a.Call(
 		a.canisterId,
-		"revoke_permission",
+		"wallet_send",
 		[]any{arg0},
-		[]any{},
+		[]any{&r0},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &r0, nil
 }
 
-// SetAssetContent calls the "set_asset_content" method on the "wallet" canister.
-func (a Agent) SetAssetContent(arg0 SetAssetContentArguments) error {
+// WalletSend128 calls the "wallet_send128" method on the "wallet" canister.
+func (a Agent) WalletSend128(arg0 struct {
+	Canister principal.Principal `ic:"canister" json:"canister"`
+	Amount   idl.Nat             `ic:"amount" json:"amount"`
+}) (*WalletResult, error) {
+	var r0 WalletResult
 	if err := a.a.Call(
 		a.canisterId,
-		"set_asset_content",
+		"wallet_send128",
 		[]any{arg0},
-		[]any{},
+		[]any{&r0},
 	); err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return &r0, nil
 }
 
-// SetAssetProperties calls the "set_asset_properties" method on the "wallet" canister.
-func (a Agent) SetAssetProperties(arg0 SetAssetPropertiesArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
-		"set_asset_properties",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-// Store calls the "store" method on the "wallet" canister.
-func (a Agent) Store(arg0 struct {
-	Key             Key     `ic:"key" json:"key"`
-	ContentType     string  `ic:"content_type" json:"content_type"`
-	ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
-	Content         []byte  `ic:"content" json:"content"`
-	Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
+// WalletStoreWalletWasm calls the "wallet_store_wallet_wasm" method on the "wallet" canister.
+func (a Agent) WalletStoreWalletWasm(arg0 struct {
+	WasmModule []byte `ic:"wasm_module" json:"wasm_module"`
 }) error {
 	if err := a.a.Call(
 		a.canisterId,
-		"store",
+		"wallet_store_wallet_wasm",
 		[]any{arg0},
 		[]any{},
 	); err != nil {
@@ -468,139 +528,100 @@ func (a Agent) Store(arg0 struct {
 	return nil
 }
 
-// TakeOwnership calls the "take_ownership" method on the "wallet" canister.
-func (a Agent) TakeOwnership() error {
-	if err := a.a.Call(
-		a.canisterId,
-		"take_ownership",
-		[]any{},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
+type CanisterSettings struct {
+	Controller        *principal.Principal   `ic:"controller,omitempty" json:"controller,omitempty"`
+	Controllers       *[]principal.Principal `ic:"controllers,omitempty" json:"controllers,omitempty"`
+	ComputeAllocation *idl.Nat               `ic:"compute_allocation,omitempty" json:"compute_allocation,omitempty"`
+	MemoryAllocation  *idl.Nat               `ic:"memory_allocation,omitempty" json:"memory_allocation,omitempty"`
+	FreezingThreshold *idl.Nat               `ic:"freezing_threshold,omitempty" json:"freezing_threshold,omitempty"`
 }
 
-// UnsetAssetContent calls the "unset_asset_content" method on the "wallet" canister.
-func (a Agent) UnsetAssetContent(arg0 UnsetAssetContentArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
-		"unset_asset_content",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
+type CreateCanisterArgs struct {
+	Cycles   uint64           `ic:"cycles" json:"cycles"`
+	Settings CanisterSettings `ic:"settings" json:"settings"`
 }
 
-// ValidateCommitProposedBatch calls the "validate_commit_proposed_batch" method on the "wallet" canister.
-func (a Agent) ValidateCommitProposedBatch(arg0 CommitProposedBatchArguments) (*ValidationResult, error) {
-	var r0 ValidationResult
-	if err := a.a.Call(
-		a.canisterId,
-		"validate_commit_proposed_batch",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
+type CreateCanisterArgs128 struct {
+	Cycles   idl.Nat          `ic:"cycles" json:"cycles"`
+	Settings CanisterSettings `ic:"settings" json:"settings"`
 }
 
-// ValidateGrantPermission calls the "validate_grant_permission" method on the "wallet" canister.
-func (a Agent) ValidateGrantPermission(arg0 GrantPermission) (*ValidationResult, error) {
-	var r0 ValidationResult
-	if err := a.a.Call(
-		a.canisterId,
-		"validate_grant_permission",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
+type Event struct {
+	Id        uint32    `ic:"id" json:"id"`
+	Timestamp uint64    `ic:"timestamp" json:"timestamp"`
+	Kind      EventKind `ic:"kind" json:"kind"`
 }
 
-// ValidateRevokePermission calls the "validate_revoke_permission" method on the "wallet" canister.
-func (a Agent) ValidateRevokePermission(arg0 RevokePermission) (*ValidationResult, error) {
-	var r0 ValidationResult
-	if err := a.a.Call(
-		a.canisterId,
-		"validate_revoke_permission",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
+type Event128 struct {
+	Id        uint32       `ic:"id" json:"id"`
+	Timestamp uint64       `ic:"timestamp" json:"timestamp"`
+	Kind      EventKind128 `ic:"kind" json:"kind"`
 }
 
-// ValidateTakeOwnership calls the "validate_take_ownership" method on the "wallet" canister.
-func (a Agent) ValidateTakeOwnership() (*ValidationResult, error) {
-	var r0 ValidationResult
-	if err := a.a.Call(
-		a.canisterId,
-		"validate_take_ownership",
-		[]any{},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
+type EventKind struct {
+	CyclesSent *struct {
+		To     principal.Principal `ic:"to" json:"to"`
+		Amount uint64              `ic:"amount" json:"amount"`
+		Refund uint64              `ic:"refund" json:"refund"`
+	} `ic:"CyclesSent,variant"`
+	CyclesReceived *struct {
+		From   principal.Principal `ic:"from" json:"from"`
+		Amount uint64              `ic:"amount" json:"amount"`
+		Memo   *string             `ic:"memo,omitempty" json:"memo,omitempty"`
+	} `ic:"CyclesReceived,variant"`
+	AddressAdded *struct {
+		Id   principal.Principal `ic:"id" json:"id"`
+		Name *string             `ic:"name,omitempty" json:"name,omitempty"`
+		Role Role                `ic:"role" json:"role"`
+	} `ic:"AddressAdded,variant"`
+	AddressRemoved *struct {
+		Id principal.Principal `ic:"id" json:"id"`
+	} `ic:"AddressRemoved,variant"`
+	CanisterCreated *struct {
+		Canister principal.Principal `ic:"canister" json:"canister"`
+		Cycles   uint64              `ic:"cycles" json:"cycles"`
+	} `ic:"CanisterCreated,variant"`
+	CanisterCalled *struct {
+		Canister   principal.Principal `ic:"canister" json:"canister"`
+		MethodName string              `ic:"method_name" json:"method_name"`
+		Cycles     uint64              `ic:"cycles" json:"cycles"`
+	} `ic:"CanisterCalled,variant"`
+	WalletDeployed *struct {
+		Canister principal.Principal `ic:"canister" json:"canister"`
+	} `ic:"WalletDeployed,variant"`
 }
 
-type BatchId = idl.Nat
-
-type BatchOperationKind struct {
-	CreateAsset        *CreateAssetArguments        `ic:"CreateAsset,variant"`
-	SetAssetContent    *SetAssetContentArguments    `ic:"SetAssetContent,variant"`
-	SetAssetProperties *SetAssetPropertiesArguments `ic:"SetAssetProperties,variant"`
-	UnsetAssetContent  *UnsetAssetContentArguments  `ic:"UnsetAssetContent,variant"`
-	DeleteAsset        *DeleteAssetArguments        `ic:"DeleteAsset,variant"`
-	Clear              *ClearArguments              `ic:"Clear,variant"`
-}
-
-type ChunkId = idl.Nat
-
-type ClearArguments struct {
-}
-
-type CommitBatchArguments struct {
-	BatchId    BatchId              `ic:"batch_id" json:"batch_id"`
-	Operations []BatchOperationKind `ic:"operations" json:"operations"`
-}
-
-type CommitProposedBatchArguments struct {
-	BatchId  BatchId `ic:"batch_id" json:"batch_id"`
-	Evidence []byte  `ic:"evidence" json:"evidence"`
-}
-
-type ComputeEvidenceArguments struct {
-	BatchId       BatchId `ic:"batch_id" json:"batch_id"`
-	MaxIterations *uint16 `ic:"max_iterations,omitempty" json:"max_iterations,omitempty"`
-}
-
-type CreateAssetArguments struct {
-	Key            Key            `ic:"key" json:"key"`
-	ContentType    string         `ic:"content_type" json:"content_type"`
-	MaxAge         *uint64        `ic:"max_age,omitempty" json:"max_age,omitempty"`
-	Headers        *[]HeaderField `ic:"headers,omitempty" json:"headers,omitempty"`
-	EnableAliasing *bool          `ic:"enable_aliasing,omitempty" json:"enable_aliasing,omitempty"`
-	AllowRawAccess *bool          `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
-}
-
-type DeleteAssetArguments struct {
-	Key Key `ic:"key" json:"key"`
-}
-
-type DeleteBatchArguments struct {
-	BatchId BatchId `ic:"batch_id" json:"batch_id"`
-}
-
-type GrantPermission struct {
-	ToPrincipal principal.Principal `ic:"to_principal" json:"to_principal"`
-	Permission  Permission          `ic:"permission" json:"permission"`
+type EventKind128 struct {
+	CyclesSent *struct {
+		To     principal.Principal `ic:"to" json:"to"`
+		Amount idl.Nat             `ic:"amount" json:"amount"`
+		Refund idl.Nat             `ic:"refund" json:"refund"`
+	} `ic:"CyclesSent,variant"`
+	CyclesReceived *struct {
+		From   principal.Principal `ic:"from" json:"from"`
+		Amount idl.Nat             `ic:"amount" json:"amount"`
+		Memo   *string             `ic:"memo,omitempty" json:"memo,omitempty"`
+	} `ic:"CyclesReceived,variant"`
+	AddressAdded *struct {
+		Id   principal.Principal `ic:"id" json:"id"`
+		Name *string             `ic:"name,omitempty" json:"name,omitempty"`
+		Role Role                `ic:"role" json:"role"`
+	} `ic:"AddressAdded,variant"`
+	AddressRemoved *struct {
+		Id principal.Principal `ic:"id" json:"id"`
+	} `ic:"AddressRemoved,variant"`
+	CanisterCreated *struct {
+		Canister principal.Principal `ic:"canister" json:"canister"`
+		Cycles   idl.Nat             `ic:"cycles" json:"cycles"`
+	} `ic:"CanisterCreated,variant"`
+	CanisterCalled *struct {
+		Canister   principal.Principal `ic:"canister" json:"canister"`
+		MethodName string              `ic:"method_name" json:"method_name"`
+		Cycles     idl.Nat             `ic:"cycles" json:"cycles"`
+	} `ic:"CanisterCalled,variant"`
+	WalletDeployed *struct {
+		Canister principal.Principal `ic:"canister" json:"canister"`
+	} `ic:"WalletDeployed,variant"`
 }
 
 type HeaderField struct {
@@ -609,11 +630,10 @@ type HeaderField struct {
 }
 
 type HttpRequest struct {
-	Method             string        `ic:"method" json:"method"`
-	Url                string        `ic:"url" json:"url"`
-	Headers            []HeaderField `ic:"headers" json:"headers"`
-	Body               []byte        `ic:"body" json:"body"`
-	CertificateVersion *uint16       `ic:"certificate_version,omitempty" json:"certificate_version,omitempty"`
+	Method  string        `ic:"method" json:"method"`
+	Url     string        `ic:"url" json:"url"`
+	Headers []HeaderField `ic:"headers" json:"headers"`
+	Body    []byte        `ic:"body" json:"body"`
 }
 
 type HttpResponse struct {
@@ -623,66 +643,99 @@ type HttpResponse struct {
 	StreamingStrategy *StreamingStrategy `ic:"streaming_strategy,omitempty" json:"streaming_strategy,omitempty"`
 }
 
-type Key = string
-
-type ListPermitted struct {
-	Permission Permission `ic:"permission" json:"permission"`
+type Kind struct {
+	Unknown  *idl.Null `ic:"Unknown,variant"`
+	User     *idl.Null `ic:"User,variant"`
+	Canister *idl.Null `ic:"Canister,variant"`
 }
 
-type Permission struct {
-	Commit            *idl.Null `ic:"Commit,variant"`
-	ManagePermissions *idl.Null `ic:"ManagePermissions,variant"`
-	Prepare           *idl.Null `ic:"Prepare,variant"`
+type ManagedCanisterEvent struct {
+	Id        uint32                   `ic:"id" json:"id"`
+	Timestamp uint64                   `ic:"timestamp" json:"timestamp"`
+	Kind      ManagedCanisterEventKind `ic:"kind" json:"kind"`
 }
 
-type RevokePermission struct {
-	OfPrincipal principal.Principal `ic:"of_principal" json:"of_principal"`
-	Permission  Permission          `ic:"permission" json:"permission"`
+type ManagedCanisterEvent128 struct {
+	Id        uint32                      `ic:"id" json:"id"`
+	Timestamp uint64                      `ic:"timestamp" json:"timestamp"`
+	Kind      ManagedCanisterEventKind128 `ic:"kind" json:"kind"`
 }
 
-type SetAssetContentArguments struct {
-	Key             Key       `ic:"key" json:"key"`
-	ContentEncoding string    `ic:"content_encoding" json:"content_encoding"`
-	ChunkIds        []ChunkId `ic:"chunk_ids" json:"chunk_ids"`
-	Sha256          *[]byte   `ic:"sha256,omitempty" json:"sha256,omitempty"`
+type ManagedCanisterEventKind struct {
+	CyclesSent *struct {
+		Amount uint64 `ic:"amount" json:"amount"`
+		Refund uint64 `ic:"refund" json:"refund"`
+	} `ic:"CyclesSent,variant"`
+	Called *struct {
+		MethodName string `ic:"method_name" json:"method_name"`
+		Cycles     uint64 `ic:"cycles" json:"cycles"`
+	} `ic:"Called,variant"`
+	Created *struct {
+		Cycles uint64 `ic:"cycles" json:"cycles"`
+	} `ic:"Created,variant"`
 }
 
-type SetAssetPropertiesArguments struct {
-	Key            Key             `ic:"key" json:"key"`
-	MaxAge         **uint64        `ic:"max_age,omitempty" json:"max_age,omitempty"`
-	Headers        **[]HeaderField `ic:"headers,omitempty" json:"headers,omitempty"`
-	AllowRawAccess **bool          `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
-	IsAliased      **bool          `ic:"is_aliased,omitempty" json:"is_aliased,omitempty"`
+type ManagedCanisterEventKind128 struct {
+	CyclesSent *struct {
+		Amount idl.Nat `ic:"amount" json:"amount"`
+		Refund idl.Nat `ic:"refund" json:"refund"`
+	} `ic:"CyclesSent,variant"`
+	Called *struct {
+		MethodName string  `ic:"method_name" json:"method_name"`
+		Cycles     idl.Nat `ic:"cycles" json:"cycles"`
+	} `ic:"Called,variant"`
+	Created *struct {
+		Cycles idl.Nat `ic:"cycles" json:"cycles"`
+	} `ic:"Created,variant"`
+}
+
+type ManagedCanisterInfo struct {
+	Id        principal.Principal `ic:"id" json:"id"`
+	Name      *string             `ic:"name,omitempty" json:"name,omitempty"`
+	CreatedAt uint64              `ic:"created_at" json:"created_at"`
+}
+
+type ReceiveOptions struct {
+	Memo *string `ic:"memo,omitempty" json:"memo,omitempty"`
+}
+
+type Role struct {
+	Contact    *idl.Null `ic:"Contact,variant"`
+	Custodian  *idl.Null `ic:"Custodian,variant"`
+	Controller *idl.Null `ic:"Controller,variant"`
 }
 
 type StreamingCallbackHttpResponse struct {
-	Body  []byte                  `ic:"body" json:"body"`
-	Token *StreamingCallbackToken `ic:"token,omitempty" json:"token,omitempty"`
-}
-
-type StreamingCallbackToken struct {
-	Key             Key     `ic:"key" json:"key"`
-	ContentEncoding string  `ic:"content_encoding" json:"content_encoding"`
-	Index           idl.Nat `ic:"index" json:"index"`
-	Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
+	Body  []byte `ic:"body" json:"body"`
+	Token *Token `ic:"token,omitempty" json:"token,omitempty"`
 }
 
 type StreamingStrategy struct {
 	Callback *struct {
 		Callback struct { /* NOT SUPPORTED */
 		} `ic:"callback" json:"callback"`
-		Token StreamingCallbackToken `ic:"token" json:"token"`
+		Token Token `ic:"token" json:"token"`
 	} `ic:"Callback,variant"`
 }
 
-type Time = idl.Int
-
-type UnsetAssetContentArguments struct {
-	Key             Key    `ic:"key" json:"key"`
-	ContentEncoding string `ic:"content_encoding" json:"content_encoding"`
+type Token struct {
 }
 
-type ValidationResult struct {
-	Ok  *string `ic:"Ok,variant"`
+type WalletResult struct {
+	Ok  *idl.Null `ic:"Ok,variant"`
+	Err *string   `ic:"Err,variant"`
+}
+
+type WalletResultCall struct {
+	Ok *struct {
+		Return []byte `ic:"return" json:"return"`
+	} `ic:"Ok,variant"`
+	Err *string `ic:"Err,variant"`
+}
+
+type WalletResultCreate struct {
+	Ok *struct {
+		CanisterId principal.Principal `ic:"canister_id" json:"canister_id"`
+	} `ic:"Ok,variant"`
 	Err *string `ic:"Err,variant"`
 }

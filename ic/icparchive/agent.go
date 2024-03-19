@@ -42,6 +42,20 @@ func (a Agent) GetBlocks(arg0 GetBlocksArgs) (*GetBlocksResult, error) {
 	return &r0, nil
 }
 
+// GetEncodedBlocks calls the "get_encoded_blocks" method on the "icparchive" canister.
+func (a Agent) GetEncodedBlocks(arg0 GetBlocksArgs) (*GetEncodedBlocksResult, error) {
+	var r0 GetEncodedBlocksResult
+	if err := a.a.Query(
+		a.canisterId,
+		"get_encoded_blocks",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 type Block struct {
 	ParentHash  *[]byte     `ic:"parent_hash,omitempty" json:"parent_hash,omitempty"`
 	Transaction Transaction `ic:"transaction" json:"transaction"`
@@ -75,6 +89,11 @@ type GetBlocksResult struct {
 	Err *GetBlocksError `ic:"Err,variant"`
 }
 
+type GetEncodedBlocksResult struct {
+	Ok  *[][]byte       `ic:"Ok,variant"`
+	Err *GetBlocksError `ic:"Err,variant"`
+}
+
 type Memo = uint64
 
 type Operation struct {
@@ -83,29 +102,26 @@ type Operation struct {
 		Amount Tokens            `ic:"amount" json:"amount"`
 	} `ic:"Mint,variant"`
 	Burn *struct {
-		From   AccountIdentifier `ic:"from" json:"from"`
-		Amount Tokens            `ic:"amount" json:"amount"`
+		From    AccountIdentifier  `ic:"from" json:"from"`
+		Spender *AccountIdentifier `ic:"spender,omitempty" json:"spender,omitempty"`
+		Amount  Tokens             `ic:"amount" json:"amount"`
 	} `ic:"Burn,variant"`
 	Transfer *struct {
-		From   AccountIdentifier `ic:"from" json:"from"`
-		To     AccountIdentifier `ic:"to" json:"to"`
-		Amount Tokens            `ic:"amount" json:"amount"`
-		Fee    Tokens            `ic:"fee" json:"fee"`
-	} `ic:"Transfer,variant"`
-	Approve *struct {
-		From         AccountIdentifier `ic:"from" json:"from"`
-		Spender      AccountIdentifier `ic:"spender" json:"spender"`
-		AllowanceE8s idl.Int           `ic:"allowance_e8s" json:"allowance_e8s"`
-		Fee          Tokens            `ic:"fee" json:"fee"`
-		ExpiresAt    *Timestamp        `ic:"expires_at,omitempty" json:"expires_at,omitempty"`
-	} `ic:"Approve,variant"`
-	TransferFrom *struct {
 		From    AccountIdentifier `ic:"from" json:"from"`
 		To      AccountIdentifier `ic:"to" json:"to"`
-		Spender AccountIdentifier `ic:"spender" json:"spender"`
 		Amount  Tokens            `ic:"amount" json:"amount"`
 		Fee     Tokens            `ic:"fee" json:"fee"`
-	} `ic:"TransferFrom,variant"`
+		Spender *[]uint8          `ic:"spender,omitempty" json:"spender,omitempty"`
+	} `ic:"Transfer,variant"`
+	Approve *struct {
+		From              AccountIdentifier `ic:"from" json:"from"`
+		Spender           AccountIdentifier `ic:"spender" json:"spender"`
+		AllowanceE8s      idl.Int           `ic:"allowance_e8s" json:"allowance_e8s"`
+		Allowance         Tokens            `ic:"allowance" json:"allowance"`
+		Fee               Tokens            `ic:"fee" json:"fee"`
+		ExpiresAt         *Timestamp        `ic:"expires_at,omitempty" json:"expires_at,omitempty"`
+		ExpectedAllowance *Tokens           `ic:"expected_allowance,omitempty" json:"expected_allowance,omitempty"`
+	} `ic:"Approve,variant"`
 }
 
 type Timestamp struct {

@@ -21,9 +21,15 @@ module T {
     public type StreamingCallbackToken = { key : T.Key; content_encoding : Text; index : Nat; sha256 : ?Blob };
     public type StreamingStrategy = { #Callback : { callback : { /* func */ }; token : T.StreamingCallbackToken } };
     public type SetAssetPropertiesArguments = { key : T.Key; max_age : ??Nat64; headers : ??[T.HeaderField]; allow_raw_access : ??Bool; is_aliased : ??Bool };
+    public type ConfigurationResponse = { max_batches : ?Nat64; max_chunks : ?Nat64; max_bytes : ?Nat64 };
+    public type ConfigureArguments = { max_batches : ??Nat64; max_chunks : ??Nat64; max_bytes : ??Nat64 };
     public type Permission = { #Commit; #ManagePermissions; #Prepare };
     public type GrantPermission = { to_principal : Principal; permission : T.Permission };
     public type RevokePermission = { of_principal : Principal; permission : T.Permission };
     public type ListPermitted = { permission : T.Permission };
     public type ValidationResult = { #Ok : Text; #Err : Text };
+    public type AssetCanisterArgs = { #Init : T.InitArgs; #Upgrade : T.UpgradeArgs };
+    public type InitArgs = {  };
+    public type UpgradeArgs = { set_permissions : ?T.SetPermissions };
+    public type SetPermissions = { prepare : [Principal]; commit : [Principal]; manage_permissions : [Principal] };
 };

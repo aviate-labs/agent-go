@@ -127,6 +127,19 @@ func (a Agent) ComputeEvidence(arg0 ComputeEvidenceArguments) (**[]byte, error) 
 	return &r0, nil
 }
 
+// Configure calls the "configure" method on the "assetstorage" canister.
+func (a Agent) Configure(arg0 ConfigureArguments) error {
+	if err := a.a.Call(
+		a.canisterId,
+		"configure",
+		[]any{arg0},
+		[]any{},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
 // CreateAsset calls the "create_asset" method on the "assetstorage" canister.
 func (a Agent) CreateAsset(arg0 CreateAssetArguments) error {
 	if err := a.a.Call(
@@ -295,6 +308,20 @@ func (a Agent) GetChunk(arg0 struct {
 	return &r0, nil
 }
 
+// GetConfiguration calls the "get_configuration" method on the "assetstorage" canister.
+func (a Agent) GetConfiguration() (*ConfigurationResponse, error) {
+	var r0 ConfigurationResponse
+	if err := a.a.Call(
+		a.canisterId,
+		"get_configuration",
+		[]any{},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 // GrantPermission calls the "grant_permission" method on the "assetstorage" canister.
 func (a Agent) GrantPermission(arg0 GrantPermission) error {
 	if err := a.a.Call(
@@ -372,7 +399,7 @@ func (a Agent) List(arg0 struct {
 // ListAuthorized calls the "list_authorized" method on the "assetstorage" canister.
 func (a Agent) ListAuthorized() (*[]principal.Principal, error) {
 	var r0 []principal.Principal
-	if err := a.a.Query(
+	if err := a.a.Call(
 		a.canisterId,
 		"list_authorized",
 		[]any{},
@@ -386,7 +413,7 @@ func (a Agent) ListAuthorized() (*[]principal.Principal, error) {
 // ListPermitted calls the "list_permitted" method on the "assetstorage" canister.
 func (a Agent) ListPermitted(arg0 ListPermitted) (*[]principal.Principal, error) {
 	var r0 []principal.Principal
-	if err := a.a.Query(
+	if err := a.a.Call(
 		a.canisterId,
 		"list_permitted",
 		[]any{arg0},
@@ -508,6 +535,20 @@ func (a Agent) ValidateCommitProposedBatch(arg0 CommitProposedBatchArguments) (*
 	return &r0, nil
 }
 
+// ValidateConfigure calls the "validate_configure" method on the "assetstorage" canister.
+func (a Agent) ValidateConfigure(arg0 ConfigureArguments) (*ValidationResult, error) {
+	var r0 ValidationResult
+	if err := a.a.Call(
+		a.canisterId,
+		"validate_configure",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 // ValidateGrantPermission calls the "validate_grant_permission" method on the "assetstorage" canister.
 func (a Agent) ValidateGrantPermission(arg0 GrantPermission) (*ValidationResult, error) {
 	var r0 ValidationResult
@@ -550,6 +591,11 @@ func (a Agent) ValidateTakeOwnership() (*ValidationResult, error) {
 	return &r0, nil
 }
 
+type AssetCanisterArgs struct {
+	Init    *InitArgs    `ic:"Init,variant"`
+	Upgrade *UpgradeArgs `ic:"Upgrade,variant"`
+}
+
 type BatchId = idl.Nat
 
 type BatchOperationKind struct {
@@ -579,6 +625,18 @@ type CommitProposedBatchArguments struct {
 type ComputeEvidenceArguments struct {
 	BatchId       BatchId `ic:"batch_id" json:"batch_id"`
 	MaxIterations *uint16 `ic:"max_iterations,omitempty" json:"max_iterations,omitempty"`
+}
+
+type ConfigurationResponse struct {
+	MaxBatches *uint64 `ic:"max_batches,omitempty" json:"max_batches,omitempty"`
+	MaxChunks  *uint64 `ic:"max_chunks,omitempty" json:"max_chunks,omitempty"`
+	MaxBytes   *uint64 `ic:"max_bytes,omitempty" json:"max_bytes,omitempty"`
+}
+
+type ConfigureArguments struct {
+	MaxBatches **uint64 `ic:"max_batches,omitempty" json:"max_batches,omitempty"`
+	MaxChunks  **uint64 `ic:"max_chunks,omitempty" json:"max_chunks,omitempty"`
+	MaxBytes   **uint64 `ic:"max_bytes,omitempty" json:"max_bytes,omitempty"`
 }
 
 type CreateAssetArguments struct {
@@ -623,6 +681,9 @@ type HttpResponse struct {
 	StreamingStrategy *StreamingStrategy `ic:"streaming_strategy,omitempty" json:"streaming_strategy,omitempty"`
 }
 
+type InitArgs struct {
+}
+
 type Key = string
 
 type ListPermitted struct {
@@ -655,6 +716,12 @@ type SetAssetPropertiesArguments struct {
 	IsAliased      **bool          `ic:"is_aliased,omitempty" json:"is_aliased,omitempty"`
 }
 
+type SetPermissions struct {
+	Prepare           []principal.Principal `ic:"prepare" json:"prepare"`
+	Commit            []principal.Principal `ic:"commit" json:"commit"`
+	ManagePermissions []principal.Principal `ic:"manage_permissions" json:"manage_permissions"`
+}
+
 type StreamingCallbackHttpResponse struct {
 	Body  []byte                  `ic:"body" json:"body"`
 	Token *StreamingCallbackToken `ic:"token,omitempty" json:"token,omitempty"`
@@ -680,6 +747,10 @@ type Time = idl.Int
 type UnsetAssetContentArguments struct {
 	Key             Key    `ic:"key" json:"key"`
 	ContentEncoding string `ic:"content_encoding" json:"content_encoding"`
+}
+
+type UpgradeArgs struct {
+	SetPermissions *SetPermissions `ic:"set_permissions,omitempty" json:"set_permissions,omitempty"`
 }
 
 type ValidationResult struct {

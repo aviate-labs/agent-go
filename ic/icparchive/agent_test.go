@@ -55,6 +55,33 @@ func Test_GetBlocks(t *testing.T) {
 
 }
 
+// Test_GetEncodedBlocks tests the "get_encoded_blocks" method on the "icparchive" canister.
+func Test_GetEncodedBlocks(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "get_encoded_blocks",
+			Arguments: []any{new(icparchive.GetBlocksArgs)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{icparchive.GetEncodedBlocksResult{
+					Ok: idl.Ptr([][]byte{*new([]byte)}),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = icparchive.GetBlocksArgs{
+		*new(uint64),
+		*new(uint64),
+	}
+	if _, err := a.GetEncodedBlocks(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
 // newAgent creates a new agent with the given (mock) methods.
 // Runs a mock replica in the background.
 func newAgent(methods []mock.Method) (*icparchive.Agent, error) {

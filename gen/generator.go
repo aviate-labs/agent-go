@@ -181,7 +181,7 @@ func (g *Generator) GenerateActor() ([]byte, error) {
 			var argumentTypes []agentArgsMethodArgument
 			for i, t := range f.ArgTypes {
 				argumentTypes = append(argumentTypes, agentArgsMethodArgument{
-					Name: fmt.Sprintf("arg%d", i),
+					Name: fmt.Sprintf("_arg%d", i),
 					Type: g.dataToMotokoString(t.Data),
 				})
 			}
@@ -371,7 +371,7 @@ func (g *Generator) dataToGoReturnValue(definitions map[string]did.Data, prefix 
 			} else {
 				name = *f.NameData
 			}
-			return fmt.Sprintf("%s{\n%s: %s,\n}", g.dataToString(prefix, t), name, field)
+			return fmt.Sprintf("%s{\n%s: %s,\n}", g.dataToString(prefix, t), funcName("", name), field)
 		default:
 			switch data := data.(type) {
 			case did.Primitive:
@@ -422,7 +422,7 @@ func (g *Generator) dataToGoReturnValue(definitions map[string]did.Data, prefix 
 		} else {
 			field = strings.TrimPrefix(field, "*")
 		}
-		return fmt.Sprintf("%s{\n%s: %s,\n}", g.dataToString(prefix, data), name, field)
+		return fmt.Sprintf("%s{\n%s: %s,\n}", g.dataToString(prefix, data), funcName("", name), field)
 	case did.Vector:
 		switch t.Data.(type) {
 		case did.DataId:
@@ -512,7 +512,13 @@ func (g *Generator) dataToMotokoReturnValue(s rand.Source, definitions map[strin
 		if field.Data != nil {
 			return fmt.Sprintf("#%s(%s)", *field.Name, g.dataToMotokoReturnValue(s, definitions, *field.Data))
 		}
-		return fmt.Sprintf("#%s(%s)", *field.Name, g.dataToMotokoReturnValue(s, definitions, definitions[*field.NameData]))
+		if field.Name != nil {
+			return fmt.Sprintf("#%s(%s)", *field.Name, g.dataToMotokoReturnValue(s, definitions, definitions[*field.NameData]))
+		}
+		if data := definitions[*field.NameData]; data != nil {
+			return fmt.Sprintf("#%s(%s)", *field.NameData, g.dataToMotokoReturnValue(s, definitions, definitions[*field.NameData]))
+		}
+		return fmt.Sprintf("#%s", *field.NameData)
 	case did.Optional:
 		return fmt.Sprintf("?%s", g.dataToMotokoReturnValue(s, definitions, t.Data))
 	}
@@ -531,14 +537,14 @@ func (g *Generator) dataToMotokoString(data did.Data) string {
 			if v.Name != nil {
 				var data string
 				if v.NameData != nil {
-					data = fmt.Sprintf("T.%s", *v.NameData)
+					data = fmt.Sprintf("T.%s", funcName("", *v.NameData))
 				} else {
 					data = g.dataToMotokoString(*v.Data)
 				}
 				fields = append(fields, fmt.Sprintf("%s : %s", *v.Name, data))
 			} else {
 				if v.NameData != nil {
-					fields = append(fields, fmt.Sprintf("T.%s", *v.NameData))
+					fields = append(fields, fmt.Sprintf("T.%s", funcName("", *v.NameData)))
 				} else {
 					fields = append(fields, g.dataToMotokoString(*v.Data))
 				}
@@ -561,7 +567,7 @@ func (g *Generator) dataToMotokoString(data did.Data) string {
 			if v.Name != nil {
 				var data string
 				if v.NameData != nil {
-					data = fmt.Sprintf("T.%s", *v.NameData)
+					data = fmt.Sprintf("T.%s", funcName("", *v.NameData))
 				} else {
 					data = g.dataToMotokoString(*v.Data)
 				}
@@ -593,7 +599,7 @@ func (g *Generator) dataToMotokoString(data did.Data) string {
 	case did.Principal:
 		return "Principal"
 	case did.DataId:
-		return fmt.Sprintf("T.%s", string(t))
+		return fmt.Sprintf("T.%s", funcName("", string(t)))
 	default:
 		panic(fmt.Sprintf("unknown type: %T", t))
 	}
@@ -706,7 +712,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 					originalName string
 					name         string
 					typ          string
-				}{originalName: name, name: name, typ: "idl.Null"})
+				}{originalName: name, name: funcName("", name), typ: "idl.Null"})
 			} else {
 				name := funcName("", *field.Name)
 				if l := len(name); l > sizeName {

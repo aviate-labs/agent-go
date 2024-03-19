@@ -3,7 +3,7 @@ import T "types";
 
 import { principalOfBlob } = "mo:⛔";
 
-actor class {{ .CanisterName }}() : async actor {} {
+actor class _{{ .CanisterName }}() : async actor {} {
 {{- range .Methods }}
     public {{ .Type}} func {{ .Name }}({{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }} : {{ $e.Type }}{{ end }}) : async ({{ range $i, $e := .ReturnTypes }}{{ if $i }}, {{ end }}{{ $e }}{{ end }}) {
         ({{ range $i, $e := .ReturnValues }}{{ if $i }}, {{ end }}{{ $e }}{{ end }})

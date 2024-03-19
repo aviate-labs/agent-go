@@ -192,6 +192,32 @@ func Test_ComputeEvidence(t *testing.T) {
 
 }
 
+// Test_Configure tests the "configure" method on the "assetstorage" canister.
+func Test_Configure(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "configure",
+			Arguments: []any{new(assetstorage.ConfigureArguments)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = assetstorage.ConfigureArguments{
+		*new(**uint64),
+		*new(**uint64),
+		*new(**uint64),
+	}
+	if err := a.Configure(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
 // Test_CreateAsset tests the "create_asset" method on the "assetstorage" canister.
 func Test_CreateAsset(t *testing.T) {
 	a, err := newAgent([]mock.Method{
@@ -465,6 +491,31 @@ func Test_GetChunk(t *testing.T) {
 		*new(*[]byte),
 	}
 	if _, err := a.GetChunk(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_GetConfiguration tests the "get_configuration" method on the "assetstorage" canister.
+func Test_GetConfiguration(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "get_configuration",
+			Arguments: []any{},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{assetstorage.ConfigurationResponse{
+					*new(*uint64),
+					*new(*uint64),
+					*new(*uint64),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := a.GetConfiguration(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -885,6 +936,34 @@ func Test_ValidateCommitProposedBatch(t *testing.T) {
 		*new([]byte),
 	}
 	if _, err := a.ValidateCommitProposedBatch(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
+// Test_ValidateConfigure tests the "validate_configure" method on the "assetstorage" canister.
+func Test_ValidateConfigure(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name:      "validate_configure",
+			Arguments: []any{new(assetstorage.ConfigureArguments)},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{assetstorage.ValidationResult{
+					Ok: new(string),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = assetstorage.ConfigureArguments{
+		*new(**uint64),
+		*new(**uint64),
+		*new(**uint64),
+	}
+	if _, err := a.ValidateConfigure(a0); err != nil {
 		t.Fatal(err)
 	}
 

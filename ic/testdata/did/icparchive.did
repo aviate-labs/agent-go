@@ -1,5 +1,3 @@
-// SOURCE: https://github.com/dfinity/ic/blob/a1f503d20b7846375c74ce5f7d0f8f6620ab7511/rs/rosetta-api/icp_ledger/ledger_archive.did
-
 type BlockIndex = nat64;
 type Memo = nat64;
 type AccountIdentifier = blob;
@@ -13,6 +11,7 @@ type Operation = variant {
     };
     Burn : record {
         from : AccountIdentifier;
+        spender : opt AccountIdentifier;
         amount : Tokens;
     };
     Transfer : record {
@@ -20,20 +19,17 @@ type Operation = variant {
         to : AccountIdentifier;
         amount : Tokens;
         fee : Tokens;
+        spender : opt vec nat8;
     };
     Approve : record {
         from : AccountIdentifier;
         spender : AccountIdentifier;
+        // This field is deprecated and should not be used.
         allowance_e8s : int;
+        allowance: Tokens;
         fee : Tokens;
         expires_at : opt Timestamp;
-    };
-    TransferFrom : record {
-        from : AccountIdentifier;
-        to : AccountIdentifier;
-        spender : AccountIdentifier;
-        amount : Tokens;
-        fee : Tokens;
+        expected_allowance : opt Tokens;
     };
 };
 
@@ -81,6 +77,9 @@ type GetBlocksResult = variant {
     Err : GetBlocksError;
 };
 
+type GetEncodedBlocksResult = variant { Ok : vec blob; Err : GetBlocksError };
+
 service : {
     get_blocks : (GetBlocksArgs) -> (GetBlocksResult) query;
+    get_encoded_blocks : (GetBlocksArgs) -> (GetEncodedBlocksResult) query;
 }

@@ -5,11 +5,12 @@ module T {
     public type AccountIdentifier = Blob;
     public type Tokens = { e8s : Nat64 };
     public type Timestamp = { timestamp_nanos : Nat64 };
-    public type Operation = { #Mint : { to : T.AccountIdentifier; amount : T.Tokens }; #Burn : { from : T.AccountIdentifier; amount : T.Tokens }; #Transfer : { from : T.AccountIdentifier; to : T.AccountIdentifier; amount : T.Tokens; fee : T.Tokens }; #Approve : { from : T.AccountIdentifier; spender : T.AccountIdentifier; allowance_e8s : Int; fee : T.Tokens; expires_at : ?T.Timestamp }; #TransferFrom : { from : T.AccountIdentifier; to : T.AccountIdentifier; spender : T.AccountIdentifier; amount : T.Tokens; fee : T.Tokens } };
+    public type Operation = { #Mint : { to : T.AccountIdentifier; amount : T.Tokens }; #Burn : { from : T.AccountIdentifier; spender : ?T.AccountIdentifier; amount : T.Tokens }; #Transfer : { from : T.AccountIdentifier; to : T.AccountIdentifier; amount : T.Tokens; fee : T.Tokens; spender : ?[Nat8] }; #Approve : { from : T.AccountIdentifier; spender : T.AccountIdentifier; allowance_e8s : Int; allowance : T.Tokens; fee : T.Tokens; expires_at : ?T.Timestamp; expected_allowance : ?T.Tokens } };
     public type Transaction = { memo : T.Memo; icrc1_memo : ?Blob; operation : ?T.Operation; created_at_time : T.Timestamp };
     public type Block = { parent_hash : ?Blob; transaction : T.Transaction; timestamp : T.Timestamp };
     public type GetBlocksArgs = { start : T.BlockIndex; length : Nat64 };
     public type BlockRange = { blocks : [T.Block] };
     public type GetBlocksError = { #BadFirstBlockIndex : { requested_index : T.BlockIndex; first_valid_index : T.BlockIndex }; #Other : { error_code : Nat64; error_message : Text } };
     public type GetBlocksResult = { #Ok : T.BlockRange; #Err : T.GetBlocksError };
+    public type GetEncodedBlocksResult = { #Ok : [Blob]; #Err : T.GetBlocksError };
 };

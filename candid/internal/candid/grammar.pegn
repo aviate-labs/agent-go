@@ -36,7 +36,7 @@ Variant   <-- 'variant' Sp '{' Ws Fields? Ws '}'
 Fields     <- FieldType (';' Ws FieldType)* ';'?
 
 RefType    <- Func / Service / Principal
-Func      <-- 'func' Sp FuncType
+Func      <-- 'func' Sp? FuncType
 Service   <-- 'service' Sp ActorType
 Principal <-- 'principal'
 

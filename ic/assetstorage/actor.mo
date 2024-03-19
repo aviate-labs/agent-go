@@ -3,104 +3,113 @@ import T "types";
 
 import { principalOfBlob } = "mo:⛔";
 
-actor class assetstorage() : async actor {} {
+actor class _assetstorage() : async actor {} {
     public query func api_version() : async (Nat16) {
         (37567)
     };
-    public query func get(arg0 : { key : T.Key; accept_encodings : [Text] }) : async ({ content : Blob; content_type : Text; content_encoding : Text; sha256 : ?Blob; total_length : Nat }) {
+    public query func get(_arg0 : { key : T.Key; accept_encodings : [Text] }) : async ({ content : Blob; content_type : Text; content_encoding : Text; sha256 : ?Blob; total_length : Nat }) {
         ({ content = "xD29BA3285331F6C7F0D655473EECC726ACDC040F58EA6EB25E7F29AF0D9A0D1C"; content_type = "16783008128760111668"; content_encoding = "17950520798700563169"; sha256 = ?"x9CB2427F6FE653F6B62FBA96D8F1E12A8E56D5C2F78BFBBC1AA2123F3F351627"; total_length = 6026846697888358752 })
     };
-    public query func get_chunk(arg0 : { key : T.Key; content_encoding : Text; index : Nat; sha256 : ?Blob }) : async ({ content : Blob }) {
+    public query func get_chunk(_arg0 : { key : T.Key; content_encoding : Text; index : Nat; sha256 : ?Blob }) : async ({ content : Blob }) {
         ({ content = "xD29BA3285331F6C7F0D655473EECC726ACDC040F58EA6EB25E7F29AF0D9A0D1C" })
     };
-    public query func list(arg0 : {  }) : async ([{ key : T.Key; content_type : Text; encodings : [{ content_encoding : Text; sha256 : ?Blob; length : Nat; modified : T.Time }] }]) {
+    public query func list(_arg0 : {  }) : async ([{ key : T.Key; content_type : Text; encodings : [{ content_encoding : Text; sha256 : ?Blob; length : Nat; modified : T.Time }] }]) {
         ([ { key = "10947193270334582983"; content_type = "14796593089282320071"; encodings = [  ] }, { key = "5581137331052452365"; content_type = "16783008128760111668"; encodings = [ { content_encoding = "12417521964141425308"; sha256 = ?"xF6B62FBA96D8F1E12A8E56D5C2F78BFBBC1AA2123F3F351627CDA4F460215FDF"; length = 6761596587761439523; modified = 10710614497258299314 } ] }, { key = "15136801312447304127"; content_type = "162152548071980469"; encodings = [ { content_encoding = "14077209220119134463"; sha256 = ?"xD3C55B521FA7E06E7250741B34B1DAA9B202CC3344785BC76BE335FD22FFB6C9"; length = 2084077193164783305; modified = 13391675440417614532 }, { content_encoding = "14968975491899110795"; sha256 = ?"x37C657F58FE763E151AE30313D91840FE735F3F6150AB1E806425DC06D370BF7"; length = 2352680325195863822; modified = 14128014930335967750 } ] }, { key = "3746323425543278841"; content_type = "8821984346850239251"; encodings = [ { content_encoding = "14462736655647055063"; sha256 = ?"xCFA664CF571B6486A80528C4DCAE1D1930B6D8706B4A7C18EE44C91F412FFD02"; length = 9929700925399154573; modified = 11088767165576575891 }, { content_encoding = "15046035820075230567"; sha256 = ?"x33CFD8BFE7A383ECAFF6D1758A17DAC3846F3083D3C758209A80969C406C0F9F"; length = 12055834449873493410; modified = 31796421242169405 }, { content_encoding = "11447805667579589575"; sha256 = ?"x36DB7871DEFE2A16CB43D7DBFF5C07226CA4A775F57295BA54EBD1D035949200"; length = 13617578955253855046; modified = 1594180888861903055 }, { content_encoding = "6239237605257051267"; sha256 = ?"x0A83E5B901801DC34B34B974BCC4F911C2DF37312B004FA56633078D52F45C95"; length = 6564397865503231339; modified = 17571980052175681961 }, { content_encoding = "14305891745011577671"; sha256 = ?"x121F7F91E31B2A591C27E24EA90A3729479AB9B9E9641D8A87074BFCDD4CA2E2"; length = 14483061483814533662; modified = 8636116459066836694 }, { content_encoding = "14155040766310771050"; sha256 = ?"xC8AB4E4984A709FFAE8CBE87BB5CE7F2DC81E2E7A27D7CB3A63FD6926CE2A6D0"; length = 5638244237989845542; modified = 11216713222199587111 }, { content_encoding = "11823872115486408554"; sha256 = ?"x950831FCD6D2699AF9998BFD7C850E5037142EB4093ABEF26890C5411F599E8D"; length = 9533094216574500419; modified = 16489285970588961804 }, { content_encoding = "10490462624386304549"; sha256 = ?"xEC5265FA86B9FDF91D5FC6B39FEC4535B8F2C60CE39721211ABDC925F8CC7C94"; length = 13758130762095906934; modified = 1365263110879385157 }, { content_encoding = "112410521269379018"; sha256 = ?"x8A2CF08ABE41AB318D2ED03D6B4D526C85BF2F14CDECB0C89BEEA288B3AAE000"; length = 14746017119238981010; modified = 5692415230495667644 } ] } ])
     };
-    public query func certified_tree(arg0 : {  }) : async ({ certificate : Blob; tree : Blob }) {
+    public query func certified_tree(_arg0 : {  }) : async ({ certificate : Blob; tree : Blob }) {
         ({ certificate = "xD29BA3285331F6C7F0D655473EECC726ACDC040F58EA6EB25E7F29AF0D9A0D1C"; tree = "x34623D11F938E9E1EACE7B8F0F1D9CB2427F6FE653F6B62FBA96D8F1E12A8E56" })
     };
-    public shared func create_batch(arg0 : {  }) : async ({ batch_id : T.BatchId }) {
+    public shared func create_batch(_arg0 : {  }) : async ({ batch_id : T.BatchId }) {
         ({ batch_id = 11310281747421436882 })
     };
-    public shared func create_chunk(arg0 : { batch_id : T.BatchId; content : Blob }) : async ({ chunk_id : T.ChunkId }) {
+    public shared func create_chunk(_arg0 : { batch_id : T.BatchId; content : Blob }) : async ({ chunk_id : T.ChunkId }) {
         ({ chunk_id = 11310281747421436882 })
     };
-    public shared func commit_batch(arg0 : T.CommitBatchArguments) : async () {
+    public shared func commit_batch(_arg0 : T.CommitBatchArguments) : async () {
         ()
     };
-    public shared func propose_commit_batch(arg0 : T.CommitBatchArguments) : async () {
+    public shared func propose_commit_batch(_arg0 : T.CommitBatchArguments) : async () {
         ()
     };
-    public shared func commit_proposed_batch(arg0 : T.CommitProposedBatchArguments) : async () {
+    public shared func commit_proposed_batch(_arg0 : T.CommitProposedBatchArguments) : async () {
         ()
     };
-    public shared func compute_evidence(arg0 : T.ComputeEvidenceArguments) : async (?Blob) {
+    public shared func compute_evidence(_arg0 : T.ComputeEvidenceArguments) : async (?Blob) {
         (?"xD29BA3285331F6C7F0D655473EECC726ACDC040F58EA6EB25E7F29AF0D9A0D1C")
     };
-    public shared func delete_batch(arg0 : T.DeleteBatchArguments) : async () {
+    public shared func delete_batch(_arg0 : T.DeleteBatchArguments) : async () {
         ()
     };
-    public shared func create_asset(arg0 : T.CreateAssetArguments) : async () {
+    public shared func create_asset(_arg0 : T.CreateAssetArguments) : async () {
         ()
     };
-    public shared func set_asset_content(arg0 : T.SetAssetContentArguments) : async () {
+    public shared func set_asset_content(_arg0 : T.SetAssetContentArguments) : async () {
         ()
     };
-    public shared func unset_asset_content(arg0 : T.UnsetAssetContentArguments) : async () {
+    public shared func unset_asset_content(_arg0 : T.UnsetAssetContentArguments) : async () {
         ()
     };
-    public shared func delete_asset(arg0 : T.DeleteAssetArguments) : async () {
+    public shared func delete_asset(_arg0 : T.DeleteAssetArguments) : async () {
         ()
     };
-    public shared func clear(arg0 : T.ClearArguments) : async () {
+    public shared func clear(_arg0 : T.ClearArguments) : async () {
         ()
     };
-    public shared func store(arg0 : { key : T.Key; content_type : Text; content_encoding : Text; content : Blob; sha256 : ?Blob }) : async () {
+    public shared func store(_arg0 : { key : T.Key; content_type : Text; content_encoding : Text; content : Blob; sha256 : ?Blob }) : async () {
         ()
     };
-    public query func http_request(arg0 : T.HttpRequest) : async (T.HttpResponse) {
+    public query func http_request(_arg0 : T.HttpRequest) : async (T.HttpResponse) {
         ({ status_code = 37567; headers = [ ( "14796593089282320071", "10425597289412325098" ), ( "5581137331052452365", "16783008128760111668" ), ( "17950520798700563169", "12417521964141425308" ), ( "5040047599884678902", "14841545318558739169" ), ( "11042565298778340235", "7634908469330851135" ) ]; body = "x60215FDF23A9A3239303A84504D6B2DF3A5323BFA3BF91167098B810B53D4123"; streaming_strategy = ?#Callback({ callback = { /* func */ }; token = { key = "14077209220119134463"; content_encoding = "3666113849647154643"; index = 10714402281011311214; sha256 = ?"xDAA9B202CC3344785BC76BE335FD22FFB6C97165F2C97E144F2A21ECC42A6A65" } }) })
     };
-    public query func http_request_streaming_callback(arg0 : T.StreamingCallbackToken) : async (?T.StreamingCallbackHttpResponse) {
+    public query func http_request_streaming_callback(_arg0 : T.StreamingCallbackToken) : async (?T.StreamingCallbackHttpResponse) {
         (?{ body = "xD29BA3285331F6C7F0D655473EECC726ACDC040F58EA6EB25E7F29AF0D9A0D1C"; token = ?{ key = "16783008128760111668"; content_encoding = "17950520798700563169"; index = 12417521964141425308; sha256 = ?"xF6B62FBA96D8F1E12A8E56D5C2F78BFBBC1AA2123F3F351627CDA4F460215FDF" } })
     };
-    public shared func authorize(arg0 : Principal) : async () {
+    public shared func authorize(_arg0 : Principal) : async () {
         ()
     };
-    public shared func deauthorize(arg0 : Principal) : async () {
+    public shared func deauthorize(_arg0 : Principal) : async () {
         ()
     };
-    public query func list_authorized() : async ([Principal]) {
+    public shared func list_authorized() : async ([Principal]) {
         ([ principalOfBlob("xC7F0D655473EECC726ACDC040F58EA6EB25E7F29AF0D9A0D1CD52E7434623D11"), principalOfBlob("xE1EACE7B8F0F1D9CB2427F6FE653F6B62FBA96D8F1E12A8E56D5C2F78BFBBC1A"), principalOfBlob("x3F351627CDA4F460215FDF23A9A3239303A84504D6B2DF3A5323BFA3BF911670"), principalOfBlob("xB53D4123E21440C05493AA5C742BFF000E92334B5CD3C55B521FA7E06E725074") ])
     };
-    public shared func grant_permission(arg0 : T.GrantPermission) : async () {
+    public shared func grant_permission(_arg0 : T.GrantPermission) : async () {
         ()
     };
-    public shared func revoke_permission(arg0 : T.RevokePermission) : async () {
+    public shared func revoke_permission(_arg0 : T.RevokePermission) : async () {
         ()
     };
-    public query func list_permitted(arg0 : T.ListPermitted) : async ([Principal]) {
+    public shared func list_permitted(_arg0 : T.ListPermitted) : async ([Principal]) {
         ([ principalOfBlob("xC7F0D655473EECC726ACDC040F58EA6EB25E7F29AF0D9A0D1CD52E7434623D11"), principalOfBlob("xE1EACE7B8F0F1D9CB2427F6FE653F6B62FBA96D8F1E12A8E56D5C2F78BFBBC1A"), principalOfBlob("x3F351627CDA4F460215FDF23A9A3239303A84504D6B2DF3A5323BFA3BF911670"), principalOfBlob("xB53D4123E21440C05493AA5C742BFF000E92334B5CD3C55B521FA7E06E725074") ])
     };
     public shared func take_ownership() : async () {
         ()
     };
-    public query func get_asset_properties(arg0 : T.Key) : async ({ max_age : ?Nat64; headers : ?[T.HeaderField]; allow_raw_access : ?Bool; is_aliased : ?Bool }) {
+    public query func get_asset_properties(_arg0 : T.Key) : async ({ max_age : ?Nat64; headers : ?[T.HeaderField]; allow_raw_access : ?Bool; is_aliased : ?Bool }) {
         ({ max_age = ?11310281747421436882; headers = ?[ ( "14796593089282320071", "10425597289412325098" ), ( "5581137331052452365", "16783008128760111668" ), ( "17950520798700563169", "12417521964141425308" ), ( "5040047599884678902", "14841545318558739169" ), ( "11042565298778340235", "7634908469330851135" ) ]; allow_raw_access = ?true; is_aliased = ?false })
     };
-    public shared func set_asset_properties(arg0 : T.SetAssetPropertiesArguments) : async () {
+    public shared func set_asset_properties(_arg0 : T.SetAssetPropertiesArguments) : async () {
         ()
     };
-    public shared func validate_grant_permission(arg0 : T.GrantPermission) : async (T.ValidationResult) {
+    public shared func get_configuration() : async (T.ConfigurationResponse) {
+        ({ max_batches = ?11310281747421436882; max_chunks = ?10947193270334582983; max_bytes = ?14796593089282320071 })
+    };
+    public shared func configure(_arg0 : T.ConfigureArguments) : async () {
+        ()
+    };
+    public shared func validate_grant_permission(_arg0 : T.GrantPermission) : async (T.ValidationResult) {
         (#Ok("10947193270334582983"))
     };
-    public shared func validate_revoke_permission(arg0 : T.RevokePermission) : async (T.ValidationResult) {
+    public shared func validate_revoke_permission(_arg0 : T.RevokePermission) : async (T.ValidationResult) {
         (#Ok("10947193270334582983"))
     };
     public shared func validate_take_ownership() : async (T.ValidationResult) {
         (#Ok("10947193270334582983"))
     };
-    public shared func validate_commit_proposed_batch(arg0 : T.CommitProposedBatchArguments) : async (T.ValidationResult) {
+    public shared func validate_commit_proposed_batch(_arg0 : T.CommitProposedBatchArguments) : async (T.ValidationResult) {
+        (#Ok("10947193270334582983"))
+    };
+    public shared func validate_configure(_arg0 : T.ConfigureArguments) : async (T.ValidationResult) {
         (#Ok("10947193270334582983"))
     };
 }

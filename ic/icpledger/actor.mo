@@ -3,18 +3,24 @@ import T "types";
 
 import { principalOfBlob } = "mo:⛔";
 
-actor class icpledger() : async actor {} {
-    public shared func transfer(arg0 : T.TransferArgs) : async (T.TransferResult) {
+actor class _icpledger() : async actor {} {
+    public shared func transfer(_arg0 : T.TransferArgs) : async (T.TransferResult) {
         (#Err(#TxCreatedInFuture(())))
     };
-    public query func account_balance(arg0 : T.AccountBalanceArgs) : async (T.Tokens) {
+    public query func account_balance(_arg0 : T.AccountBalanceArgs) : async (T.Tokens) {
         ({ e8s = 6844078342166154913 })
     };
-    public query func transfer_fee(arg0 : T.TransferFeeArg) : async (T.TransferFee) {
+    public query func account_identifier(_arg0 : T.Account) : async (T.AccountIdentifier) {
+        ("xA10EC29FFD0CFB84891BC5734DC8A7DBD3D42B2C9D0A8FBBF49C31A6ECCAD503")
+    };
+    public query func transfer_fee(_arg0 : T.TransferFeeArg) : async (T.TransferFee) {
         ({ transfer_fee = { e8s = 6844078342166154913 } })
     };
-    public query func query_blocks(arg0 : T.GetBlocksArgs) : async (T.QueryBlocksResponse) {
-        ({ chain_length = 6844078342166154913; certificate = ?"x84891BC5734DC8A7DBD3D42B2C9D0A8FBBF49C31A6ECCAD50322C04AE239219A"; blocks = [ { parent_hash = ?"x267840FA60A5160796052355DC613B3B6DD17D37E39432DAB2AB61070029151D"; transaction = { memo = 11508387437776522631; icrc1_memo = ?"x15D9B71F910AE4978C6001D6EBE96441FB2F2AC1E3F491B5AD85106B4D49CAAB"; operation = ?#Burn({ from = "xF8E011AAEE68D2270B08A64D94AE3AF0629EF547A02033FD611622DAB7C219DE"; amount = { e8s = 9640862273893842221 } }); created_at_time = { timestamp_nanos = 18434941167457045861 } }; timestamp = { timestamp_nanos = 17936735417084933145 } }, { parent_hash = ?"x0F380883A19D18A66069A4DB047004E9322EFCBF4A88CD79FDA4E21739AFDF90"; transaction = { memo = 3376834384587756782; icrc1_memo = ?"x545EE2B2142EB1A745A54BC94D2210536F44E142BA3842C40F699A300C037EAE"; operation = ?#Transfer({ from = "x2F856182D3B2EEDA50CC652B61D03D35374C19FD70685A626B0BE87B14E747B5"; to = "xBFD21F5B02A9AE32607D4F702056FB42F474E2D79096BB978CE3E215F5D16941"; amount = { e8s = 2337095702201755982 }; fee = { e8s = 8119966841819193775 } }); created_at_time = { timestamp_nanos = 14630522076889513897 } }; timestamp = { timestamp_nanos = 10234017389260060020 } }, { parent_hash = ?"x7F98C824FDA6E0DA1333D8621433A7F294C20BD614EBE11CC8CA2E8861E55E80"; transaction = { memo = 15846245038892287776; icrc1_memo = ?"xE2C6C57D0E4E5BC337B01396134D52E7E0CEF8A723CB9511450F3D57D9502E93"; operation = ?#Burn({ from = "xA277B665A7186D600DB1BE3907053ADA327550CC72BE69A0039ED288EA325359"; amount = { e8s = 13388315825435817461 } }); created_at_time = { timestamp_nanos = 1037580399648321749 } }; timestamp = { timestamp_nanos = 8765815739915276449 } } ]; first_block_index = 8774201989248131967; archived_blocks = [ { start = 9990291550900519784; length = 15814546617447143983; callback = { /* func */ } }, { start = 10525394844609216418; length = 13653777742181055018; callback = { /* func */ } }, { start = 5260480757802142243; length = 6532771774582539980; callback = { /* func */ } }, { start = 16823501307558194871; length = 4710247719163020692; callback = { /* func */ } }, { start = 743139622545088781; length = 1137136953581248725; callback = { /* func */ } } ] })
+    public query func query_blocks(_arg0 : T.GetBlocksArgs) : async (T.QueryBlocksResponse) {
+        ({ chain_length = 6844078342166154913; certificate = ?"x84891BC5734DC8A7DBD3D42B2C9D0A8FBBF49C31A6ECCAD50322C04AE239219A"; blocks = [ { parent_hash = ?"x267840FA60A5160796052355DC613B3B6DD17D37E39432DAB2AB61070029151D"; transaction = { memo = 11508387437776522631; icrc1_memo = ?"x15D9B71F910AE4978C6001D6EBE96441FB2F2AC1E3F491B5AD85106B4D49CAAB"; operation = ?#Transfer({ from = "xF8E011AAEE68D2270B08A64D94AE3AF0629EF547A02033FD611622DAB7C219DE"; to = "x2D3DE89B2839CB658D80BD5111D619F48335D415EC0F380883A19D18A66069A4"; amount = { e8s = 4200380692304161028 }; fee = { e8s = 6059561021905423752 }; spender = ?[ 107, 120, 9 ] }); created_at_time = { timestamp_nanos = 8771396759540683536 } }; timestamp = { timestamp_nanos = 15217832916911669816 } }, { parent_hash = ?"x0C037EAEA22E01616AEEF852F0E82F856182D3B2EEDA50CC652B61D03D35374C"; transaction = { memo = 4070101824003267176; icrc1_memo = ?"x14E747B5FE200DBFD21F5B02A9AE32607D4F702056FB42F474E2D79096BB978C"; operation = ?#Burn({ from = "x4EE9D39F28086FAF61953AD2EAAFA97F8227500E0A743504E89788067F98C824"; spender = ?"xDA1333D8621433A7F294C20BD614EBE11CC8CA2E8861E55E80E9665D2087F8E6"; amount = { e8s = 1466851927785850594 } }); created_at_time = { timestamp_nanos = 14865559480316213187 } }; timestamp = { timestamp_nanos = 9017235565990438738 } }, { parent_hash = ?"xCB9511450F3D57D9502E93C887111564A06B691F5CA277B665A7186D600DB1BE"; transaction = { memo = 8895396859945867834; icrc1_memo = ?"xBE69A0039ED288EA3253592132AAF5B5D7134FDACCD530F24AE03966A1902DE0"; operation = ?#Approve({ from = "xAFC7FE45CD3970680303163CA5A42FDACA085C8E78A2FFA861D8B6112A3AD604"; spender = "x230A93C460FB00CCC6B01E5111A9B76E53F34D15799445CE3858295E0D6151A4"; allowance_e8s = 1137136953581248725; allowance = { e8s = 97406067914984320 }; fee = { e8s = 1968901117472609631 }; expires_at = ?{ timestamp_nanos = 16933899834649614941 }; expected_allowance = ?{ e8s = 9483663234984890706 } }); created_at_time = { timestamp_nanos = 10696245065444303678 } }; timestamp = { timestamp_nanos = 11131148948638734196 } } ]; first_block_index = 1770011220686955968; archived_blocks = [ { start = 2737438243966959150; length = 13531591559510253363; callback = { /* func */ } }, { start = 656934166386055698; length = 17781636316119954112; callback = { /* func */ } }, { start = 787507188863736678; length = 3342374177704650595; callback = { /* func */ } }, { start = 7357984375683813692; length = 9850727841105441469; callback = { /* func */ } }, { start = 18048247332320202900; length = 3626821402128685393; callback = { /* func */ } } ] })
+    };
+    public query func query_encoded_blocks(_arg0 : T.GetBlocksArgs) : async (T.QueryEncodedBlocksResponse) {
+        ({ certificate = ?"xA10EC29FFD0CFB84891BC5734DC8A7DBD3D42B2C9D0A8FBBF49C31A6ECCAD503"; blocks = [ "x8131F8664185C2267840FA60A5160796052355DC613B3B6DD17D37E39432DAB2", "x0029151DF0511187CD3C8E6601B615D9B71F910AE4978C6001D6EBE96441FB2F", "xF491B5AD85106B4D49CAAB5568811A2E80764917A3F8E011AAEE68D2270B08A6", "x3AF0629EF547A02033FD611622DAB7C219DE5142FB2D3DE89B2839CB658D80BD" ]; chain_length = 17936735417084933145; first_block_index = 15571369028647139343; archived_blocks = [  ] })
     };
     public query func symbol() : async ({ symbol : Text }) {
         ({ symbol = "6844078342166154913" })
@@ -27,5 +33,50 @@ actor class icpledger() : async actor {} {
     };
     public query func archives() : async (T.Archives) {
         ({ archives = [ { canister_id = principalOfBlob("x84891BC5734DC8A7DBD3D42B2C9D0A8FBBF49C31A6ECCAD50322C04AE239219A") }, { canister_id = principalOfBlob("x8131F8664185C2267840FA60A5160796052355DC613B3B6DD17D37E39432DAB2") }, { canister_id = principalOfBlob("x0029151DF0511187CD3C8E6601B615D9B71F910AE4978C6001D6EBE96441FB2F") } ] })
+    };
+    public shared func send_dfx(_arg0 : T.SendArgs) : async (T.BlockIndex) {
+        (6844078342166154913)
+    };
+    public query func account_balance_dfx(_arg0 : T.AccountBalanceArgsDfx) : async (T.Tokens) {
+        ({ e8s = 6844078342166154913 })
+    };
+    public query func icrc1_name() : async (Text) {
+        ("6844078342166154913")
+    };
+    public query func icrc1_symbol() : async (Text) {
+        ("6844078342166154913")
+    };
+    public query func icrc1_decimals() : async (Nat8) {
+        (118)
+    };
+    public query func icrc1_metadata() : async ([(Text, T.Value)]) {
+        ([ ( "7478312340872202628", #Blob("x0A8FBBF49C31A6ECCAD50322C04AE239219AAEF2E58131F8664185C2267840FA") ), ( "27545330958833159", #Blob("x9432DAB2AB61070029151DF0511187CD3C8E6601B615D9B71F910AE4978C6001") ), ( "14043280450009121124", #Nat(6521608452572858701) ) ])
+    };
+    public query func icrc1_total_supply() : async (T.Icrc1Tokens) {
+        (6844078342166154913)
+    };
+    public query func icrc1_fee() : async (T.Icrc1Tokens) {
+        (6844078342166154913)
+    };
+    public query func icrc1_minting_account() : async (?T.Account) {
+        (?{ owner = principalOfBlob("xA10EC29FFD0CFB84891BC5734DC8A7DBD3D42B2C9D0A8FBBF49C31A6ECCAD503"); subaccount = ?"xE239219AAEF2E58131F8664185C2267840FA60A5160796052355DC613B3B6DD1" })
+    };
+    public query func icrc1_balance_of(_arg0 : T.Account) : async (T.Icrc1Tokens) {
+        (6844078342166154913)
+    };
+    public shared func icrc1_transfer(_arg0 : T.TransferArg) : async (T.Icrc1TransferResult) {
+        (#Err(#CreatedInFuture({ ledger_time = 3070659087702416295 })))
+    };
+    public query func icrc1_supported_standards() : async ([{ name : Text; url : Text }]) {
+        ([ { name = "7478312340872202628"; url = "3070659087702416295" }, { name = "16475910836972130058"; url = "14216386426074155756" }, { name = "8999866262093904354"; url = "270925443542561153" } ])
+    };
+    public shared func icrc2_approve(_arg0 : T.ApproveArgs) : async (T.ApproveResult) {
+        (#Err(#TooOld))
+    };
+    public query func icrc2_allowance(_arg0 : T.AllowanceArgs) : async (T.Allowance) {
+        ({ allowance = 6844078342166154913; expires_at = ?7478312340872202628 })
+    };
+    public shared func icrc2_transfer_from(_arg0 : T.TransferFromArgs) : async (T.TransferFromResult) {
+        (#Err(#TooOld))
     };
 }
