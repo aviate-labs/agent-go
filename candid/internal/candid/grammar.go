@@ -123,9 +123,9 @@ func ActorType(p *ast.Parser) (*ast.Node, error) {
 			TypeStrings: NodeTypes,
 			Value: op.And{
 				'{',
+				Ws,
 				op.Optional(
 					op.And{
-						Ws,
 						MethType,
 						op.MinZero(
 							op.And{
