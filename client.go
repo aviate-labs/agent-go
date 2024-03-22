@@ -16,6 +16,7 @@ import (
 type Client struct {
 	client http.Client
 	config ClientConfig
+	logger Logger
 }
 
 // NewClient creates a new client based on the given configuration.
@@ -23,6 +24,19 @@ func NewClient(cfg ClientConfig) Client {
 	return Client{
 		client: http.Client{},
 		config: cfg,
+		logger: &defaultLogger{},
+	}
+}
+
+// NewClientWithLogger creates a new client based on the given configuration and logger.
+func NewClientWithLogger(cfg ClientConfig, logger Logger) Client {
+	if logger == nil {
+		logger = &defaultLogger{}
+	}
+	return Client{
+		client: http.Client{},
+		config: cfg,
+		logger: logger,
 	}
 }
 
@@ -38,6 +52,7 @@ func (c Client) Status() (*Status, error) {
 
 func (c Client) call(canisterID principal.Principal, data []byte) ([]byte, error) {
 	u := c.url(fmt.Sprintf("/api/v2/canister/%s/call", canisterID.Encode()))
+	c.logger.Printf("[CLIENT] CALL %s", u)
 	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
@@ -59,6 +74,7 @@ func (c Client) call(canisterID principal.Principal, data []byte) ([]byte, error
 }
 
 func (c Client) get(path string) ([]byte, error) {
+	c.logger.Printf("[CLIENT] GET %s", c.url(path))
 	resp, err := c.client.Get(c.url(path))
 	if err != nil {
 		return nil, err
@@ -68,6 +84,7 @@ func (c Client) get(path string) ([]byte, error) {
 
 func (c Client) post(path string, canisterID principal.Principal, data []byte) ([]byte, error) {
 	u := c.url(fmt.Sprintf("/api/v2/canister/%s/%s", canisterID.Encode(), path))
+	c.logger.Printf("[CLIENT] POST %s", u)
 	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
