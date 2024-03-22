@@ -269,7 +269,7 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					}
 					f, ok := v.(*FunctionType)
 					if !ok {
-						fmt.Println(reflect.TypeOf(v))
+						return nil, nil, fmt.Errorf("invalid method type: %s", reflect.TypeOf(v))
 					}
 					methods = append(methods, Method{
 						Name: string(name),

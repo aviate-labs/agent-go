@@ -43,3 +43,16 @@ func TestNewRequestID(t *testing.T) {
 		t.Error(h)
 	}
 }
+
+func TestRequestID_Sign(t *testing.T) {
+	if h := fmt.Sprintf("%x", agent.NewRequestID(agent.Request{
+		Type:          agent.RequestTypeCall,
+		Sender:        principal.AnonymousID,
+		CanisterID:    principal.Principal{Raw: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2}},
+		MethodName:    "hello",
+		IngressExpiry: 1685570400000000000,
+		Arguments:     []byte("DIDL\x00\xFD*"),
+	})); h != "1d1091364d6bb8a6c16b203ee75467d59ead468f523eb058880ae8ec80e2b101" {
+		t.Error(h)
+	}
+}

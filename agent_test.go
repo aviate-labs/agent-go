@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/ic"
 	"github.com/aviate-labs/agent-go/ic/icpledger"
 	"github.com/aviate-labs/agent-go/identity"
+	"github.com/aviate-labs/agent-go/mgmt"
 	"github.com/aviate-labs/agent-go/principal"
 	"testing"
 )
@@ -94,6 +96,25 @@ func Example_query_secp256k1() {
 	// 0
 }
 
+func TestAgent_Call(t *testing.T) {
+	a, err := mgmt.NewAgent(agent.Config{
+		Logger: &testLogger{},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := a.BitcoinGetBalanceQuery(mgmt.BitcoinGetBalanceQueryArgs{
+		Address: "bc1qruu3xmfrt4nzkxax3lpxfmjega87jr3vqcwjn9",
+		Network: mgmt.BitcoinNetwork{
+			Mainnet: new(idl.Null),
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(r)
+}
+
 func TestICPLedger_queryBlocks(t *testing.T) {
 	a, err := icpledger.NewAgent(ic.LEDGER_PRINCIPAL, agent.DefaultConfig)
 	if err != nil {
@@ -105,4 +126,10 @@ func TestICPLedger_queryBlocks(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
+}
+
+type testLogger struct{}
+
+func (l *testLogger) Printf(format string, v ...interface{}) {
+	fmt.Printf("[TEST]"+format+"\n", v...)
 }

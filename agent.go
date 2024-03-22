@@ -46,6 +46,7 @@ type Agent struct {
 	identity      identity.Identity
 	ingressExpiry time.Duration
 	rootKey       []byte
+	logger        Logger
 }
 
 // New returns a new Agent based on the given configuration.
@@ -58,13 +59,17 @@ func New(cfg Config) (*Agent, error) {
 	if cfg.Identity != nil {
 		id = cfg.Identity
 	}
+	var logger Logger = &defaultLogger{}
+	if cfg.Logger != nil {
+		logger = cfg.Logger
+	}
 	ccfg := ClientConfig{
 		Host: icp0,
 	}
 	if cfg.ClientConfig != nil {
 		ccfg = *cfg.ClientConfig
 	}
-	client := NewClient(ccfg)
+	client := NewClientWithLogger(ccfg, logger)
 	rootKey, _ := hex.DecodeString(certification.RootKey)
 	if cfg.FetchRootKey {
 		status, err := client.Status()
@@ -78,6 +83,7 @@ func New(cfg Config) (*Agent, error) {
 		identity:      id,
 		ingressExpiry: cfg.IngressExpiry,
 		rootKey:       rootKey,
+		logger:        logger,
 	}, nil
 }
 
@@ -102,6 +108,7 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 	if err != nil {
 		return err
 	}
+	a.logger.Printf("[AGENT] CALL %s %s", canisterID, methodName)
 	if _, err := a.call(canisterID, data); err != nil {
 		return err
 	}
@@ -201,6 +208,7 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 	if err != nil {
 		return err
 	}
+	a.logger.Printf("[AGENT] QUERY %s %s", canisterID, methodName)
 	resp, err := a.query(canisterID, data)
 	if err != nil {
 		return err
@@ -219,6 +227,7 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 
 // RequestStatus returns the status of the request with the given ID.
 func (a Agent) RequestStatus(canisterID principal.Principal, requestID RequestID) ([]byte, hashtree.Node, error) {
+	a.logger.Printf("[AGENT] REQUEST STATUS %s", requestID)
 	path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
 	c, err := a.readStateCertificate(canisterID, [][]hashtree.Label{path})
 	if err != nil {
@@ -265,6 +274,7 @@ func (a Agent) poll(canisterID principal.Principal, requestID RequestID, delay, 
 	for {
 		select {
 		case <-ticker.C:
+			a.logger.Printf("[AGENT] POLL %s", requestID)
 			data, node, err := a.RequestStatus(canisterID, requestID)
 			if err != nil {
 				return nil, err
@@ -326,7 +336,7 @@ func (a Agent) readStateCertificate(canisterID principal.Principal, paths [][]ha
 	if err != nil {
 		return nil, err
 	}
-
+	a.logger.Printf("[AGENT] READ STATE %s", canisterID)
 	resp, err := a.readState(canisterID, data)
 	if err != nil {
 		return nil, err
@@ -353,4 +363,5 @@ type Config struct {
 	IngressExpiry time.Duration
 	ClientConfig  *ClientConfig
 	FetchRootKey  bool
+	Logger        Logger
 }
