@@ -146,11 +146,13 @@ func NewRequestID(req Request) RequestID {
 
 // Sign signs the request ID with the given identity.
 func (r RequestID) Sign(id identity.Identity) []byte {
-	return id.Sign(append(
+	message := append(
 		// \x0Aic-request
 		[]byte{0x0a, 0x69, 0x63, 0x2d, 0x72, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74},
 		r[:]...,
-	))
+	)
+	signature := id.Sign(message)
+	return signature
 }
 
 // RequestType is the type of request.

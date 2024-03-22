@@ -33,11 +33,13 @@ func isSecp256k1(actual asn1.ObjectIdentifier) bool {
 	return slices.Equal(actual, secp256k1OID)
 }
 
+// Secp256k1Identity is an identity based on a secp256k1 key pair.
 type Secp256k1Identity struct {
 	privateKey *secp256k1.PrivateKey
 	publicKey  *secp256k1.PublicKey
 }
 
+// NewRandomSecp256k1Identity creates a new identity with a random key pair.
 func NewRandomSecp256k1Identity() (*Secp256k1Identity, error) {
 	privateKey, err := secp256k1.NewPrivateKey(secp256k1.S256())
 	if err != nil {
@@ -46,6 +48,7 @@ func NewRandomSecp256k1Identity() (*Secp256k1Identity, error) {
 	return NewSecp256k1Identity(privateKey)
 }
 
+// NewSecp256k1Identity creates a new identity based on the given key pair.
 func NewSecp256k1Identity(privateKey *secp256k1.PrivateKey) (*Secp256k1Identity, error) {
 	return &Secp256k1Identity{
 		privateKey: privateKey,
@@ -53,13 +56,14 @@ func NewSecp256k1Identity(privateKey *secp256k1.PrivateKey) (*Secp256k1Identity,
 	}, nil
 }
 
+// NewSecp256k1IdentityFromPEM creates a new identity from the given PEM file.
 func NewSecp256k1IdentityFromPEM(data []byte) (*Secp256k1Identity, error) {
 	blockParams, remainder := pem.Decode(data)
-	if blockParams.Type != "EC PARAMETERS" {
-		return nil, fmt.Errorf("invalid pem parameters")
+	if blockParams == nil || blockParams.Type != "EC PARAMETERS" {
+		return nil, fmt.Errorf("invalid pem file")
 	}
-	block, _ := pem.Decode(remainder)
-	if blockParams.Type != "EC PARAMETERS" {
+	block, remainder := pem.Decode(remainder)
+	if block == nil || blockParams.Type != "EC PARAMETERS" || len(remainder) != 0 {
 		return nil, fmt.Errorf("invalid pem file")
 	}
 	var ecPrivateKey ecPrivateKey
@@ -73,15 +77,35 @@ func NewSecp256k1IdentityFromPEM(data []byte) (*Secp256k1Identity, error) {
 	return NewSecp256k1Identity(privateKey)
 }
 
+// NewSecp256k1IdentityFromPEMWithoutParameters creates a new identity from the given PEM file.
+func NewSecp256k1IdentityFromPEMWithoutParameters(data []byte) (*Secp256k1Identity, error) {
+	block, remainder := pem.Decode(data)
+	if block == nil || block.Type != "EC PRIVATE KEY" || len(remainder) != 0 {
+		return nil, fmt.Errorf("invalid pem file")
+	}
+	var ecPrivateKey ecPrivateKey
+	if _, err := asn1.Unmarshal(block.Bytes, &ecPrivateKey); err != nil {
+		return nil, err
+	}
+	if !isSecp256k1(ecPrivateKey.NamedCurveOID) {
+		return nil, errors.New("invalid curve type")
+	}
+	privateKey, _ := secp256k1.PrivKeyFromBytes(secp256k1.S256(), ecPrivateKey.PrivateKey)
+	return NewSecp256k1Identity(privateKey)
+}
+
+// PublicKey returns the public key of the identity.
 func (id Secp256k1Identity) PublicKey() []byte {
 	der, _ := derEncodeSecp256k1PublicKey(id.publicKey)
 	return der
 }
 
+// Sender returns the principal of the identity.
 func (id Secp256k1Identity) Sender() principal.Principal {
 	return principal.NewSelfAuthenticating(id.PublicKey())
 }
 
+// Sign signs the given message.
 func (id Secp256k1Identity) Sign(msg []byte) []byte {
 	hashData := sha256.Sum256(msg)
 	sig, _ := id.privateKey.Sign(hashData[:])
@@ -93,6 +117,7 @@ func (id Secp256k1Identity) Sign(msg []byte) []byte {
 	return buffer[:]
 }
 
+// ToPEM returns the PEM encoding of the public key.
 func (id Secp256k1Identity) ToPEM() ([]byte, error) {
 	der1, err := asn1.Marshal(secp256k1OID)
 	if err != nil {

@@ -3,6 +3,8 @@ package ic
 import "github.com/aviate-labs/agent-go/principal"
 
 var (
+	// https://internetcomputer.org/docs/current/references/ic-interface-spec#ic-management-canister
+	MANAGEMENT_CANISTER_PRINCIPAL, _ = principal.Decode("aaaaa-aa")
 	// https://dashboard.internetcomputer.org/canister/rwlgt-iiaaa-aaaaa-aaaaa-cai
 	REGISTRY_PRINCIPAL, _ = principal.Decode("rwlgt-iiaaa-aaaaa-aaaaa-cai")
 	// https://dashboard.internetcomputer.org/canister/rrkah-fqaaa-aaaaa-aaaaq-cai

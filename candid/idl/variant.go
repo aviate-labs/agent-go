@@ -210,16 +210,26 @@ func (variant VariantType) structToVariant(value any) (*Variant, error) {
 			}
 
 			tag := ParseTags(field)
+			if !tag.VariantType {
+				return nil, fmt.Errorf("invalid variant field: %s", v.Type())
+			}
 			if !v.Field(i).IsNil() {
 				return &Variant{
 					Name:  tag.Name,
 					Value: v.Field(i).Elem().Interface(),
 				}, nil
 			}
+			if i == v.NumField()-1 {
+				return &Variant{
+					Name:  tag.Name,
+					Value: nil,
+				}, nil
+			}
 		}
+		return nil, fmt.Errorf("invalid variant: %s", v.Type())
+	default:
+		return nil, fmt.Errorf("invalid value kind: %s", v.Kind())
 	}
-	fmt.Printf("%#v\n", value)
-	return nil, fmt.Errorf("invalid value kind: %s", v.Kind())
 }
 
 func (variant VariantType) unmarshalMap(name string, value any, _v *map[string]any) error {

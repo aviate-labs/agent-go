@@ -64,6 +64,7 @@ func NewEd25519IdentityFromPEM(data []byte) (*Ed25519Identity, error) {
 	}
 }
 
+// NewRandomEd25519Identity creates a new identity with a random key pair.
 func NewRandomEd25519Identity() (*Ed25519Identity, error) {
 	publicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)
 	return NewEd25519Identity(publicKey, privateKey)
@@ -98,6 +99,6 @@ func (id Ed25519Identity) ToPEM() ([]byte, error) {
 }
 
 // Verify verifies the given signature.
-func (id Ed25519Identity) Verify(data, signature []byte) bool {
-	return ed25519.Verify(id.publicKey, data, signature)
+func (id Ed25519Identity) Verify(msg, sig []byte) bool {
+	return ed25519.Verify(id.publicKey, msg, sig)
 }

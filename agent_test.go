@@ -6,12 +6,14 @@ import (
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/ic"
+	mgmt "github.com/aviate-labs/agent-go/ic/ic"
 	"github.com/aviate-labs/agent-go/ic/icpledger"
 	"github.com/aviate-labs/agent-go/identity"
-	"github.com/aviate-labs/agent-go/mgmt"
 	"github.com/aviate-labs/agent-go/principal"
 	"testing"
 )
+
+var _ = new(testLogger)
 
 func Example_anonymous_query() {
 	a, _ := agent.New(agent.DefaultConfig)
@@ -96,10 +98,8 @@ func Example_query_secp256k1() {
 	// 0
 }
 
-func TestAgent_Call(t *testing.T) {
-	a, err := mgmt.NewAgent(agent.Config{
-		Logger: &testLogger{},
-	})
+func TestAgent_Call_bitcoinGetBalanceQuery(t *testing.T) {
+	a, err := mgmt.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,7 +112,63 @@ func TestAgent_Call(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(r)
+	if r == nil {
+		t.Fatal()
+	}
+}
+
+func TestAgent_Call_provisionalTopUpCanister(t *testing.T) {
+	a, err := mgmt.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := a.ProvisionalTopUpCanister(mgmt.ProvisionalTopUpCanisterArgs{
+		CanisterId: ic.LEDGER_PRINCIPAL,
+	}); err == nil {
+		t.Fatal()
+	}
+}
+
+func TestAgent_Query_Ed25519(t *testing.T) {
+	id, err := identity.NewRandomEd25519Identity()
+	if err != nil {
+		t.Fatal(err)
+	}
+	a, _ := agent.New(agent.Config{
+		Identity: id,
+	})
+	type Account struct {
+		Account string `ic:"account"`
+	}
+	var balance struct {
+		E8S uint64 `ic:"e8s"`
+	}
+	if err := a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{
+		Account{"9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d"},
+	}, []any{&balance}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestAgent_Query_Secp256k1(t *testing.T) {
+	id, err := identity.NewRandomSecp256k1Identity()
+	if err != nil {
+		t.Fatal(err)
+	}
+	a, _ := agent.New(agent.Config{
+		Identity: id,
+	})
+	type Account struct {
+		Account string `ic:"account"`
+	}
+	var balance struct {
+		E8S uint64 `ic:"e8s"`
+	}
+	if err := a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{
+		Account{"9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d"},
+	}, []any{&balance}); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestICPLedger_queryBlocks(t *testing.T) {
@@ -130,6 +186,6 @@ func TestICPLedger_queryBlocks(t *testing.T) {
 
 type testLogger struct{}
 
-func (l *testLogger) Printf(format string, v ...interface{}) {
+func (t testLogger) Printf(format string, v ...interface{}) {
 	fmt.Printf("[TEST]"+format+"\n", v...)
 }

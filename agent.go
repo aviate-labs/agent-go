@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/url"
+	"reflect"
 	"time"
 
 	"github.com/aviate-labs/agent-go/candid/idl"
@@ -24,6 +25,32 @@ var DefaultConfig = Config{}
 
 // icp0 is the default host for the Internet Computer.
 var icp0, _ = url.Parse("https://icp0.io/")
+
+func effectiveCanisterID(canisterId principal.Principal, args []any) principal.Principal {
+	// If the canisterId is not aaaaa-aa, return it.
+	if len(canisterId.Raw) > 0 || len(args) == 0 {
+		return canisterId
+	}
+
+	v := reflect.ValueOf(args[0])
+	if v.Kind() == reflect.Struct {
+		t := v.Type()
+		// Get the field with the ic tag "canister_id".
+		for idx := range t.NumField() {
+			if tag := t.Field(idx).Tag.Get("ic"); tag == "canister_id" {
+				ecid := v.Field(idx).Interface()
+				switch ecid := ecid.(type) {
+				case principal.Principal:
+					return ecid
+				default:
+					// If the field is not a principal, return the original canisterId.
+					return canisterId
+				}
+			}
+		}
+	}
+	return canisterId
+}
 
 func uint64FromBytes(raw []byte) uint64 {
 	switch len(raw) {
@@ -108,6 +135,7 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 	if err != nil {
 		return err
 	}
+	canisterID = effectiveCanisterID(canisterID, args)
 	a.logger.Printf("[AGENT] CALL %s %s", canisterID, methodName)
 	if _, err := a.call(canisterID, data); err != nil {
 		return err
@@ -208,6 +236,7 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 	if err != nil {
 		return err
 	}
+	canisterID = effectiveCanisterID(canisterID, args)
 	a.logger.Printf("[AGENT] QUERY %s %s", canisterID, methodName)
 	resp, err := a.query(canisterID, data)
 	if err != nil {
