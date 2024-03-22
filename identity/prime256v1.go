@@ -27,11 +27,13 @@ func derEncodePrime256v1PublicKey(key *ecdsa.PublicKey) ([]byte, error) {
 	})
 }
 
+// Prime256v1Identity is an identity based on a P-256 key pair.
 type Prime256v1Identity struct {
 	privateKey *ecdsa.PrivateKey
 	publicKey  *ecdsa.PublicKey
 }
 
+// NewPrime256v1Identity creates a new identity based on the given key pair.
 func NewPrime256v1Identity(privateKey *ecdsa.PrivateKey) *Prime256v1Identity {
 	return &Prime256v1Identity{
 		privateKey: privateKey,
@@ -39,6 +41,7 @@ func NewPrime256v1Identity(privateKey *ecdsa.PrivateKey) *Prime256v1Identity {
 	}
 }
 
+// NewPrime256v1IdentityFromPEM creates a new identity from the given PEM file.
 func NewPrime256v1IdentityFromPEM(data []byte) (*Prime256v1Identity, error) {
 	block, remainder := pem.Decode(data)
 	if block == nil || block.Type != "EC PRIVATE KEY" || len(remainder) != 0 {
@@ -51,6 +54,7 @@ func NewPrime256v1IdentityFromPEM(data []byte) (*Prime256v1Identity, error) {
 	return NewPrime256v1Identity(privateKey), nil
 }
 
+// NewRandomPrime256v1Identity creates a new identity with a random key pair.
 func NewRandomPrime256v1Identity() (*Prime256v1Identity, error) {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
@@ -59,15 +63,18 @@ func NewRandomPrime256v1Identity() (*Prime256v1Identity, error) {
 	return NewPrime256v1Identity(privateKey), nil
 }
 
+// PublicKey returns the public key of the identity.
 func (id Prime256v1Identity) PublicKey() []byte {
 	der, _ := derEncodePrime256v1PublicKey(id.publicKey)
 	return der
 }
 
+// Sender returns the principal of the identity.
 func (id Prime256v1Identity) Sender() principal.Principal {
 	return principal.NewSelfAuthenticating(id.PublicKey())
 }
 
+// Sign signs the given message.
 func (id Prime256v1Identity) Sign(msg []byte) []byte {
 	hashData := sha256.Sum256(msg)
 	sigR, sigS, _ := ecdsa.Sign(rand.Reader, id.privateKey, hashData[:])
@@ -79,6 +86,7 @@ func (id Prime256v1Identity) Sign(msg []byte) []byte {
 	return buffer[:]
 }
 
+// ToPEM returns the PEM encoding of the private key.
 func (id Prime256v1Identity) ToPEM() ([]byte, error) {
 	data, err := x509.MarshalECPrivateKey(id.privateKey)
 	if err != nil {
@@ -90,6 +98,7 @@ func (id Prime256v1Identity) ToPEM() ([]byte, error) {
 	}), nil
 }
 
+// Verify verifies the signature of the given message.
 func (id Prime256v1Identity) Verify(msg, sig []byte) bool {
 	r := new(big.Int).SetBytes(sig[:32])
 	s := new(big.Int).SetBytes(sig[32:])

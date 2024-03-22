@@ -31,12 +31,10 @@ func checkLatest() error {
 			filepath: "ic/testdata/did/cmc.did",
 			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/nns/cmc/cmc.did",
 		},
-		/* Needs custom implementation.
 		{
 			filepath: "ic/testdata/did/ic.did",
 			remote:   "https://raw.githubusercontent.com/dfinity/interface-spec/master/spec/_attachments/ic.did",
 		},
-		*/
 		{
 			filepath: "ic/testdata/did/icparchive.did",
 			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/rosetta-api/icp_ledger/ledger_archive.did",
