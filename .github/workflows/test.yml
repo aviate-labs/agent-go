@@ -10,4 +10,5 @@ jobs:
       - uses: aviate-labs/setup-dfx@v0.3.0
         with:
           dfx-version: 0.18.0
+      - run: mv ic/testdata/networks.json $HOME/.config/dfx/networks.json
       - run: make test
