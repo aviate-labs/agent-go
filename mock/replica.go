@@ -3,15 +3,18 @@ package mock
 import (
 	"bytes"
 	"encoding/hex"
-	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/certificate"
-	"github.com/aviate-labs/agent-go/certificate/bls"
-	"github.com/aviate-labs/agent-go/principal"
-	"github.com/fxamacker/cbor/v2"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/aviate-labs/agent-go/certification"
+	"github.com/aviate-labs/agent-go/certification/bls"
+	"github.com/aviate-labs/agent-go/certification/hashtree"
+	"github.com/aviate-labs/agent-go/principal"
+
+	"github.com/fxamacker/cbor/v2"
 )
 
 type Canister struct {
@@ -188,29 +191,29 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 			return
 		}
 
-		t := certificate.NewHashTree(certificate.Fork{
-			LeftTree: certificate.Labeled{
+		t := hashtree.NewHashTree(hashtree.Fork{
+			LeftTree: hashtree.Labeled{
 				Label: []byte("request_status"),
-				Tree: certificate.Labeled{
+				Tree: hashtree.Labeled{
 					Label: requestId,
-					Tree: certificate.Fork{
-						LeftTree: certificate.Labeled{
-							Label: []byte("status"),
-							Tree:  certificate.Leaf("replied"),
-						},
-						RightTree: certificate.Labeled{
+					Tree: hashtree.Fork{
+						LeftTree: hashtree.Labeled{
 							Label: []byte("reply"),
-							Tree:  certificate.Leaf(rawReply),
+							Tree:  hashtree.Leaf(rawReply),
+						},
+						RightTree: hashtree.Labeled{
+							Label: []byte("status"),
+							Tree:  hashtree.Leaf("replied"),
 						},
 					},
 				},
 			},
-			RightTree: certificate.Empty{},
+			RightTree: hashtree.Empty{},
 		})
 		d := t.Digest()
 		m := make(map[string][]byte)
-		s := r.rootKey.Sign(string(append(certificate.DomainSeparator("ic-state-root"), d[:]...)))
-		cert := certificate.Cert{
+		s := r.rootKey.Sign(string(append(hashtree.DomainSeparator("ic-state-root"), d[:]...)))
+		cert := certification.Cert{
 			Tree:      t,
 			Signature: s.Serialize(),
 		}

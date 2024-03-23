@@ -85,11 +85,6 @@ func (id Ed25519Identity) Sign(data []byte) []byte {
 	return ed25519.Sign(id.privateKey, data)
 }
 
-// Verify verifies the given signature.
-func (id Ed25519Identity) Verify(data, signature []byte) bool {
-	return ed25519.Verify(id.publicKey, data, signature)
-}
-
 // ToPEM returns the PEM representation of the identity.
 func (id Ed25519Identity) ToPEM() ([]byte, error) {
 	data, err := x509.MarshalPKCS8PrivateKey(id.privateKey)
@@ -100,4 +95,9 @@ func (id Ed25519Identity) ToPEM() ([]byte, error) {
 		Type:  "PRIVATE KEY",
 		Bytes: data,
 	}), nil
+}
+
+// Verify verifies the given signature.
+func (id Ed25519Identity) Verify(data, signature []byte) bool {
+	return ed25519.Verify(id.publicKey, data, signature)
 }

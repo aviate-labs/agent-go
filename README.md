@@ -54,7 +54,7 @@ Supported identities are `Ed25519` and `Secp256k1`. By default, the agent uses t
 ```go
 id, _ := identity.NewEd25519Identity(publicKey, privateKey)
 config := agent.Config{
-    Identity: id,
+Identity: id,
 }
 ```
 
@@ -65,8 +65,8 @@ If you are running a local replica, you can use the `FetchRootKey` option to fet
 ```go
 u, _ := url.Parse("http://localhost:8000")
 config := agent.Config{
-    ClientConfig: &agent.ClientConfig{Host: u},
-    FetchRootKey: true,
+ClientConfig: &agent.ClientConfig{Host: u},
+FetchRootKey: true,
 }
 ```
 
@@ -103,3 +103,8 @@ installed then those tests will be ignored.
 ```shell
 go test -v ./...
 ```
+
+## Reference Implementations
+
+- [Rust Agent](https://github.com/dfinity/agent-rs/)
+- [JavaScript Agent](https://github.com/dfinity/agent-js/)

@@ -12,6 +12,8 @@ import (
 	"slices"
 )
 
+var ecPublicKeyOID = asn1.ObjectIdentifier{1, 2, 840, 10045, 2, 1}
+
 var secp256k1OID = asn1.ObjectIdentifier{1, 3, 132, 0, 10}
 
 func derEncodeSecp256k1PublicKey(key *secp256k1.PublicKey) ([]byte, error) {
@@ -129,8 +131,6 @@ func (id Secp256k1Identity) Verify(msg, sig []byte) bool {
 	hashData := sha256.Sum256(msg)
 	return signature.Verify(hashData[:], id.publicKey)
 }
-
-var ecPublicKeyOID = asn1.ObjectIdentifier{1, 2, 840, 10045, 2, 1}
 
 type ecPrivateKey struct {
 	Version       int

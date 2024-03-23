@@ -1,4 +1,4 @@
-package certificate
+package certification
 
 import "encoding/hex"
 

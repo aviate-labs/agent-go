@@ -5,6 +5,17 @@ import (
 	"testing"
 )
 
+func TestEd25519Identity_Sign(t *testing.T) {
+	id, err := NewRandomEd25519Identity()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := []byte("hello")
+	if !id.Verify(data, id.Sign(data)) {
+		t.Error()
+	}
+}
+
 func TestNewEd25519Identity(t *testing.T) {
 	id, _ := NewRandomEd25519Identity()
 	data, err := id.ToPEM()
@@ -19,17 +30,6 @@ func TestNewEd25519Identity(t *testing.T) {
 		t.Error()
 	}
 	if !bytes.Equal(id.publicKey, id_.publicKey) {
-		t.Error()
-	}
-}
-
-func TestEd25519Identity_Sign(t *testing.T) {
-	id, err := NewRandomEd25519Identity()
-	if err != nil {
-		t.Fatal(err)
-	}
-	data := []byte("hello")
-	if !id.Verify(data, id.Sign(data)) {
 		t.Error()
 	}
 }

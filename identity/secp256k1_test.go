@@ -24,17 +24,6 @@ func TestNewSecp256k1Identity(t *testing.T) {
 	}
 }
 
-func TestSecp256k1Identity_Sign(t *testing.T) {
-	id, err := NewRandomSecp256k1Identity()
-	if err != nil {
-		t.Fatal(err)
-	}
-	data := []byte("hello")
-	if !id.Verify(data, id.Sign(data)) {
-		t.Error()
-	}
-}
-
 func TestNewSecp256k1IdentityFromPEM(t *testing.T) {
 	pem := `
 -----BEGIN EC PARAMETERS-----
@@ -53,5 +42,16 @@ N3d26cRxD99TPtm8uo2OuzKhSiq6EQ==
 	}
 	if !bytes.Equal(id.PublicKey(), der) {
 		t.Fatal("public key mismatch")
+	}
+}
+
+func TestSecp256k1Identity_Sign(t *testing.T) {
+	id, err := NewRandomSecp256k1Identity()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := []byte("hello")
+	if !id.Verify(data, id.Sign(data)) {
+		t.Error()
 	}
 }

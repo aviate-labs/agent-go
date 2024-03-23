@@ -49,8 +49,8 @@ func Example_json() {
 	// {"e8s":0}
 }
 
-func Example_query_prime256v1() {
-	id, _ := identity.NewRandomPrime256v1Identity()
+func Example_query_ed25519() {
+	id, _ := identity.NewRandomEd25519Identity()
 	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	a, _ := agent.New(agent.Config{Identity: id})
 	var balance struct {
@@ -64,8 +64,8 @@ func Example_query_prime256v1() {
 	// 0
 }
 
-func Example_query_ed25519() {
-	id, _ := identity.NewRandomEd25519Identity()
+func Example_query_prime256v1() {
+	id, _ := identity.NewRandomPrime256v1Identity()
 	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	a, _ := agent.New(agent.Config{Identity: id})
 	var balance struct {

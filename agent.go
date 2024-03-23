@@ -8,9 +8,11 @@ import (
 	"time"
 
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/certificate"
+	"github.com/aviate-labs/agent-go/certification"
+	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
+
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -63,7 +65,7 @@ func New(cfg Config) (*Agent, error) {
 		ccfg = *cfg.ClientConfig
 	}
 	client := NewClient(ccfg)
-	rootKey, _ := hex.DecodeString(certificate.RootKey)
+	rootKey, _ := hex.DecodeString(certification.RootKey)
 	if cfg.FetchRootKey {
 		status, err := client.Status()
 		if err != nil {
@@ -129,8 +131,8 @@ func (a Agent) GetCanisterControllers(canisterID principal.Principal) ([]princip
 
 // GetCanisterInfo returns the raw certificate for the given canister based on the given sub-path.
 func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) ([]byte, error) {
-	path := [][]byte{[]byte("canister"), canisterID.Raw, []byte(subPath)}
-	c, err := a.readStateCertificate(canisterID, [][][]byte{path})
+	path := []hashtree.Label{hashtree.Label("canister"), canisterID.Raw, hashtree.Label(subPath)}
+	c, err := a.readStateCertificate(canisterID, [][]hashtree.Label{path})
 	if err != nil {
 		return nil, err
 	}
@@ -138,16 +140,20 @@ func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) (
 	if err := cbor.Unmarshal(c, &state); err != nil {
 		return nil, err
 	}
-	node, err := certificate.DeserializeNode(state["tree"].([]any))
+	node, err := hashtree.DeserializeNode(state["tree"].([]any))
 	if err != nil {
 		return nil, err
 	}
-	return certificate.Lookup(path, node), nil
+	result := hashtree.NewHashTree(node).Lookup(path...)
+	if err := result.Found(); err != nil {
+		return nil, err
+	}
+	return result.Value, nil
 }
 
 func (a Agent) GetCanisterMetadata(canisterID principal.Principal, subPath string) ([]byte, error) {
-	path := [][]byte{[]byte("canister"), canisterID.Raw, []byte("metadata"), []byte(subPath)}
-	c, err := a.readStateCertificate(canisterID, [][][]byte{path})
+	path := []hashtree.Label{hashtree.Label("canister"), canisterID.Raw, hashtree.Label("metadata"), hashtree.Label(subPath)}
+	c, err := a.readStateCertificate(canisterID, [][]hashtree.Label{path})
 	if err != nil {
 		return nil, err
 	}
@@ -155,11 +161,15 @@ func (a Agent) GetCanisterMetadata(canisterID principal.Principal, subPath strin
 	if err := cbor.Unmarshal(c, &state); err != nil {
 		return nil, err
 	}
-	node, err := certificate.DeserializeNode(state["tree"].([]any))
+	node, err := hashtree.DeserializeNode(state["tree"].([]any))
 	if err != nil {
 		return nil, err
 	}
-	return certificate.Lookup(path, node), nil
+	result := hashtree.NewHashTree(node).Lookup(path...)
+	if err := result.Found(); err != nil {
+		return nil, err
+	}
+	return result.Value, nil
 }
 
 // GetCanisterModuleHash returns the module hash for the given canister.
@@ -208,9 +218,9 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 }
 
 // RequestStatus returns the status of the request with the given ID.
-func (a Agent) RequestStatus(canisterID principal.Principal, requestID RequestID) ([]byte, certificate.Node, error) {
-	path := [][]byte{[]byte("request_status"), requestID[:]}
-	c, err := a.readStateCertificate(canisterID, [][][]byte{path})
+func (a Agent) RequestStatus(canisterID principal.Principal, requestID RequestID) ([]byte, hashtree.Node, error) {
+	path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
+	c, err := a.readStateCertificate(canisterID, [][]hashtree.Label{path})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -218,18 +228,22 @@ func (a Agent) RequestStatus(canisterID principal.Principal, requestID RequestID
 	if err := cbor.Unmarshal(c, &state); err != nil {
 		return nil, nil, err
 	}
-	cert, err := certificate.New(canisterID, a.rootKey[len(a.rootKey)-96:], c)
+	cert, err := certification.New(canisterID, a.rootKey[len(a.rootKey)-96:], c)
 	if err != nil {
 		return nil, nil, err
 	}
 	if err := cert.Verify(); err != nil {
 		return nil, nil, err
 	}
-	node, err := certificate.DeserializeNode(state["tree"].([]any))
+	node, err := hashtree.DeserializeNode(state["tree"].([]any))
 	if err != nil {
 		return nil, nil, err
 	}
-	return certificate.Lookup(append(path, []byte("status")), node), node, nil
+	result := hashtree.NewHashTree(node).Lookup(append(path, hashtree.Label("status"))...)
+	if err := result.Found(); err != nil {
+		return nil, nil, err
+	}
+	return result.Value, node, nil
 }
 
 // Sender returns the principal that is sending the requests.
@@ -256,15 +270,24 @@ func (a Agent) poll(canisterID principal.Principal, requestID RequestID, delay, 
 				return nil, err
 			}
 			if len(data) != 0 {
-				path := [][]byte{[]byte("request_status"), requestID[:]}
+				path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
 				switch string(data) {
 				case "rejected":
-					code := certificate.Lookup(append(path, []byte("reject_code")), node)
-					rejectMessage := certificate.Lookup(append(path, []byte("reject_message")), node)
-					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(code), string(rejectMessage))
+					tree := hashtree.NewHashTree(node)
+					codeResult := tree.Lookup(append(path, hashtree.Label("reject_code"))...)
+					messageResult := tree.Lookup(append(path, hashtree.Label("reject_message"))...)
+					if codeResult.Found() != nil || messageResult.Found() != nil {
+						return nil, fmt.Errorf("no reject code or message found")
+					}
+					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(codeResult.Value), string(messageResult.Value))
 				case "replied":
-					path := [][]byte{[]byte("request_status"), requestID[:]}
-					return certificate.Lookup(append(path, []byte("reply")), node), nil
+					fmt.Println(node)
+					repliedResult := hashtree.NewHashTree(node).Lookup(append(path, hashtree.Label("reply"))...)
+					fmt.Println(repliedResult)
+					if repliedResult.Found() != nil {
+						return nil, fmt.Errorf("no reply found")
+					}
+					return repliedResult.Value, nil
 				}
 			}
 		case <-timer.C:
@@ -291,7 +314,7 @@ func (a Agent) readState(canisterID principal.Principal, data []byte) (map[strin
 	return m, cbor.Unmarshal(resp, &m)
 }
 
-func (a Agent) readStateCertificate(canisterID principal.Principal, paths [][][]byte) ([]byte, error) {
+func (a Agent) readStateCertificate(canisterID principal.Principal, paths [][]hashtree.Label) ([]byte, error) {
 	_, data, err := a.sign(Request{
 		Type:          RequestTypeReadState,
 		Sender:        a.Sender(),

@@ -24,17 +24,6 @@ func TestNewPrime256v1Identity(t *testing.T) {
 	}
 }
 
-func TestPrime256v1Identity_Sign(t *testing.T) {
-	id, err := NewRandomPrime256v1Identity()
-	if err != nil {
-		t.Fatal(err)
-	}
-	data := []byte("hello")
-	if !id.Verify(data, id.Sign(data)) {
-		t.Error()
-	}
-}
-
 func TestNewPrime256v1IdentityFromPEM(t *testing.T) {
 	pem := `
 -----BEGIN EC PRIVATE KEY-----
@@ -50,5 +39,16 @@ Sks4xGbA/ZbazsrMl4v446U5UIVxCGGaKw==
 	}
 	if !bytes.Equal(id.PublicKey(), der) {
 		t.Fatal("public key mismatch")
+	}
+}
+
+func TestPrime256v1Identity_Sign(t *testing.T) {
+	id, err := NewRandomPrime256v1Identity()
+	if err != nil {
+		t.Fatal(err)
+	}
+	data := []byte("hello")
+	if !id.Verify(data, id.Sign(data)) {
+		t.Error()
 	}
 }

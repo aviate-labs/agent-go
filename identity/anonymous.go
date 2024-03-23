@@ -7,14 +7,6 @@ import (
 // AnonymousIdentity is an identity that does not sign messages.
 type AnonymousIdentity struct{}
 
-func (id AnonymousIdentity) Verify(_, _ []byte) bool {
-	return true
-}
-
-func (id AnonymousIdentity) ToPEM() ([]byte, error) {
-	return nil, nil
-}
-
 // PublicKey returns the public key of the identity.
 func (id AnonymousIdentity) PublicKey() []byte {
 	return nil
@@ -28,4 +20,12 @@ func (id AnonymousIdentity) Sender() principal.Principal {
 // Sign signs the given message.
 func (id AnonymousIdentity) Sign(_ []byte) []byte {
 	return nil
+}
+
+func (id AnonymousIdentity) ToPEM() ([]byte, error) {
+	return nil, nil
+}
+
+func (id AnonymousIdentity) Verify(_, _ []byte) bool {
+	return true
 }
