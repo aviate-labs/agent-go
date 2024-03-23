@@ -45,8 +45,8 @@ func NewEd25519Identity(publicKey ed25519.PublicKey, privateKey ed25519.PrivateK
 
 // NewEd25519IdentityFromPEM creates a new identity from the given PEM file.
 func NewEd25519IdentityFromPEM(data []byte) (*Ed25519Identity, error) {
-	block, _ := pem.Decode(data)
-	if block.Type != "PRIVATE KEY" {
+	block, remainder := pem.Decode(data)
+	if block == nil || len(remainder) != 0 || block.Type != "PRIVATE KEY" {
 		return nil, fmt.Errorf("invalid pem file")
 	}
 	privateKey, err := x509.ParsePKCS8PrivateKey(block.Bytes)
@@ -83,6 +83,11 @@ func (id Ed25519Identity) Sender() principal.Principal {
 // Sign signs the given message.
 func (id Ed25519Identity) Sign(data []byte) []byte {
 	return ed25519.Sign(id.privateKey, data)
+}
+
+// Verify verifies the given signature.
+func (id Ed25519Identity) Verify(data, signature []byte) bool {
+	return ed25519.Verify(id.publicKey, data, signature)
 }
 
 // ToPEM returns the PEM representation of the identity.

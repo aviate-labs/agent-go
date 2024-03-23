@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/aviate-labs/agent-go/principal"
 	"github.com/aviate-labs/secp256k1"
+	"math/big"
 	"slices"
 )
 
@@ -17,8 +18,8 @@ func derEncodeSecp256k1PublicKey(key *secp256k1.PublicKey) ([]byte, error) {
 	point := key.ToECDSA()
 	return asn1.Marshal(ecPublicKey{
 		Metadata: []asn1.ObjectIdentifier{
-			{1, 2, 840, 10045, 2, 1}, // ec.PublicKey
-			secp256k1OID,             // Secp256k1
+			ecPublicKeyOID,
+			secp256k1OID,
 		},
 		PublicKey: asn1.BitString{
 			Bytes: marshal(secp256k1.S256(), point.X, point.Y),
@@ -80,10 +81,8 @@ func (id Secp256k1Identity) Sender() principal.Principal {
 }
 
 func (id Secp256k1Identity) Sign(msg []byte) []byte {
-	hash := sha256.New()
-	hash.Write(msg)
-	hashData := hash.Sum(nil)
-	sig, _ := id.privateKey.Sign(hashData)
+	hashData := sha256.Sum256(msg)
+	sig, _ := id.privateKey.Sign(hashData[:])
 	var buffer [64]byte
 	r := sig.R.Bytes()
 	s := sig.S.Bytes()
@@ -120,6 +119,18 @@ func (id Secp256k1Identity) ToPEM() ([]byte, error) {
 		})...,
 	), nil
 }
+
+// Verify verifies the signature of the given message.
+func (id Secp256k1Identity) Verify(msg, sig []byte) bool {
+	signature := secp256k1.Signature{
+		R: new(big.Int).SetBytes(sig[:32]),
+		S: new(big.Int).SetBytes(sig[32:]),
+	}
+	hashData := sha256.Sum256(msg)
+	return signature.Verify(hashData[:], id.publicKey)
+}
+
+var ecPublicKeyOID = asn1.ObjectIdentifier{1, 2, 840, 10045, 2, 1}
 
 type ecPrivateKey struct {
 	Version       int

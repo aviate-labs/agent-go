@@ -1,8 +1,6 @@
 package agent_test
 
 import (
-	"crypto/ed25519"
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"github.com/aviate-labs/agent-go"
@@ -51,9 +49,38 @@ func Example_json() {
 	// {"e8s":0}
 }
 
-func Example_query() {
-	publicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)
-	id, _ := identity.NewEd25519Identity(publicKey, privateKey)
+func Example_query_prime256v1() {
+	id, _ := identity.NewRandomPrime256v1Identity()
+	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+	a, _ := agent.New(agent.Config{Identity: id})
+	var balance struct {
+		E8S uint64 `ic:"e8s"`
+	}
+	_ = a.Query(ledgerID, "account_balance_dfx", []any{map[string]any{
+		"account": "9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d",
+	}}, []any{&balance})
+	fmt.Println(balance.E8S)
+	// Output:
+	// 0
+}
+
+func Example_query_ed25519() {
+	id, _ := identity.NewRandomEd25519Identity()
+	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+	a, _ := agent.New(agent.Config{Identity: id})
+	var balance struct {
+		E8S uint64 `ic:"e8s"`
+	}
+	_ = a.Query(ledgerID, "account_balance_dfx", []any{map[string]any{
+		"account": "9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d",
+	}}, []any{&balance})
+	fmt.Println(balance.E8S)
+	// Output:
+	// 0
+}
+
+func Example_query_secp256k1() {
+	id, _ := identity.NewRandomSecp256k1Identity()
 	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	a, _ := agent.New(agent.Config{Identity: id})
 	var balance struct {
