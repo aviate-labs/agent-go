@@ -54,7 +54,7 @@ Supported identities are `Ed25519` and `Secp256k1`. By default, the agent uses t
 ```go
 id, _ := identity.NewEd25519Identity(publicKey, privateKey)
 config := agent.Config{
-Identity: id,
+    Identity: id,
 }
 ```
 
@@ -65,8 +65,8 @@ If you are running a local replica, you can use the `FetchRootKey` option to fet
 ```go
 u, _ := url.Parse("http://localhost:8000")
 config := agent.Config{
-ClientConfig: &agent.ClientConfig{Host: u},
-FetchRootKey: true,
+    ClientConfig: &agent.ClientConfig{Host: u},
+    FetchRootKey: true,
 }
 ```
 
@@ -74,15 +74,15 @@ FetchRootKey: true,
 
 You can find the documentation for each package in the links below. Examples can be found throughout the documentation.
 
-| Package Name  | Links                                                                                                                                                                                                 | Description                                                                   |
-|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
-| `agent`       | [![README](https://img.shields.io/badge/-README-green)](https://github.com/aviate-labs/agent-go) [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go) | A library to talk directly to the Replica.                                    |  
-| `candid`      | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/candid)                                                                                           | A Candid library for Golang.                                                  |
-| `certificate` | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/certificate)                                                                                      | A Certification library for Golang.                                           |
-| `gen`         | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/gen)                                                                                              | A library to generate Golang clients.                                         |
-| `ic`          | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/ic)                                                                                               | Multiple auto-generated sub-modules to talk to the Internet Computer services |
-| `identity`    | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/identity)                                                                                         | A library that creates/manages identities.                                    |
-| `principal`   | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/principal)                                                                                        | Generic Identifiers for the Internet Computer                                 |
+| Package Name    | Links                                                                                                                                                                                                 | Description                                                                   |
+|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| `agent`         | [![README](https://img.shields.io/badge/-README-green)](https://github.com/aviate-labs/agent-go) [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go) | A library to talk directly to the Replica.                                    |  
+| `candid`        | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/candid)                                                                                           | A Candid library for Golang.                                                  |
+| `certification` | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/certificate)                                                                                      | A Certification library for Golang.                                           |
+| `gen`           | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/gen)                                                                                              | A library to generate Golang clients.                                         |
+| `ic`            | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/ic)                                                                                               | Multiple auto-generated sub-modules to talk to the Internet Computer services |
+| `identity`      | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/identity)                                                                                         | A library that creates/manages identities.                                    |
+| `principal`     | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/principal)                                                                                        | Generic Identifiers for the Internet Computer                                 |
 
 More dependencies in the [go.mod](./go.mod) file.
 
