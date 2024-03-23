@@ -23,4 +23,8 @@ type Identity interface {
 	Sign(msg []byte) []byte
 	// PublicKey returns the public key of the identity.
 	PublicKey() []byte
+	// Verify verifies the signature of the given message.
+	Verify(msg, sig []byte) bool
+	// ToPEM returns the PEM representation of the identity.
+	ToPEM() ([]byte, error)
 }
