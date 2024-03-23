@@ -1,4 +1,4 @@
-package certificate
+package hashtree
 
 // HashTree is a hash tree.
 type HashTree struct {
@@ -13,6 +13,16 @@ func NewHashTree(root Node) HashTree {
 // Digest returns the digest of the hash tree.
 func (t HashTree) Digest() [32]byte {
 	return t.Root.Reconstruct()
+}
+
+// Lookup looks up a path in the hash tree.
+func (t HashTree) Lookup(path ...Label) LookupResult {
+	return lookupPath(t.Root, path...)
+}
+
+// LookupSubTree looks up a path in the hash tree and returns the sub-tree.
+func (t HashTree) LookupSubTree(path ...Label) LookupSubTreeResult {
+	return lookupSubTree(t.Root, path...)
 }
 
 // MarshalCBOR marshals a hash tree.

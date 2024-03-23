@@ -1,25 +1,28 @@
-package certificate
+package certification
 
 import (
 	"fmt"
-	"github.com/aviate-labs/agent-go/certificate/bls"
-	"github.com/aviate-labs/agent-go/principal"
-	"github.com/fxamacker/cbor/v2"
 	"slices"
+
+	"github.com/aviate-labs/agent-go/certification/bls"
+	"github.com/aviate-labs/agent-go/certification/hashtree"
+	"github.com/aviate-labs/agent-go/principal"
+
+	"github.com/fxamacker/cbor/v2"
 )
 
 // Cert is a certificate gets returned by the IC.
 type Cert struct {
 	// Tree is the certificate tree.
-	Tree HashTree `cbor:"tree"`
+	Tree hashtree.HashTree `cbor:"tree"`
 	// Signature is the signature of the certificate tree.
 	Signature []byte `cbor:"signature"`
 	// Delegation is the delegation of the certificate.
 	Delegation *Delegation `cbor:"delegation"`
 }
 
-// Certificate is a certificate gets returned by the IC and can be used to verify
-// the state root based on the root key and canister ID.
+// Certificate is a certificate that gets returned by the IC and can be used to verify the state root based on the root
+// key and canister ID.
 type Certificate struct {
 	Cert       Cert
 	RootKey    []byte
@@ -50,7 +53,7 @@ func (c Certificate) Verify() error {
 		return err
 	}
 	rootHash := c.Cert.Tree.Digest()
-	message := append(DomainSeparator("ic-state-root"), rootHash[:]...)
+	message := append(hashtree.DomainSeparator("ic-state-root"), rootHash[:]...)
 	if !signature.Verify(publicKey, string(message)) {
 		return fmt.Errorf("signature verification failed")
 	}
@@ -64,15 +67,14 @@ func (c Certificate) getPublicKey() (*bls.PublicKey, error) {
 	}
 
 	cert := c.Cert.Delegation
-	canisterRanges := Lookup(
-		LookupPath("subnet", string(cert.SubnetId.Raw), "canister_ranges"),
-		cert.Certificate.Cert.Tree.Root,
+	canisterRangesResult := cert.Certificate.Cert.Tree.Lookup(
+		hashtree.Label("subnet"), cert.SubnetId.Raw, hashtree.Label("canister_ranges"),
 	)
-	if canisterRanges == nil {
+	if canisterRangesResult.Found() != nil {
 		return nil, fmt.Errorf("no canister ranges found for subnet %s", cert.SubnetId)
 	}
 	var rawRanges [][][]byte
-	if err := cbor.Unmarshal(canisterRanges, &rawRanges); err != nil {
+	if err := cbor.Unmarshal(canisterRangesResult.Value, &rawRanges); err != nil {
 		return nil, err
 	}
 
@@ -90,14 +92,14 @@ func (c Certificate) getPublicKey() (*bls.PublicKey, error) {
 		return nil, fmt.Errorf("canister %s is not in range", c.CanisterID)
 	}
 
-	publicKey := Lookup(
-		LookupPath("subnet", string(cert.SubnetId.Raw), "public_key"),
-		cert.Certificate.Cert.Tree.Root,
+	publicKeyResult := cert.Certificate.Cert.Tree.Lookup(
+		hashtree.Label("subnet"), cert.SubnetId.Raw, hashtree.Label("public_key"),
 	)
-	if publicKey == nil {
+	if publicKeyResult.Found() != nil {
 		return nil, fmt.Errorf("no public key found for subnet %s", cert.SubnetId)
 	}
 
+	publicKey := publicKeyResult.Value
 	if len(publicKey) != len(derPrefix)+96 {
 		return nil, fmt.Errorf("invalid public key length: %d", len(publicKey))
 	}

@@ -1,8 +1,8 @@
-package certificate_test
+package certification_test
 
 import (
 	"encoding/hex"
-	"github.com/aviate-labs/agent-go/certificate"
+	"github.com/aviate-labs/agent-go/certification"
 	"github.com/aviate-labs/agent-go/principal"
 	"testing"
 )
@@ -16,11 +16,11 @@ func TestSampleCert(t *testing.T) {
 		"00000000002FFFFF0101",
 	} {
 		t.Run(s, func(t *testing.T) {
-			c, err := certificate.New(
+			c, err := certification.New(
 				principal.Principal{
 					Raw: hexToBytes(s),
 				},
-				hexToBytes(certificate.RootKey),
+				hexToBytes(certification.RootKey),
 				hexToBytes(SampleCert),
 			)
 			if err != nil {

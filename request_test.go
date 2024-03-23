@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/principal"
 )
 
@@ -21,7 +22,7 @@ func TestNewRequestID(t *testing.T) {
 
 	if h := fmt.Sprintf("%x", agent.NewRequestID(agent.Request{
 		Sender: principal.Principal{Raw: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2}},
-		Paths: [][][]byte{
+		Paths: [][]hashtree.Label{
 			{},
 			{[]byte("")},
 			{[]byte("hello"), []byte("world")},
@@ -31,13 +32,13 @@ func TestNewRequestID(t *testing.T) {
 	}
 
 	if h := fmt.Sprintf("%x", agent.NewRequestID(agent.Request{
-		Paths: [][][]byte{},
+		Paths: [][]hashtree.Label{},
 	})); h != "99daa8c80a61e87ac1fdf9dd49e39963bfe4dafb2a45095ebf4cad72d916d5be" {
 		t.Error(h)
 	}
 
 	if h := fmt.Sprintf("%x", agent.NewRequestID(agent.Request{
-		Paths: [][][]byte{{}},
+		Paths: [][]hashtree.Label{{}},
 	})); h != "ea01a9c3d3830db108e0a87995ea0d4183dc9c6e51324e9818fced5c57aa64f5" {
 		t.Error(h)
 	}

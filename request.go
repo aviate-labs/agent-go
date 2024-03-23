@@ -6,9 +6,11 @@ import (
 	"math/big"
 	"sort"
 
+	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
 	"github.com/aviate-labs/leb128"
+
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -29,7 +31,7 @@ func encodeLEB128(i uint64) []byte {
 	return e
 }
 
-func hashPaths(paths [][][]byte) [32]byte {
+func hashPaths(paths [][]hashtree.Label) [32]byte {
 	var hash []byte
 	for _, path := range paths {
 		var rawPathHash []byte
@@ -63,7 +65,7 @@ type Request struct {
 	// Argument to pass to the canister method.
 	Arguments []byte
 	// A list of paths, where a path is itself a sequence of blobs.
-	Paths [][][]byte
+	Paths [][]hashtree.Label
 }
 
 // MarshalCBOR implements the CBOR marshaler interface.
@@ -164,12 +166,12 @@ const (
 )
 
 type requestRaw struct {
-	Type          RequestType `cbor:"request_type"`
-	Sender        []byte      `cbor:"sender"`
-	Nonce         []byte      `cbor:"nonce"`
-	IngressExpiry uint64      `cbor:"ingress_expiry"`
-	CanisterID    []byte      `cbor:"canister_id"`
-	MethodName    string      `cbor:"method_name"`
-	Arguments     []byte      `cbor:"arg"`
-	Paths         [][][]byte  `cbor:"paths,omitempty"`
+	Type          RequestType        `cbor:"request_type"`
+	Sender        []byte             `cbor:"sender"`
+	Nonce         []byte             `cbor:"nonce"`
+	IngressExpiry uint64             `cbor:"ingress_expiry"`
+	CanisterID    []byte             `cbor:"canister_id"`
+	MethodName    string             `cbor:"method_name"`
+	Arguments     []byte             `cbor:"arg"`
+	Paths         [][]hashtree.Label `cbor:"paths,omitempty"`
 }

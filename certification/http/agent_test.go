@@ -2,11 +2,12 @@ package http_test
 
 import (
 	"fmt"
-	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/certificate/http"
-	"github.com/aviate-labs/agent-go/certificate/http/certexp"
-	"github.com/aviate-labs/agent-go/principal"
 	"testing"
+
+	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/certification/http"
+	"github.com/aviate-labs/agent-go/certification/http/certexp"
+	"github.com/aviate-labs/agent-go/principal"
 )
 
 func TestAgent_HttpRequest(t *testing.T) {

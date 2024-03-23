@@ -1,4 +1,4 @@
-package certificate
+package hashtree
 
 import (
 	"crypto/sha256"

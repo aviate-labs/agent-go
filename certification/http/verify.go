@@ -5,16 +5,19 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/aviate-labs/agent-go/certificate"
-	"github.com/aviate-labs/agent-go/certificate/http/certexp"
-	"github.com/aviate-labs/leb128"
-	"github.com/fxamacker/cbor/v2"
+	"github.com/aviate-labs/agent-go/certification"
 	"math/big"
 	"net/url"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/aviate-labs/agent-go/certification/hashtree"
+	"github.com/aviate-labs/agent-go/certification/http/certexp"
+	"github.com/aviate-labs/leb128"
+
+	"github.com/fxamacker/cbor/v2"
 )
 
 func CalculateRequestHash(r *Request, reqCert *certexp.CertificateExpressionRequestCertification) ([32]byte, error) {
@@ -167,7 +170,7 @@ func (a Agent) VerifyResponse(path string, req *Request, resp *Response) error {
 	}
 
 	// Validate the certificate.
-	if err := (certificate.Certificate{
+	if err := (certification.Certificate{
 		Cert:       certificateHeader.Certificate,
 		RootKey:    a.GetRootKey(),
 		CanisterID: a.canisterId,
@@ -176,8 +179,11 @@ func (a Agent) VerifyResponse(path string, req *Request, resp *Response) error {
 	}
 
 	// The timestamp at the /time path must be recent, e.g. 5 minutes.
-	rawTime := certificate.Lookup(certificate.LookupPath("time"), certificateHeader.Certificate.Tree.Root)
-	t, err := leb128.DecodeUnsigned(bytes.NewReader(rawTime))
+	rawTimeResult := certificateHeader.Certificate.Tree.Lookup(hashtree.Label("time"))
+	if rawTimeResult.Found() != nil {
+		return fmt.Errorf("no time found")
+	}
+	t, err := leb128.DecodeUnsigned(bytes.NewReader(rawTimeResult.Value))
 	if err != nil {
 		return err
 	}
@@ -220,13 +226,13 @@ func (a *Agent) verify(req *Request, resp *Response, certificateHeader *Certific
 		return err
 	}
 
-	exprPathNode := certificate.LookupNode(certificate.LookupPath(exprPath.GetPath()...), certificateHeader.Tree.Root)
-	if exprPathNode == nil {
+	exprPathNodeResult := certificateHeader.Tree.LookupSubTree(exprPath.GetPath()...)
+	if exprPathNodeResult.Found() != nil {
 		return fmt.Errorf("no expression path found")
 	}
-	var exprHash certificate.Labeled
-	switch n := (*exprPathNode).(type) {
-	case certificate.Labeled:
+	var exprHash hashtree.Labeled
+	switch n := (exprPathNodeResult.Node).(type) {
+	case hashtree.Labeled:
 		exprHash = n
 		certExprHash := sha256.Sum256([]byte(certificateExpression))
 		if !bytes.Equal(exprHash.Label, certExprHash[:]) {
@@ -245,12 +251,12 @@ func (a *Agent) verify(req *Request, resp *Response, certificateHeader *Certific
 		return err
 	}
 	if certExpr.Certification.RequestCertification == nil {
-		n := certificate.LookupNode(certificate.LookupPath("", string(respHash[:])), exprHash.Tree)
-		if n == nil {
+		nResult := hashtree.NewHashTree(exprHash.Tree).LookupSubTree(hashtree.Label(""), respHash[:])
+		if nResult.Found() != nil {
 			return fmt.Errorf("response hash not found")
 		}
-		switch n := (*n).(type) {
-		case certificate.Leaf:
+		switch n := (nResult.Node).(type) {
+		case hashtree.Leaf:
 			if len(n) != 0 {
 				return fmt.Errorf("invalid response hash: not empty")
 			}
@@ -263,12 +269,12 @@ func (a *Agent) verify(req *Request, resp *Response, certificateHeader *Certific
 		if err != nil {
 			return err
 		}
-		n := certificate.LookupNode(certificate.LookupPath(string(reqHash[:]), string(respHash[:])), exprHash.Tree)
-		if n == nil {
+		nResult := hashtree.NewHashTree(exprHash.Tree).LookupSubTree(reqHash[:], respHash[:])
+		if nResult.Found() != nil {
 			return fmt.Errorf("response hash not found")
 		}
-		switch n := (*n).(type) {
-		case certificate.Leaf:
+		switch n := (nResult.Node).(type) {
+		case hashtree.Leaf:
 			if len(n) != 0 {
 				return fmt.Errorf("invalid response hash: not empty")
 			}
@@ -284,22 +290,22 @@ func (a *Agent) verifyLegacy(path string, hash [32]byte, certificateHeader *Cert
 		return fmt.Errorf("certificate version 2 is supported")
 	}
 
-	witness := certificate.Lookup(certificate.LookupPath("canister", string(a.canisterId.Raw), "certified_data"), certificateHeader.Certificate.Tree.Root)
-	if len(witness) != 32 {
+	witnessResult := certificateHeader.Certificate.Tree.Lookup(hashtree.Label("canister"), a.canisterId.Raw, hashtree.Label("certified_data"))
+	if witnessResult.Found() != nil || len(witnessResult.Value) != 32 {
 		return fmt.Errorf("no witness found")
 	}
 
 	reconstruct := certificateHeader.Tree.Root.Reconstruct()
-	if !bytes.Equal(witness, reconstruct[:32]) {
+	if !bytes.Equal(witnessResult.Value, reconstruct[:32]) {
 		return fmt.Errorf("invalid witness")
 	}
 
-	treeHash := certificate.Lookup(certificate.LookupPath("http_assets", path), certificateHeader.Tree.Root)
-	if len(treeHash) == 0 {
-		treeHash = certificate.Lookup(certificate.LookupPath("http_assets"), certificateHeader.Tree.Root)
+	treeHashResult := certificateHeader.Tree.Lookup(hashtree.Label("http_assets"), hashtree.Label(path))
+	if treeHashResult.Found() != nil || len(treeHashResult.Value) == 0 {
+		treeHashResult = certificateHeader.Tree.Lookup(hashtree.Label("http_assets"))
 	}
 
-	if !bytes.Equal(hash[:], treeHash) {
+	if treeHashResult.Found() != nil || !bytes.Equal(hash[:], treeHashResult.Value) {
 		return fmt.Errorf("invalid hash")
 	}
 
@@ -307,10 +313,10 @@ func (a *Agent) verifyLegacy(path string, hash [32]byte, certificateHeader *Cert
 }
 
 type CertificateHeader struct {
-	Certificate certificate.Cert
-	Tree        certificate.HashTree
+	Certificate certification.Cert
+	Tree        hashtree.HashTree
 	Version     int
-	ExprPath    []string
+	ExprPath    []hashtree.Label
 }
 
 func ParseCertificateHeader(header string) (*CertificateHeader, error) {
@@ -326,7 +332,7 @@ func ParseCertificateHeader(header string) (*CertificateHeader, error) {
 			if err != nil {
 				return nil, err
 			}
-			var cert certificate.Cert
+			var cert certification.Cert
 			if err := cbor.Unmarshal(raw, &cert); err != nil {
 				return nil, err
 			}
@@ -336,7 +342,7 @@ func ParseCertificateHeader(header string) (*CertificateHeader, error) {
 			if err != nil {
 				return nil, err
 			}
-			var tree certificate.HashTree
+			var tree hashtree.HashTree
 			if err := cbor.Unmarshal(raw, &tree); err != nil {
 				return nil, err
 			}
@@ -352,9 +358,13 @@ func ParseCertificateHeader(header string) (*CertificateHeader, error) {
 			if err != nil {
 				return nil, err
 			}
-			var path []string
-			if err := cbor.Unmarshal(raw, &path); err != nil {
+			var strPath []string
+			if err := cbor.Unmarshal(raw, &strPath); err != nil {
 				return nil, err
+			}
+			var path []hashtree.Label
+			for _, s := range strPath {
+				path = append(path, hashtree.Label(s))
 			}
 			certificateHeader.ExprPath = path
 		default:
@@ -366,15 +376,15 @@ func ParseCertificateHeader(header string) (*CertificateHeader, error) {
 
 type ExpressionPath struct {
 	Wildcard bool
-	Path     []string
+	Path     []hashtree.Label
 }
 
-func ParseExpressionPath(path []string) (*ExpressionPath, error) {
-	if len(path) < 2 || path[0] != "http_expr" {
+func ParseExpressionPath(path []hashtree.Label) (*ExpressionPath, error) {
+	if len(path) < 2 || !bytes.Equal(path[0], hashtree.Label("http_expr")) {
 		return nil, fmt.Errorf("invalid expression path")
 	}
 	var wilcard bool
-	switch path[len(path)-1] {
+	switch string(path[len(path)-1]) {
 	case "<*>":
 		wilcard = true
 	case "<$>":
@@ -387,14 +397,14 @@ func ParseExpressionPath(path []string) (*ExpressionPath, error) {
 	}, nil
 }
 
-func (e ExpressionPath) GetPath() []string {
-	path := make([]string, len(e.Path)+2)
+func (e ExpressionPath) GetPath() []hashtree.Label {
+	path := make([]hashtree.Label, len(e.Path)+2)
 	copy(path[1:], e.Path)
-	path[0] = "http_expr"
+	path[0] = hashtree.Label("http_expr")
 	if e.Wildcard {
-		path[len(path)-1] = "<*>"
+		path[len(path)-1] = hashtree.Label("<*>")
 	} else {
-		path[len(path)-1] = "<$>"
+		path[len(path)-1] = hashtree.Label("<$>")
 	}
 	return path
 }
