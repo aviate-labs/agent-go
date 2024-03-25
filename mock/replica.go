@@ -108,9 +108,9 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 			_, _ = writer.Write([]byte("expected call request"))
 			return
 		}
-		requestId := agent.NewRequestID(req)
-		requestIdHex := hex.EncodeToString(requestId[:])
-		r.Requests[requestIdHex] = req
+		requestID := agent.NewRequestID(req)
+		requestIDHex := hex.EncodeToString(requestID[:])
+		r.Requests[requestIDHex] = req
 		writer.WriteHeader(http.StatusAccepted)
 	case "query":
 		if req.Type != agent.RequestTypeQuery {
@@ -161,12 +161,12 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 			_, _ = writer.Write([]byte("expected request_status"))
 			return
 		}
-		requestId := req.Paths[0][1]
-		requestIdHex := hex.EncodeToString(requestId)
-		req, ok := r.Requests[requestIdHex]
+		requestID := req.Paths[0][1]
+		requestIDHex := hex.EncodeToString(requestID)
+		req, ok := r.Requests[requestIDHex]
 		if !ok {
 			writer.WriteHeader(http.StatusNotFound)
-			_, _ = writer.Write([]byte("request not found: " + requestIdHex))
+			_, _ = writer.Write([]byte("request not found: " + requestIDHex))
 			return
 		}
 
@@ -195,7 +195,7 @@ func (r *Replica) handleCanister(writer http.ResponseWriter, canisterId, typ str
 			LeftTree: hashtree.Labeled{
 				Label: []byte("request_status"),
 				Tree: hashtree.Labeled{
-					Label: requestId,
+					Label: requestID,
 					Tree: hashtree.Fork{
 						LeftTree: hashtree.Labeled{
 							Label: []byte("reply"),

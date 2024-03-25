@@ -186,6 +186,6 @@ func TestICPLedger_queryBlocks(t *testing.T) {
 
 type testLogger struct{}
 
-func (t testLogger) Printf(format string, v ...interface{}) {
+func (t testLogger) Printf(format string, v ...any) {
 	fmt.Printf("[TEST]"+format+"\n", v...)
 }
