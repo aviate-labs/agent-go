@@ -144,11 +144,11 @@ func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) (
 	if err != nil {
 		return nil, err
 	}
-	result := hashtree.NewHashTree(node).Lookup(path...)
-	if err := result.Found(); err != nil {
+	canisterInfo, err := hashtree.NewHashTree(node).Lookup(path...)
+	if err != nil {
 		return nil, err
 	}
-	return result.Value, nil
+	return canisterInfo, nil
 }
 
 func (a Agent) GetCanisterMetadata(canisterID principal.Principal, subPath string) ([]byte, error) {
@@ -165,11 +165,11 @@ func (a Agent) GetCanisterMetadata(canisterID principal.Principal, subPath strin
 	if err != nil {
 		return nil, err
 	}
-	result := hashtree.NewHashTree(node).Lookup(path...)
-	if err := result.Found(); err != nil {
+	metadata, err := hashtree.NewHashTree(node).Lookup(path...)
+	if err != nil {
 		return nil, err
 	}
-	return result.Value, nil
+	return metadata, nil
 }
 
 // GetCanisterModuleHash returns the module hash for the given canister.
@@ -239,11 +239,11 @@ func (a Agent) RequestStatus(canisterID principal.Principal, requestID RequestID
 	if err != nil {
 		return nil, nil, err
 	}
-	result := hashtree.NewHashTree(node).Lookup(append(path, hashtree.Label("status"))...)
-	if err := result.Found(); err != nil {
+	status, err := hashtree.NewHashTree(node).Lookup(append(path, hashtree.Label("status"))...)
+	if err != nil {
 		return nil, nil, err
 	}
-	return result.Value, node, nil
+	return status, node, nil
 }
 
 // Sender returns the principal that is sending the requests.
@@ -274,20 +274,22 @@ func (a Agent) poll(canisterID principal.Principal, requestID RequestID, delay, 
 				switch string(data) {
 				case "rejected":
 					tree := hashtree.NewHashTree(node)
-					codeResult := tree.Lookup(append(path, hashtree.Label("reject_code"))...)
-					messageResult := tree.Lookup(append(path, hashtree.Label("reject_message"))...)
-					if codeResult.Found() != nil || messageResult.Found() != nil {
-						return nil, fmt.Errorf("no reject code or message found")
+					code, err := tree.Lookup(append(path, hashtree.Label("reject_code"))...)
+					if err != nil {
+						return nil, err
 					}
-					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(codeResult.Value), string(messageResult.Value))
+					message, err := tree.Lookup(append(path, hashtree.Label("reject_message"))...)
+					if err != nil {
+						return nil, err
+					}
+					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(code), string(message))
 				case "replied":
 					fmt.Println(node)
-					repliedResult := hashtree.NewHashTree(node).Lookup(append(path, hashtree.Label("reply"))...)
-					fmt.Println(repliedResult)
-					if repliedResult.Found() != nil {
+					replied, err := hashtree.NewHashTree(node).Lookup(append(path, hashtree.Label("reply"))...)
+					if err != nil {
 						return nil, fmt.Errorf("no reply found")
 					}
-					return repliedResult.Value, nil
+					return replied, nil
 				}
 			}
 		case <-timer.C:

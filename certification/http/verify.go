@@ -179,11 +179,11 @@ func (a Agent) VerifyResponse(path string, req *Request, resp *Response) error {
 	}
 
 	// The timestamp at the /time path must be recent, e.g. 5 minutes.
-	rawTimeResult := certificateHeader.Certificate.Tree.Lookup(hashtree.Label("time"))
-	if rawTimeResult.Found() != nil {
-		return fmt.Errorf("no time found")
+	rawTime, err := certificateHeader.Certificate.Tree.Lookup(hashtree.Label("time"))
+	if err != nil {
+		return fmt.Errorf("no time found: %w", err)
 	}
-	t, err := leb128.DecodeUnsigned(bytes.NewReader(rawTimeResult.Value))
+	t, err := leb128.DecodeUnsigned(bytes.NewReader(rawTime))
 	if err != nil {
 		return err
 	}
@@ -226,12 +226,12 @@ func (a *Agent) verify(req *Request, resp *Response, certificateHeader *Certific
 		return err
 	}
 
-	exprPathNodeResult := certificateHeader.Tree.LookupSubTree(exprPath.GetPath()...)
-	if exprPathNodeResult.Found() != nil {
-		return fmt.Errorf("no expression path found")
+	exprPathNode, err := certificateHeader.Tree.LookupSubTree(exprPath.GetPath()...)
+	if err != nil {
+		return fmt.Errorf("no expression path found: %w", err)
 	}
 	var exprHash hashtree.Labeled
-	switch n := (exprPathNodeResult.Node).(type) {
+	switch n := (exprPathNode).(type) {
 	case hashtree.Labeled:
 		exprHash = n
 		certExprHash := sha256.Sum256([]byte(certificateExpression))
@@ -251,11 +251,11 @@ func (a *Agent) verify(req *Request, resp *Response, certificateHeader *Certific
 		return err
 	}
 	if certExpr.Certification.RequestCertification == nil {
-		nResult := hashtree.NewHashTree(exprHash.Tree).LookupSubTree(hashtree.Label(""), respHash[:])
-		if nResult.Found() != nil {
-			return fmt.Errorf("response hash not found")
+		n, err := hashtree.NewHashTree(exprHash.Tree).LookupSubTree(hashtree.Label(""), respHash[:])
+		if err != nil {
+			return fmt.Errorf("response hash not found: %w", err)
 		}
-		switch n := (nResult.Node).(type) {
+		switch n := (n).(type) {
 		case hashtree.Leaf:
 			if len(n) != 0 {
 				return fmt.Errorf("invalid response hash: not empty")
@@ -269,11 +269,11 @@ func (a *Agent) verify(req *Request, resp *Response, certificateHeader *Certific
 		if err != nil {
 			return err
 		}
-		nResult := hashtree.NewHashTree(exprHash.Tree).LookupSubTree(reqHash[:], respHash[:])
-		if nResult.Found() != nil {
-			return fmt.Errorf("response hash not found")
+		n, err := hashtree.NewHashTree(exprHash.Tree).LookupSubTree(reqHash[:], respHash[:])
+		if err != nil {
+			return fmt.Errorf("response hash not found: %w", err)
 		}
-		switch n := (nResult.Node).(type) {
+		switch n := (n).(type) {
 		case hashtree.Leaf:
 			if len(n) != 0 {
 				return fmt.Errorf("invalid response hash: not empty")
@@ -290,25 +290,28 @@ func (a *Agent) verifyLegacy(path string, hash [32]byte, certificateHeader *Cert
 		return fmt.Errorf("certificate version 2 is supported")
 	}
 
-	witnessResult := certificateHeader.Certificate.Tree.Lookup(hashtree.Label("canister"), a.canisterId.Raw, hashtree.Label("certified_data"))
-	if witnessResult.Found() != nil || len(witnessResult.Value) != 32 {
-		return fmt.Errorf("no witness found")
+	witness, err := certificateHeader.Certificate.Tree.Lookup(hashtree.Label("canister"), a.canisterId.Raw, hashtree.Label("certified_data"))
+	if err != nil {
+		return fmt.Errorf("no witness found: %w", err)
+	}
+
+	if len(witness) != 32 {
+		return fmt.Errorf("invalid witness length")
 	}
 
 	reconstruct := certificateHeader.Tree.Root.Reconstruct()
-	if !bytes.Equal(witnessResult.Value, reconstruct[:32]) {
+	if !bytes.Equal(witness, reconstruct[:32]) {
 		return fmt.Errorf("invalid witness")
 	}
 
-	treeHashResult := certificateHeader.Tree.Lookup(hashtree.Label("http_assets"), hashtree.Label(path))
-	if treeHashResult.Found() != nil || len(treeHashResult.Value) == 0 {
-		treeHashResult = certificateHeader.Tree.Lookup(hashtree.Label("http_assets"))
+	treeHash, err := certificateHeader.Tree.Lookup(hashtree.Label("http_assets"), hashtree.Label(path))
+	if err != nil || len(treeHash) == 0 {
+		treeHash, _ = certificateHeader.Tree.Lookup(hashtree.Label("http_assets"))
 	}
 
-	if treeHashResult.Found() != nil || !bytes.Equal(hash[:], treeHashResult.Value) {
+	if !bytes.Equal(hash[:], treeHash) {
 		return fmt.Errorf("invalid hash")
 	}
-
 	return nil
 }
 

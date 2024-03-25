@@ -3,6 +3,7 @@ package hashtree
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"testing"
 )
@@ -29,23 +30,24 @@ func TestHashTree_Lookup(t *testing.T) {
 			},
 		})
 
+		var lookupError LookupError
 		for _, i := range []int{0, 1} {
-			if result := tree.Lookup(Label(fmt.Sprintf("label %d", i))); result.Type != LookupResultAbsent {
+			if _, err := tree.Lookup(Label(fmt.Sprintf("label %d", i))); !errors.As(err, &lookupError) || lookupError.Type != LookupResultAbsent {
 				t.Fatalf("unexpected lookup result")
 			}
 		}
-		if result := tree.Lookup(Label("label 2")); result.Type != LookupResultUnknown {
+		if _, err := tree.Lookup(Label("label 2")); !errors.As(err, &lookupError) || lookupError.Type != LookupResultUnknown {
 			t.Fatalf("unexpected lookup result")
 		}
-		if result := tree.Lookup(Label("label 3")); result.Type != LookupResultFound {
+		if v, err := tree.Lookup(Label("label 3")); err != nil {
 			t.Fatalf("unexpected lookup result")
 		} else {
-			if !bytes.Equal(result.Value, []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}) {
+			if !bytes.Equal(v, []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}) {
 				t.Fatalf("unexpected node value")
 			}
 		}
 		for _, i := range []int{4, 5, 6} {
-			if result := tree.Lookup(Label(fmt.Sprintf("label %d", i))); result.Type != LookupResultAbsent {
+			if _, err := tree.Lookup(Label(fmt.Sprintf("label %d", i))); !errors.As(err, &lookupError) || lookupError.Type != LookupResultAbsent {
 				t.Fatalf("unexpected lookup result")
 			}
 		}
@@ -78,24 +80,25 @@ func TestHashTree_Lookup(t *testing.T) {
 				RightTree: Pruned{},
 			},
 		})
+		var lookupError LookupError
 		for _, i := range []int{0, 1, 2} {
-			if result := tree.Lookup(Label(fmt.Sprintf("label %d", i))); result.Type != LookupResultAbsent {
+			if _, err := tree.Lookup(Label(fmt.Sprintf("label %d", i))); !errors.As(err, &lookupError) || lookupError.Type != LookupResultAbsent {
 				t.Fatalf("unexpected lookup result")
 			}
 		}
-		if result := tree.Lookup(Label("label 3")); result.Type != LookupResultFound {
+		if v, err := tree.Lookup(Label("label 3")); err != nil {
 			t.Fatalf("unexpected lookup result")
 		} else {
-			if !bytes.Equal(result.Value, []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}) {
+			if !bytes.Equal(v, []byte{0x01, 0x02, 0x03, 0x04, 0x05, 0x06}) {
 				t.Fatalf("unexpected node value")
 			}
 		}
 		for _, i := range []int{4, 5} {
-			if result := tree.Lookup(Label(fmt.Sprintf("label %d", i))); result.Type != LookupResultAbsent {
+			if _, err := tree.Lookup(Label(fmt.Sprintf("label %d", i))); !errors.As(err, &lookupError) || lookupError.Type != LookupResultAbsent {
 				t.Fatalf("unexpected lookup result")
 			}
 		}
-		if result := tree.Lookup(Label("label 6")); result.Type != LookupResultUnknown {
+		if _, err := tree.Lookup(Label("label 6")); !errors.As(err, &lookupError) || lookupError.Type != LookupResultUnknown {
 			t.Fatalf("unexpected lookup result")
 		}
 	})

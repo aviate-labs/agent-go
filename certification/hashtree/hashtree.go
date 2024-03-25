@@ -16,12 +16,12 @@ func (t HashTree) Digest() [32]byte {
 }
 
 // Lookup looks up a path in the hash tree.
-func (t HashTree) Lookup(path ...Label) LookupResult {
+func (t HashTree) Lookup(path ...Label) ([]byte, error) {
 	return lookupPath(t.Root, path...)
 }
 
 // LookupSubTree looks up a path in the hash tree and returns the sub-tree.
-func (t HashTree) LookupSubTree(path ...Label) LookupSubTreeResult {
+func (t HashTree) LookupSubTree(path ...Label) (Node, error) {
 	return lookupSubTree(t.Root, path...)
 }
 

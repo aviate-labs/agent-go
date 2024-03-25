@@ -67,14 +67,14 @@ func (c Certificate) getPublicKey() (*bls.PublicKey, error) {
 	}
 
 	cert := c.Cert.Delegation
-	canisterRangesResult := cert.Certificate.Cert.Tree.Lookup(
+	canisterRanges, err := cert.Certificate.Cert.Tree.Lookup(
 		hashtree.Label("subnet"), cert.SubnetId.Raw, hashtree.Label("canister_ranges"),
 	)
-	if canisterRangesResult.Found() != nil {
-		return nil, fmt.Errorf("no canister ranges found for subnet %s", cert.SubnetId)
+	if err != nil {
+		return nil, fmt.Errorf("no canister ranges found for subnet %s: %w", cert.SubnetId, err)
 	}
 	var rawRanges [][][]byte
-	if err := cbor.Unmarshal(canisterRangesResult.Value, &rawRanges); err != nil {
+	if err := cbor.Unmarshal(canisterRanges, &rawRanges); err != nil {
 		return nil, err
 	}
 
@@ -92,14 +92,13 @@ func (c Certificate) getPublicKey() (*bls.PublicKey, error) {
 		return nil, fmt.Errorf("canister %s is not in range", c.CanisterID)
 	}
 
-	publicKeyResult := cert.Certificate.Cert.Tree.Lookup(
+	publicKey, err := cert.Certificate.Cert.Tree.Lookup(
 		hashtree.Label("subnet"), cert.SubnetId.Raw, hashtree.Label("public_key"),
 	)
-	if publicKeyResult.Found() != nil {
-		return nil, fmt.Errorf("no public key found for subnet %s", cert.SubnetId)
+	if err != nil {
+		return nil, fmt.Errorf("no public key found for subnet %s: %w", cert.SubnetId, err)
 	}
 
-	publicKey := publicKeyResult.Value
 	if len(publicKey) != len(derPrefix)+96 {
 		return nil, fmt.Errorf("invalid public key length: %d", len(publicKey))
 	}
