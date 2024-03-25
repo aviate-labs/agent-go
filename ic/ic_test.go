@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/ic"
 	"github.com/aviate-labs/agent-go/ic/assetstorage"
+	ic0 "github.com/aviate-labs/agent-go/ic/ic"
 	"github.com/aviate-labs/agent-go/principal"
 	"net/url"
 	"os"
@@ -19,11 +21,11 @@ func TestModules(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	var networksConfig map[string]map[string]string
+	var networksConfig networkConfig
 	if err := json.Unmarshal(rawNetworksConfig, &networksConfig); err != nil {
 		t.Fatal(err)
 	}
-	host, err := url.Parse(fmt.Sprintf("http://%s", networksConfig["local"]["bind"]))
+	host, err := url.Parse(fmt.Sprintf("http://%s", networksConfig.Local.Bind))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,16 +62,53 @@ func TestModules(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	config := agent.Config{
+		ClientConfig: &agent.ClientConfig{Host: host},
+		FetchRootKey: true,
+		Logger:       new(localLogger),
+	}
+
 	t.Run("assetstorage", func(t *testing.T) {
 		cId, _ := principal.Decode(m["assetstorage"]["local"])
-		a, err := assetstorage.NewAgent(cId, agent.Config{
-			ClientConfig: &agent.ClientConfig{Host: host},
-			FetchRootKey: true,
-		})
+		a, err := assetstorage.NewAgent(cId, config)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if _, err := a.ApiVersion(); err != nil {
+			t.Error(err)
+		}
+	})
+
+	t.Run("management canister", func(t *testing.T) {
+		controller := principal.AnonymousID
+		addController := exec.Command(dfxPath, "canister", "update-settings", "--add-controller", controller.String(), "ic0")
+		if out, err := addController.CombinedOutput(); err != nil {
+			t.Fatal(sanitizeOutput(out))
+		}
+
+		getContollers := exec.Command(dfxPath, "canister", "info", "ic0")
+		out, err := getContollers.CombinedOutput()
+		if err != nil {
+			t.Fatal(sanitizeOutput(out))
+		}
+		if !strings.Contains(string(out), controller.String()) {
+			t.Error("controller not added")
+		}
+
+		cId, _ := principal.Decode(m["ic0"]["local"])
+		a, err := ic0.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, config)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err := a.UpdateSettings(ic0.UpdateSettingsArgs{
+			CanisterId: cId,
+			Settings: ic0.CanisterSettings{
+				Controllers: &[]principal.Principal{
+					principal.AnonymousID,
+				},
+			},
+		}); err != nil {
 			t.Error(err)
 		}
 	})
@@ -82,4 +121,16 @@ func sanitizeOutput(out []byte) string {
 		s += strings.TrimSpace(strings.ReplaceAll(p, artifact, "")) + "\n"
 	}
 	return s
+}
+
+type localLogger struct{}
+
+func (l localLogger) Printf(format string, v ...any) {
+	fmt.Printf("[LOCAL]"+format+"\n", v...)
+}
+
+type networkConfig struct {
+	Local struct {
+		Bind string `json:"bind"`
+	} `json:"local"`
 }

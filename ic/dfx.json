@@ -3,6 +3,10 @@
     "assetstorage": {
       "type": "motoko",
       "main": "assetstorage/actor.mo"
+    },
+    "ic0": {
+      "type": "motoko",
+      "main": "ic/actor.mo"
     }
   }
 }

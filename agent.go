@@ -28,11 +28,7 @@ var icp0, _ = url.Parse("https://icp0.io/")
 
 func effectiveCanisterID(canisterId principal.Principal, args []any) principal.Principal {
 	// If the canisterId is not aaaaa-aa (encoded as empty byte array), return it.
-	if len(canisterId.Raw) > 0 {
-		return canisterId
-	}
-
-	if(len(args) < 1) {
+	if 0 < len(canisterId.Raw) || len(args) < 1 {
 		return canisterId
 	}
 
@@ -140,9 +136,8 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 		return err
 	}
 	ecID := effectiveCanisterID(canisterID, args)
-	a.logger.Printf("[AGENT] CALL %s (ecid: %s) %x", canisterID, ecID, a.identity.PublicKey(), methodName)
-
-	if _, err := a.call(ecID, data); err != nil {
+	a.logger.Printf("[AGENT] CALL %s %s (%x)", canisterID, methodName, *requestID)
+	if _, err := a.call(canisterID, data); err != nil {
 		return err
 	}
 
@@ -262,7 +257,7 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 
 // RequestStatus returns the status of the request with the given ID.
 func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]byte, hashtree.Node, error) {
-	a.logger.Printf("[AGENT] REQUEST STATUS %x", requestID[:]);
+	a.logger.Printf("[AGENT] REQUEST STATUS %s %x", ecID, requestID)
 	path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
 	c, err := a.readStateCertificate(ecID, [][]hashtree.Label{path})
 	if err != nil {
@@ -309,7 +304,7 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID, delay, timeou
 	for {
 		select {
 		case <-ticker.C:
-			a.logger.Printf("[AGENT] POLL (reqID: %x) ", requestID[:])
+			a.logger.Printf("[AGENT] POLL %s %x", ecID, requestID)
 			data, node, err := a.RequestStatus(ecID, requestID)
 			if err != nil {
 				return nil, err
@@ -329,7 +324,6 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID, delay, timeou
 					}
 					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(code), string(message))
 				case "replied":
-					fmt.Println(node)
 					replied, err := hashtree.NewHashTree(node).Lookup(append(path, hashtree.Label("reply"))...)
 					if err != nil {
 						return nil, fmt.Errorf("no reply found")
