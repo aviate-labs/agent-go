@@ -2,127 +2,47 @@ package hashtree
 
 import (
 	"bytes"
-	"fmt"
 )
 
-// LookupResult is the result of a lookup.
-type LookupResult struct {
-	// Type is the type of the lookup result.
-	Type LookupResultType
-	// Value is the value of the leaf. Can be nil if the type is not LookupResultFound.
-	Value []byte
-}
-
-func lookupPath(n Node, path ...Label) LookupResult {
+func lookupPath(n Node, path ...Label) ([]byte, error) {
 	switch {
 	case len(path) == 0:
 		switch n := n.(type) {
 		case Leaf:
-			return LookupResult{
-				Type:  LookupResultFound,
-				Value: n,
-			}
+			return n, nil
 		case nil, Empty:
-			return LookupResult{
-				Type: LookupResultAbsent,
-			}
+			return nil, NewLookupAbsentError()
 		case Pruned:
-			return LookupResult{
-				Type: LookupResultUnknown,
-			}
+			return nil, NewLookupUnknownError()
 		default:
 			// Labeled, Fork
-			return LookupResult{
-				Type: LookupResultError,
-			}
+			return nil, NewLookupError()
 		}
 	default:
 		switch l := lookupLabel(n, path[0]); l.Type {
 		case lookupLabelResultFound:
 			return lookupPath(l.Node, path[1:]...)
 		case lookupLabelResultUnknown:
-			return LookupResult{
-				Type: LookupResultUnknown,
-			}
+			return nil, NewLookupUnknownError(path...)
 		default:
-			return LookupResult{
-				Type: LookupResultAbsent,
-			}
+			return nil, NewLookupAbsentError(path...)
 		}
 	}
 }
 
-// Found returns an error if the lookup result is not found.
-func (r LookupResult) Found() error {
-	switch r.Type {
-	case LookupResultAbsent:
-		return fmt.Errorf("not found")
-	case LookupResultUnknown:
-		return fmt.Errorf("unknown")
-	case LookupResultError:
-		return fmt.Errorf("error")
-	default:
-		return nil
-	}
-}
-
-// LookupResultType is the type of the lookup result.
-// It indicates whether the result is guaranteed to be absent, unknown or found.
-type LookupResultType int
-
-const (
-	// LookupResultAbsent means that the result is guaranteed to be absent.
-	LookupResultAbsent LookupResultType = iota
-	// LookupResultUnknown means that the result is unknown, some leaves were pruned.
-	LookupResultUnknown
-	// LookupResultFound means that the result is found.
-	LookupResultFound
-	// LookupResultError means that the result is an error, the path is not valid in this context.
-	LookupResultError
-)
-
-// LookupSubTreeResult is the result of a lookup sub-tree.
-type LookupSubTreeResult struct {
-	// Type is the type of the lookup sub-tree result.
-	Type LookupResultType
-	// Node is the node that was found. Can be nil if the type is not LookupResultFound.
-	Node Node
-}
-
-func lookupSubTree(n Node, path ...Label) LookupSubTreeResult {
+func lookupSubTree(n Node, path ...Label) (Node, error) {
 	switch {
 	case len(path) == 0:
-		return LookupSubTreeResult{
-			Type: LookupResultFound,
-			Node: n,
-		}
+		return n, nil
 	default:
 		switch l := lookupLabel(n, path[0]); l.Type {
 		case lookupLabelResultFound:
 			return lookupSubTree(l.Node, path[1:]...)
 		case lookupLabelResultUnknown:
-			return LookupSubTreeResult{
-				Type: LookupResultUnknown,
-			}
+			return nil, NewLookupUnknownError(path...)
 		default:
-			return LookupSubTreeResult{
-				Type: LookupResultAbsent,
-			}
+			return nil, NewLookupAbsentError(path...)
 		}
-	}
-}
-
-// Found returns an error if the lookup sub-tree result is not found.
-func (r LookupSubTreeResult) Found() error {
-	switch r.Type {
-	case LookupResultAbsent:
-		return fmt.Errorf("not found")
-	case LookupResultUnknown:
-		return fmt.Errorf("unknown")
-	case LookupResultError:
-		return fmt.Errorf("error")
-	default:
-		return nil
 	}
 }
 
