@@ -110,7 +110,9 @@ func NewRequestID(req Request) RequestID {
 		typeHash := sha256.Sum256([]byte(req.Type))
 		hashes = append(hashes, append(typeKey[:], typeHash[:]...))
 	}
-	if len(req.CanisterID.Raw) != 0 {
+	// NOTE: the canister ID may be the empty slice. The empty slice doesn't mean it's not
+	// set, it means it's the management canister (aaaaa-aa).
+	if req.CanisterID.Raw != nil {
 		canisterIDHash := sha256.Sum256(req.CanisterID.Raw)
 		hashes = append(hashes, append(canisterIDKey[:], canisterIDHash[:]...))
 	}
