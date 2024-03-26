@@ -13,6 +13,7 @@ import (
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
+	"github.com/aviate-labs/agent-go/ic"
 
 	"github.com/fxamacker/cbor/v2"
 )
@@ -28,7 +29,11 @@ var icp0, _ = url.Parse("https://icp0.io/")
 
 func effectiveCanisterID(canisterId principal.Principal, args []any) principal.Principal {
 	// If the canisterId is not aaaaa-aa, return it.
-	if len(canisterId.Raw) > 0 || len(args) == 0 {
+	if canisterId.Encode() != ic.MANAGEMENT_CANISTER_PRINCIPAL.Encode() {
+		return canisterId
+	}
+
+	if(len(args) < 1) {
 		return canisterId
 	}
 
@@ -135,12 +140,14 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 	if err != nil {
 		return err
 	}
-	canisterID = effectiveCanisterID(canisterID, args)
-	a.logger.Printf("[AGENT] CALL %s %s", canisterID, methodName)
-	if _, err := a.call(canisterID, data); err != nil {
+	ecID := effectiveCanisterID(canisterID, args)
+	a.logger.Printf("[AGENT] CALL %s (ecid: %s) %s", canisterID, ecID, hex.EncodeToString(a.identity.PublicKey()), methodName)
+
+	if _, err := a.call(ecID, data); err != nil {
 		return err
 	}
-	raw, err := a.poll(canisterID, *requestID, time.Second, time.Second*10)
+
+	raw, err := a.poll(ecID, *requestID, time.Second, time.Second*10)
 	if err != nil {
 		return err
 	}
@@ -255,10 +262,10 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 }
 
 // RequestStatus returns the status of the request with the given ID.
-func (a Agent) RequestStatus(canisterID principal.Principal, requestID RequestID) ([]byte, hashtree.Node, error) {
-	a.logger.Printf("[AGENT] REQUEST STATUS %s", requestID)
+func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]byte, hashtree.Node, error) {
+	a.logger.Printf("[AGENT] REQUEST STATUS %s", hex.EncodeToString(requestID[:]));
 	path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
-	c, err := a.readStateCertificate(canisterID, [][]hashtree.Label{path})
+	c, err := a.readStateCertificate(ecID, [][]hashtree.Label{path})
 	if err != nil {
 		return nil, nil, err
 	}
@@ -266,7 +273,7 @@ func (a Agent) RequestStatus(canisterID principal.Principal, requestID RequestID
 	if err := cbor.Unmarshal(c, &state); err != nil {
 		return nil, nil, err
 	}
-	cert, err := certification.New(canisterID, a.rootKey[len(a.rootKey)-96:], c)
+	cert, err := certification.New(ecID, a.rootKey[len(a.rootKey)-96:], c)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -289,22 +296,22 @@ func (a Agent) Sender() principal.Principal {
 	return a.identity.Sender()
 }
 
-func (a Agent) call(canisterID principal.Principal, data []byte) ([]byte, error) {
-	return a.client.call(canisterID, data)
+func (a Agent) call(ecid principal.Principal, data []byte) ([]byte, error) {
+	return a.client.call(ecid, data)
 }
 
 func (a Agent) expiryDate() uint64 {
 	return uint64(time.Now().Add(a.ingressExpiry).UnixNano())
 }
 
-func (a Agent) poll(canisterID principal.Principal, requestID RequestID, delay, timeout time.Duration) ([]byte, error) {
+func (a Agent) poll(ecID principal.Principal, requestID RequestID, delay, timeout time.Duration) ([]byte, error) {
 	ticker := time.NewTicker(delay)
 	timer := time.NewTimer(timeout)
 	for {
 		select {
 		case <-ticker.C:
-			a.logger.Printf("[AGENT] POLL %s", requestID)
-			data, node, err := a.RequestStatus(canisterID, requestID)
+			a.logger.Printf("[AGENT] POLL (reqID: %s) ", hex.EncodeToString(requestID[:]))
+			data, node, err := a.RequestStatus(ecID, requestID)
 			if err != nil {
 				return nil, err
 			}
@@ -346,8 +353,8 @@ func (a Agent) query(canisterID principal.Principal, data []byte) (*Response, er
 	return queryResponse, cbor.Unmarshal(resp, queryResponse)
 }
 
-func (a Agent) readState(canisterID principal.Principal, data []byte) (map[string][]byte, error) {
-	resp, err := a.client.readState(canisterID, data)
+func (a Agent) readState(ecID principal.Principal, data []byte) (map[string][]byte, error) {
+	resp, err := a.client.readState(ecID, data)
 	if err != nil {
 		return nil, err
 	}
@@ -355,7 +362,7 @@ func (a Agent) readState(canisterID principal.Principal, data []byte) (map[strin
 	return m, cbor.Unmarshal(resp, &m)
 }
 
-func (a Agent) readStateCertificate(canisterID principal.Principal, paths [][]hashtree.Label) ([]byte, error) {
+func (a Agent) readStateCertificate(ecID principal.Principal, paths [][]hashtree.Label) ([]byte, error) {
 	_, data, err := a.sign(Request{
 		Type:          RequestTypeReadState,
 		Sender:        a.Sender(),
@@ -365,8 +372,8 @@ func (a Agent) readStateCertificate(canisterID principal.Principal, paths [][]ha
 	if err != nil {
 		return nil, err
 	}
-	a.logger.Printf("[AGENT] READ STATE %s", canisterID)
-	resp, err := a.readState(canisterID, data)
+	a.logger.Printf("[AGENT] READ STATE %s (ecID)", ecID)
+	resp, err := a.readState(ecID, data)
 	if err != nil {
 		return nil, err
 	}
