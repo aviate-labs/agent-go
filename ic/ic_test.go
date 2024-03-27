@@ -35,7 +35,7 @@ func TestModules(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	start := exec.Command(dfxPath, "start", "--background", "--clean", "--artificial-delay=10")
+	start := exec.Command(dfxPath, "start", "--background", "--clean")
 	if err := start.Start(); err != nil {
 		t.Fatal(err)
 	}

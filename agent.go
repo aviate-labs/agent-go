@@ -3,6 +3,7 @@ package agent
 import (
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"net/url"
 	"reflect"
@@ -279,6 +280,11 @@ func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]b
 		return nil, nil, err
 	}
 	status, err := hashtree.NewHashTree(node).Lookup(append(path, hashtree.Label("status"))...)
+	var lookupError hashtree.LookupError
+	if errors.As(err, &lookupError) && lookupError.Type == hashtree.LookupResultAbsent {
+		// The status might not be available immediately, since the request is still being processed.
+		return nil, nil, nil
+	}
 	if err != nil {
 		return nil, nil, err
 	}
