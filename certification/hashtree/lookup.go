@@ -4,44 +4,44 @@ import (
 	"bytes"
 )
 
-func lookupPath(n Node, path ...Label) ([]byte, error) {
+func lookupPath(n Node, path []Label, idx int) ([]byte, error) {
 	switch {
-	case len(path) == 0:
+	case len(path) == 0 || len(path) == idx:
 		switch n := n.(type) {
 		case Leaf:
 			return n, nil
 		case nil, Empty:
-			return nil, NewLookupAbsentError()
+			return nil, NewLookupAbsentError(path, idx-1)
 		case Pruned:
-			return nil, NewLookupUnknownError()
+			return nil, NewLookupUnknownError(path, idx-1)
 		default:
 			// Labeled, Fork
-			return nil, NewLookupError()
+			return nil, NewLookupError(path, idx-1)
 		}
 	default:
-		switch l := lookupLabel(n, path[0]); l.Type {
+		switch l := lookupLabel(n, path[idx]); l.Type {
 		case lookupLabelResultFound:
-			return lookupPath(l.Node, path[1:]...)
+			return lookupPath(l.Node, path, idx+1)
 		case lookupLabelResultUnknown:
-			return nil, NewLookupUnknownError(path...)
+			return nil, NewLookupUnknownError(path, idx)
 		default:
-			return nil, NewLookupAbsentError(path...)
+			return nil, NewLookupAbsentError(path, idx)
 		}
 	}
 }
 
-func lookupSubTree(n Node, path ...Label) (Node, error) {
+func lookupSubTree(n Node, path []Label, idx int) (Node, error) {
 	switch {
-	case len(path) == 0:
+	case len(path) == 0 || len(path) == idx:
 		return n, nil
 	default:
-		switch l := lookupLabel(n, path[0]); l.Type {
+		switch l := lookupLabel(n, path[idx]); l.Type {
 		case lookupLabelResultFound:
-			return lookupSubTree(l.Node, path[1:]...)
+			return lookupSubTree(l.Node, path, idx+1)
 		case lookupLabelResultUnknown:
-			return nil, NewLookupUnknownError(path...)
+			return nil, NewLookupUnknownError(path, idx)
 		default:
-			return nil, NewLookupAbsentError(path...)
+			return nil, NewLookupAbsentError(path, idx)
 		}
 	}
 }

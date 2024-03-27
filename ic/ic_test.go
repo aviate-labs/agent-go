@@ -77,6 +77,10 @@ func TestModules(t *testing.T) {
 		if _, err := a.ApiVersion(); err != nil {
 			t.Error(err)
 		}
+
+		if err := a.Authorize(principal.AnonymousID); err != nil {
+			t.Fatal(err)
+		}
 	})
 
 	t.Run("management canister", func(t *testing.T) {
