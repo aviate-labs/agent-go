@@ -17,37 +17,45 @@ func pathToString(path []Label) string {
 	return sb.String()
 }
 
+// LookupError is an error that occurs during a lookup.
 type LookupError struct {
+	// Type is the type of the lookup result.
 	Type LookupResultType
-	Path string
+	// Path is the path that was looked up.
+	Path []Label
+	// Index is the index in the path where the error occurred.
+	Index int
 }
 
 // NewLookupAbsentError returns a new LookupError with type LookupResultAbsent.
-func NewLookupAbsentError(path ...Label) LookupError {
+func NewLookupAbsentError(path []Label, index int) LookupError {
 	return LookupError{
-		Type: LookupResultAbsent,
-		Path: pathToString(path),
+		Type:  LookupResultAbsent,
+		Path:  path,
+		Index: index,
 	}
 }
 
 // NewLookupError returns a new LookupError with type LookupResultError.
-func NewLookupError(path ...Label) LookupError {
+func NewLookupError(path []Label, index int) LookupError {
 	return LookupError{
-		Type: LookupResultError,
-		Path: pathToString(path),
+		Type:  LookupResultError,
+		Path:  path,
+		Index: index,
 	}
 }
 
 // NewLookupUnknownError returns a new LookupError with type LookupResultUnknown.
-func NewLookupUnknownError(path ...Label) LookupError {
+func NewLookupUnknownError(path []Label, index int) LookupError {
 	return LookupError{
-		Type: LookupResultUnknown,
-		Path: pathToString(path),
+		Type:  LookupResultUnknown,
+		Path:  path,
+		Index: index,
 	}
 }
 
 func (l LookupError) Error() string {
-	return fmt.Sprintf("lookup error (path: %q): %s", l.Path, l.error())
+	return fmt.Sprintf("lookup error (path: %q) at %q: %s", pathToString(l.Path), l.Path[l.Index], l.error())
 }
 
 func (l LookupError) error() string {

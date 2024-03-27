@@ -17,12 +17,12 @@ func (t HashTree) Digest() [32]byte {
 
 // Lookup looks up a path in the hash tree.
 func (t HashTree) Lookup(path ...Label) ([]byte, error) {
-	return lookupPath(t.Root, path...)
+	return lookupPath(t.Root, path, 0)
 }
 
 // LookupSubTree looks up a path in the hash tree and returns the sub-tree.
 func (t HashTree) LookupSubTree(path ...Label) (Node, error) {
-	return lookupSubTree(t.Root, path...)
+	return lookupSubTree(t.Root, path, 0)
 }
 
 // MarshalCBOR marshals a hash tree.

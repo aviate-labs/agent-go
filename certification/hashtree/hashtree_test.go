@@ -34,10 +34,14 @@ func TestHashTree_Lookup(t *testing.T) {
 		for _, i := range []int{0, 1} {
 			if _, err := tree.Lookup(Label(fmt.Sprintf("label %d", i))); !errors.As(err, &lookupError) || lookupError.Type != LookupResultAbsent {
 				t.Fatalf("unexpected lookup result")
+			} else if e := lookupError.Error(); e != fmt.Sprintf(`lookup error (path: "label %d") at "label %d": not found, not present in the tree`, i, i) {
+				t.Fatalf("unexpected error message: %s", e)
 			}
 		}
 		if _, err := tree.Lookup(Label("label 2")); !errors.As(err, &lookupError) || lookupError.Type != LookupResultUnknown {
 			t.Fatalf("unexpected lookup result")
+		} else if e := lookupError.Error(); e != `lookup error (path: "label 2") at "label 2": not found, could be pruned` {
+			t.Fatalf("unexpected error message: %s", e)
 		}
 		if v, err := tree.Lookup(Label("label 3")); err != nil {
 			t.Fatalf("unexpected lookup result")
@@ -49,6 +53,8 @@ func TestHashTree_Lookup(t *testing.T) {
 		for _, i := range []int{4, 5, 6} {
 			if _, err := tree.Lookup(Label(fmt.Sprintf("label %d", i))); !errors.As(err, &lookupError) || lookupError.Type != LookupResultAbsent {
 				t.Fatalf("unexpected lookup result")
+			} else if e := lookupError.Error(); e != fmt.Sprintf(`lookup error (path: "label %d") at "label %d": not found, not present in the tree`, i, i) {
+				t.Fatalf("unexpected error message: %s", e)
 			}
 		}
 	})
@@ -84,6 +90,8 @@ func TestHashTree_Lookup(t *testing.T) {
 		for _, i := range []int{0, 1, 2} {
 			if _, err := tree.Lookup(Label(fmt.Sprintf("label %d", i))); !errors.As(err, &lookupError) || lookupError.Type != LookupResultAbsent {
 				t.Fatalf("unexpected lookup result")
+			} else if e := lookupError.Error(); e != fmt.Sprintf(`lookup error (path: "label %d") at "label %d": not found, not present in the tree`, i, i) {
+				t.Fatalf("unexpected error message: %s", e)
 			}
 		}
 		if v, err := tree.Lookup(Label("label 3")); err != nil {
@@ -96,10 +104,14 @@ func TestHashTree_Lookup(t *testing.T) {
 		for _, i := range []int{4, 5} {
 			if _, err := tree.Lookup(Label(fmt.Sprintf("label %d", i))); !errors.As(err, &lookupError) || lookupError.Type != LookupResultAbsent {
 				t.Fatalf("unexpected lookup result")
+			} else if e := lookupError.Error(); e != fmt.Sprintf(`lookup error (path: "label %d") at "label %d": not found, not present in the tree`, i, i) {
+				t.Fatalf("unexpected error message: %s", e)
 			}
 		}
 		if _, err := tree.Lookup(Label("label 6")); !errors.As(err, &lookupError) || lookupError.Type != LookupResultUnknown {
 			t.Fatalf("unexpected lookup result")
+		} else if e := lookupError.Error(); e != `lookup error (path: "label 6") at "label 6": not found, could be pruned` {
+			t.Fatalf("unexpected error message: %s", e)
 		}
 	})
 }
