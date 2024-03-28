@@ -13,7 +13,6 @@ import (
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
-	"github.com/aviate-labs/agent-go/ic"
 
 	"github.com/fxamacker/cbor/v2"
 )
@@ -28,8 +27,8 @@ var DefaultConfig = Config{}
 var icp0, _ = url.Parse("https://icp0.io/")
 
 func effectiveCanisterID(canisterId principal.Principal, args []any) principal.Principal {
-	// If the canisterId is not aaaaa-aa, return it.
-	if canisterId.Encode() != ic.MANAGEMENT_CANISTER_PRINCIPAL.Encode() {
+	// If the canisterId is not aaaaa-aa (encoded as empty byte array), return it.
+	if len(canisterId.Raw) > 0 {
 		return canisterId
 	}
 
@@ -141,7 +140,7 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 		return err
 	}
 	ecID := effectiveCanisterID(canisterID, args)
-	a.logger.Printf("[AGENT] CALL %s (ecid: %s) %s", canisterID, ecID, hex.EncodeToString(a.identity.PublicKey()), methodName)
+	a.logger.Printf("[AGENT] CALL %s (ecid: %s) %x", canisterID, ecID, a.identity.PublicKey(), methodName)
 
 	if _, err := a.call(ecID, data); err != nil {
 		return err
@@ -263,7 +262,7 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 
 // RequestStatus returns the status of the request with the given ID.
 func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]byte, hashtree.Node, error) {
-	a.logger.Printf("[AGENT] REQUEST STATUS %s", hex.EncodeToString(requestID[:]));
+	a.logger.Printf("[AGENT] REQUEST STATUS %x", requestID[:]);
 	path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
 	c, err := a.readStateCertificate(ecID, [][]hashtree.Label{path})
 	if err != nil {
@@ -310,7 +309,7 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID, delay, timeou
 	for {
 		select {
 		case <-ticker.C:
-			a.logger.Printf("[AGENT] POLL (reqID: %s) ", hex.EncodeToString(requestID[:]))
+			a.logger.Printf("[AGENT] POLL (reqID: %x) ", requestID[:])
 			data, node, err := a.RequestStatus(ecID, requestID)
 			if err != nil {
 				return nil, err
