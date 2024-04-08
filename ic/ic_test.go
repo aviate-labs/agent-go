@@ -115,6 +115,33 @@ func TestModules(t *testing.T) {
 		}); err != nil {
 			t.Error(err)
 		}
+
+		t.Run("empty canister", func(t *testing.T) {
+			a, err := agent.New(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			h, err := a.GetCanisterModuleHash(cId)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(h) != 32 {
+				t.Error("hash length mismatch")
+			}
+
+			uninstall := exec.Command(dfxPath, "canister", "uninstall-code", "ic0", "--identity", "anonymous")
+			if out, err := uninstall.CombinedOutput(); err != nil {
+				t.Fatal(sanitizeOutput(out))
+			}
+
+			h, err = a.GetCanisterModuleHash(cId)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(h) != 0 {
+				t.Error("hash length mismatch")
+			}
+		})
 	})
 }
 

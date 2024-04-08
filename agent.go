@@ -27,10 +27,10 @@ var DefaultConfig = Config{}
 // icp0 is the default host for the Internet Computer.
 var icp0, _ = url.Parse("https://icp0.io/")
 
-func effectiveCanisterID(canisterId principal.Principal, args []any) principal.Principal {
-	// If the canisterId is not aaaaa-aa (encoded as empty byte array), return it.
-	if 0 < len(canisterId.Raw) || len(args) < 1 {
-		return canisterId
+func effectiveCanisterID(canisterID principal.Principal, args []any) principal.Principal {
+	// If the canisterID is not aaaaa-aa (encoded as empty byte array), return it.
+	if 0 < len(canisterID.Raw) || len(args) < 1 {
+		return canisterID
 	}
 
 	v := reflect.ValueOf(args[0])
@@ -45,12 +45,12 @@ func effectiveCanisterID(canisterId principal.Principal, args []any) principal.P
 					return ecid
 				default:
 					// If the field is not a principal, return the original canisterId.
-					return canisterId
+					return canisterID
 				}
 			}
 		}
 	}
-	return canisterId
+	return canisterID
 }
 
 func uint64FromBytes(raw []byte) uint64 {
@@ -137,8 +137,8 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 		return err
 	}
 	ecID := effectiveCanisterID(canisterID, args)
-	a.logger.Printf("[AGENT] CALL %s %s (%x)", canisterID, methodName, *requestID)
-	if _, err := a.call(canisterID, data); err != nil {
+	a.logger.Printf("[AGENT] CALL %s %s (%x)", ecID, methodName, *requestID)
+	if _, err := a.call(ecID, data); err != nil {
 		return err
 	}
 
@@ -211,7 +211,13 @@ func (a Agent) GetCanisterMetadata(canisterID principal.Principal, subPath strin
 
 // GetCanisterModuleHash returns the module hash for the given canister.
 func (a Agent) GetCanisterModuleHash(canisterID principal.Principal) ([]byte, error) {
-	return a.GetCanisterInfo(canisterID, "module_hash")
+	h, err := a.GetCanisterInfo(canisterID, "module_hash")
+	var lookupError hashtree.LookupError
+	if errors.As(err, &lookupError) && lookupError.Type == hashtree.LookupResultAbsent {
+		// If the canister is empty, it is expected that the module hash is not available.
+		return nil, nil
+	}
+	return h, err
 }
 
 func (a Agent) GetRootKey() []byte {
@@ -238,9 +244,9 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 	if err != nil {
 		return err
 	}
-	canisterID = effectiveCanisterID(canisterID, args)
-	a.logger.Printf("[AGENT] QUERY %s %s", canisterID, methodName)
-	resp, err := a.query(canisterID, data)
+	ecID := effectiveCanisterID(canisterID, args)
+	a.logger.Printf("[AGENT] QUERY %s %s", ecID, methodName)
+	resp, err := a.query(ecID, data)
 	if err != nil {
 		return err
 	}
