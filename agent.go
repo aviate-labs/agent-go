@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math/rand"
 	"net/url"
 	"reflect"
 	"time"
@@ -132,6 +133,7 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 		MethodName:    methodName,
 		Arguments:     rawArgs,
 		IngressExpiry: a.expiryDate(),
+		Nonce:         newNonce(),
 	})
 	if err != nil {
 		return err
@@ -224,6 +226,12 @@ func (a Agent) GetRootKey() []byte {
 	return a.rootKey
 }
 
+func newNonce() []byte {
+	nonce := make([]byte, 10)
+	rand.Read(nonce)
+	return nonce
+}
+
 func (a Agent) Query(canisterID principal.Principal, methodName string, args []any, values []any) error {
 	rawArgs, err := idl.Marshal(args)
 	if err != nil {
@@ -240,6 +248,7 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 		MethodName:    methodName,
 		Arguments:     rawArgs,
 		IngressExpiry: a.expiryDate(),
+		Nonce:         newNonce(),
 	})
 	if err != nil {
 		return err
