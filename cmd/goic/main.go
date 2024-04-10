@@ -140,8 +140,11 @@ func fetchDID(canisterId principal.Principal) ([]byte, error) {
 		return nil, err
 	}
 	var did string
+	// This endpoint has been deprecated and removed starting with moc v0.11.0.
 	if err := a.Query(canisterId, "__get_candid_interface_tmp_hack", nil, []any{&did}); err != nil {
-		return nil, err
+		// It is recommended for the canister to have a custom section called "icp:public candid:service", which
+		// contains the UTF-8 encoding of the Candid interface for the canister.
+		return a.GetCanisterMetadata(canisterId, "candid:service")
 	}
 	return []byte(did), nil
 }
