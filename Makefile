@@ -15,6 +15,7 @@ gen:
 
 gen-ic:
 	go run ic/testdata/gen.go
+	go run ic/sns/testdata/gen.go
 
 fmt:
 	go mod tidy
