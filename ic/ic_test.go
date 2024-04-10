@@ -81,6 +81,20 @@ func TestModules(t *testing.T) {
 		if err := a.Authorize(principal.AnonymousID); err != nil {
 			t.Fatal(err)
 		}
+
+		{
+			a, err := agent.New(config)
+			if err != nil {
+				t.Fatal(err)
+			}
+			did, err := a.GetCanisterMetadata(cId, "candid:service")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(did) == 0 {
+				t.Error("empty did")
+			}
+		}
 	})
 
 	t.Run("management canister", func(t *testing.T) {
