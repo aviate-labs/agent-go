@@ -13,13 +13,13 @@ import (
 type {{ .Name }} {{ if .Eq }}= {{end}}{{ .Type }}
 {{- end }}
 
-// Agent is a client for the "{{ .CanisterName }}" canister.
+// {{ .AgentName }}Agent is a client for the "{{ .CanisterName }}" canister.
 type {{ .AgentName }}Agent struct {
     a          *agent.Agent
     canisterId principal.Principal
 }
 
-// NewAgent creates a new agent for the "{{ .CanisterName }}" canister.
+// New{{ .AgentName }}Agent creates a new agent for the "{{ .CanisterName }}" canister.
 func New{{ .AgentName }}Agent(canisterId principal.Principal, config agent.Config) (*{{ .AgentName }}Agent, error) {
     a, err := agent.New(config)
     if err != nil {
