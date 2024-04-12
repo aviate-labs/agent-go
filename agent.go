@@ -227,6 +227,8 @@ func (a Agent) GetRootKey() []byte {
 }
 
 func newNonce() []byte {
+	/* Read 10 bytes of random data, which is smaller than the max allowed by the IC (32 bytes)
+	 * and should still be enough from a practical point of view. */
 	nonce := make([]byte, 10)
 	rand.Read(nonce)
 	return nonce
