@@ -1,0 +1,4 @@
+service : {
+  helloQuery: (text) -> (text) query;
+  helloUpdate: (text) -> (text);
+}

@@ -1,2 +1,3 @@
 coverage.out
 ic/.dfx
+pocketic/testdata/*.wasm
