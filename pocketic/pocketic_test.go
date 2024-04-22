@@ -13,10 +13,8 @@ import (
 )
 
 var (
-	s, _ = pocketic.New(pocketic.SubnetConfig{
-		NNS: true,
-	})
-	wasmModule = []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00}
+	s, setupErr = pocketic.New(pocketic.DefaultSubnetConfig)
+	wasmModule  = []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00}
 )
 
 func TestPocketIC(t *testing.T) {
@@ -56,6 +54,12 @@ func TestPocketIC(t *testing.T) {
 	}
 	if helloWorld != "Hello, there!" {
 		t.Errorf("hello world is %s, expected Hello, there!", helloWorld)
+	}
+}
+
+func TestPocketIC_CreateAndInstallCanister(t *testing.T) {
+	if _, err := s.CreateAndInstallCanister(wasmModule, nil, nil); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -100,12 +104,6 @@ func TestPocketIC_CreateCanister(t *testing.T) {
 		t.Error("expected error")
 	}
 	if err := s.InstallCode(cID, wasmModule, nil); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestPocketIC_CreateAndInstallCanister(t *testing.T) {
-	if _, err := s.CreateAndInstallCanister(wasmModule, nil, nil); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -167,4 +165,10 @@ func TestPocketIC_Time(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+}
+
+func init() {
+	if setupErr != nil {
+		panic(setupErr)
+	}
 }

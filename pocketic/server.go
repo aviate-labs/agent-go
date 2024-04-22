@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -17,12 +18,12 @@ var HEADER = http.Header{
 	"processing-timeout-ms": []string{"300000"},
 }
 
-func checkResponse(resp *http.Response, statusCode int, body any) error {
+func checkResponse(resp *http.Response, body any) error {
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("failed to read instances: %v", err)
 	}
-	if resp.StatusCode != statusCode {
+	if !(resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusAccepted) {
 		fmt.Println(string(raw))
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
@@ -60,7 +61,7 @@ type server struct {
 
 func newServer() (*server, error) {
 	// Try to find the pocket-ic binary.
-	path, err := exec.LookPath("pocket-ic")
+	path, err := exec.LookPath("pocket-ic-server")
 	if err != nil {
 		// If the binary is not found, try to find it in the POCKET_IC_BIN environment variable.
 		if pathEnv := os.Getenv("POCKET_IC_BIN"); pathEnv != "" {
@@ -71,6 +72,16 @@ func newServer() (*server, error) {
 				return nil, fmt.Errorf("pocket-ic binary not found: %v", err)
 			}
 		}
+	}
+
+	versionCmd := exec.Command(path, "--version")
+	rawVersion, err := versionCmd.CombinedOutput()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pocket-ic version: %v", err)
+	}
+	version := strings.TrimPrefix(strings.TrimSpace(string(rawVersion)), "pocket-ic-server ")
+	if !strings.HasPrefix(version, "3.") {
+		return nil, fmt.Errorf("unsupported pocket-ic version, must be v3.x: %s", version)
 	}
 
 	pid := os.Getpid()
@@ -144,7 +155,7 @@ func (s server) InstanceGet(instanceID int, endpoint string, body any) error {
 	if err != nil {
 		return fmt.Errorf("failed to get instance: %v", err)
 	}
-	if err := checkResponse(resp, http.StatusOK, body); err != nil {
+	if err := checkResponse(resp, body); err != nil {
 		return fmt.Errorf("failed to get instance: %v", err)
 	}
 	return nil
@@ -165,7 +176,7 @@ func (s server) InstancePost(instanceID int, endpoint string, payload, body any)
 	if err != nil {
 		return fmt.Errorf("failed to post instance: %v", err)
 	}
-	if err := checkResponse(resp, http.StatusOK, body); err != nil {
+	if err := checkResponse(resp, body); err != nil {
 		return fmt.Errorf("failed to post instance: %v", err)
 	}
 	return nil
@@ -183,18 +194,27 @@ func (s server) ListInstances() ([]string, error) {
 		return nil, fmt.Errorf("failed to get instances: %v", err)
 	}
 	var instances []string
-	if err := checkResponse(resp, http.StatusOK, &instances); err != nil {
+	if err := checkResponse(resp, &instances); err != nil {
 		return nil, fmt.Errorf("failed to get instances: %v", err)
 	}
 	return instances, nil
 }
 
 // NewInstance creates a new instance.
-func (s server) NewInstance(subnetConfig SubnetConfig) (*NewInstanceResponse, error) {
+func (s server) NewInstance(subnetConfig ExtendedSubnetConfigSet) (*NewInstanceResponse, error) {
+	// The JSON API expects empty slices instead of nil.
+	if subnetConfig.Application == nil {
+		subnetConfig.Application = make([]SubnetSpec, 0)
+	}
+	if subnetConfig.System == nil {
+		subnetConfig.System = make([]SubnetSpec, 0)
+	}
+
 	raw, err := json.Marshal(subnetConfig)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal subnet config: %v", err)
 	}
+	fmt.Println(string(raw))
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/instances", s.URL()), bytes.NewBuffer(raw))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
@@ -207,7 +227,7 @@ func (s server) NewInstance(subnetConfig SubnetConfig) (*NewInstanceResponse, er
 	var respBody struct {
 		Created NewInstanceResponse `json:"Created"`
 	}
-	if err := checkResponse(resp, http.StatusCreated, &respBody); err != nil {
+	if err := checkResponse(resp, &respBody); err != nil {
 		return nil, fmt.Errorf("failed to create instance: %v", err)
 	}
 	return &respBody.Created, nil

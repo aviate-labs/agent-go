@@ -9,9 +9,33 @@ import (
 	"time"
 )
 
-var DefaultSubnetConfig = SubnetConfig{
-	NNS: true,
+var DefaultSubnetConfig = ExtendedSubnetConfigSet{
+	NNS: &SubnetSpec{
+		StateConfig:       NewSubnetStateConfig{},
+		InstructionConfig: ProductionSubnetInstructionConfig{},
+		DtsFlag:           false,
+	},
 }
+
+// BenchmarkingSubnetInstructionConfig uses very high instruction limits useful for asymptotic canister benchmarking.
+type BenchmarkingSubnetInstructionConfig struct{}
+
+func (c BenchmarkingSubnetInstructionConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal("Benchmarking")
+}
+
+func (c BenchmarkingSubnetInstructionConfig) UnmarshalJSON(bytes []byte) error {
+	var s string
+	if err := json.Unmarshal(bytes, &s); err != nil {
+		return err
+	}
+	if s != "Benchmarking" {
+		return fmt.Errorf("invalid instruction config: %s", s)
+	}
+	return nil
+}
+
+func (BenchmarkingSubnetInstructionConfig) instructionConfig() {}
 
 type CanisterSettings struct {
 	Controllers       *[]principal.Principal `ic:"controllers,omitempty" json:"controllers,omitempty"`
@@ -25,6 +49,27 @@ type CreateCanisterArgs struct {
 	SpecifiedID *principal.Principal `ic:"specified_id" json:"specified_id,omitempty"`
 }
 
+type DtsFlag bool
+
+func (f DtsFlag) MarshalJSON() ([]byte, error) {
+	if f {
+		return json.Marshal("Enabled")
+	}
+	return json.Marshal("Disabled")
+}
+
+func (f *DtsFlag) UnmarshalJSON(bytes []byte) error {
+	var s string
+	if err := json.Unmarshal(bytes, &s); err != nil {
+		return err
+	}
+	if s != "Enabled" && s != "Disabled" {
+		return fmt.Errorf("invalid DTS flag: %s", s)
+	}
+	*f = s == "Enabled"
+	return nil
+}
+
 type EffectiveCanisterID struct {
 	CanisterId string `json:"CanisterId"`
 }
@@ -33,10 +78,57 @@ type EffectiveSubnetID struct {
 	SubnetID string `json:"SubnetId"`
 }
 
+// FromPathSubnetStateConfig load existing subnet state from the given path. The path must be on a filesystem
+// accessible to the server process.
+type FromPathSubnetStateConfig struct {
+	Path     string
+	SubnetID RawSubnetID
+}
+
+func (c FromPathSubnetStateConfig) UnmarshalJSON(bytes []byte) error {
+	var v []json.RawMessage
+	if err := json.Unmarshal(bytes, &v); err != nil {
+		return err
+	}
+	if len(v) != 2 {
+		return fmt.Errorf("invalid state config: %v", v)
+	}
+	if err := json.Unmarshal(v[0], &c.Path); err != nil {
+		return err
+	}
+	return json.Unmarshal(v[1], &c.SubnetID)
+}
+
+func (c FromPathSubnetStateConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal([]any{c.Path, c.SubnetID})
+}
+
+func (FromPathSubnetStateConfig) stateConfig() {}
+
 type NNSConfig struct {
 	StateDirPath string
 	SubnetID     principal.Principal
 }
+
+// NewSubnetStateConfig creates new subnet with empty state.
+type NewSubnetStateConfig struct{}
+
+func (c NewSubnetStateConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal("New")
+}
+
+func (c NewSubnetStateConfig) UnmarshalJSON(bytes []byte) error {
+	var s string
+	if err := json.Unmarshal(bytes, &s); err != nil {
+		return err
+	}
+	if s != "New" {
+		return fmt.Errorf("invalid state config: %s", s)
+	}
+	return nil
+}
+
+func (NewSubnetStateConfig) stateConfig() {}
 
 type PocketIC struct {
 	server     *server
@@ -45,44 +137,11 @@ type PocketIC struct {
 	sender     principal.Principal
 }
 
-func (pic PocketIC) UpdateCall(canisterID principal.Principal, method string, payload []any, body []any) error {
-	rawPayload, err := idl.Marshal(payload)
-	if err != nil {
-		return err
-	}
-	return pic.UpdateCallWithEffectiveCanisterID(&canisterID, nil, method, rawPayload, body)
-}
-
-func (pic PocketIC) QueryCall(canisterID principal.Principal, method string, payload []any, body []any) error {
-	rawPayload, err := idl.Marshal(payload)
-	if err != nil {
-		return err
-	}
-	return pic.canisterCall("read/query", &canisterID, nil, method, rawPayload, body)
-}
-
-func (pic PocketIC) CreateAndInstallCanister(wasmModule []byte, arg []byte, subnetPID *principal.Principal) (*principal.Principal, error) {
-	canisterID, err := pic.CreateCanister(CreateCanisterArgs{}, subnetPID)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := pic.AddCycles(*canisterID, 2_000_000_000_000); err != nil {
-		return nil, err
-	}
-	if err := pic.InstallCode(*canisterID, wasmModule, arg); err != nil {
-		return nil, err
-	}
-	return canisterID, nil
-}
-
 // New creates a new PocketIC instance with the given subnet configuration.
-func New(subnetConfig SubnetConfig) (*PocketIC, error) {
+func New(subnetConfig ExtendedSubnetConfigSet) (*PocketIC, error) {
 	s, err := newServer()
 	if err != nil {
 		return nil, err
-	}
-	if !subnetConfig.validate() {
-		return nil, fmt.Errorf("invalid subnet config")
 	}
 	resp, err := s.NewInstance(subnetConfig)
 	if err != nil {
@@ -124,6 +183,20 @@ func (pic PocketIC) AdvanceTime(nanoSeconds int) error {
 func (pic PocketIC) CanisterExits(canisterID principal.Principal) bool {
 	_, err := pic.GetSubnet(canisterID)
 	return err == nil
+}
+
+func (pic PocketIC) CreateAndInstallCanister(wasmModule []byte, arg []byte, subnetPID *principal.Principal) (*principal.Principal, error) {
+	canisterID, err := pic.CreateCanister(CreateCanisterArgs{}, subnetPID)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := pic.AddCycles(*canisterID, 2_000_000_000_000); err != nil {
+		return nil, err
+	}
+	if err := pic.InstallCode(*canisterID, wasmModule, arg); err != nil {
+		return nil, err
+	}
+	return canisterID, nil
 }
 
 func (pic PocketIC) CreateCanister(args CreateCanisterArgs, subnetPID *principal.Principal) (*principal.Principal, error) {
@@ -246,6 +319,14 @@ func (pic PocketIC) InstallCode(canisterID principal.Principal, wasmModule []byt
 	)
 }
 
+func (pic PocketIC) QueryCall(canisterID principal.Principal, method string, payload []any, body []any) error {
+	rawPayload, err := idl.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	return pic.canisterCall("read/query", &canisterID, nil, method, rawPayload, body)
+}
+
 // SetSender sets the sender principal for the PocketIC instance.
 func (pic *PocketIC) SetSender(sender principal.Principal) {
 	pic.sender = sender
@@ -261,6 +342,14 @@ func (pic PocketIC) SetTime(nanosSinceEpoch int) error {
 // Tick advances the PocketIC instance by one block.
 func (pic PocketIC) Tick() error {
 	return pic.server.InstancePost(pic.instanceID, "update/tick", nil, nil)
+}
+
+func (pic PocketIC) UpdateCall(canisterID principal.Principal, method string, payload []any, body []any) error {
+	rawPayload, err := idl.Marshal(payload)
+	if err != nil {
+		return err
+	}
+	return pic.UpdateCallWithEffectiveCanisterID(&canisterID, nil, method, rawPayload, body)
 }
 
 func (pic PocketIC) UpdateCallWithEffectiveCanisterID(canisterID *principal.Principal, ecID any, method string, payload []byte, body []any) error {
@@ -298,6 +387,61 @@ func (pic PocketIC) canisterCall(endpoint string, canisterID *principal.Principa
 	return idl.Unmarshal(rawBody, body)
 }
 
+// ProductionSubnetInstructionConfig uses default instruction limits as in production.
+type ProductionSubnetInstructionConfig struct{}
+
+func (c ProductionSubnetInstructionConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal("Production")
+}
+
+func (c ProductionSubnetInstructionConfig) UnmarshalJSON(bytes []byte) error {
+	var s string
+	if err := json.Unmarshal(bytes, &s); err != nil {
+		return err
+	}
+	if s != "Production" {
+		return fmt.Errorf("invalid instruction config: %s", s)
+	}
+	return nil
+}
+
+func (ProductionSubnetInstructionConfig) instructionConfig() {}
+
+type RawSubnetID struct {
+	SubnetID string `json:"subnet_id"`
+}
+
+func (r RawSubnetID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[string]interface{}{
+		"subnet-id": base64.StdEncoding.EncodeToString([]byte(r.SubnetID)),
+	})
+}
+
+func (r *RawSubnetID) UnmarshalJSON(bytes []byte) error {
+	var rawSubnetID struct {
+		SubnetID string `json:"subnet_id-id"`
+	}
+	if err := json.Unmarshal(bytes, &rawSubnetID); err != nil {
+		return err
+	}
+	subnetID, err := base64.StdEncoding.DecodeString(rawSubnetID.SubnetID)
+	if err != nil {
+		return err
+	}
+	r.SubnetID = string(subnetID)
+	return nil
+}
+
+type ExtendedSubnetConfigSet struct {
+	Application []SubnetSpec `json:"application"`
+	Bitcoin     *SubnetSpec  `json:"bitcoin,omitempty"`
+	Fiduciary   *SubnetSpec  `json:"fiduciary,omitempty"`
+	II          *SubnetSpec  `json:"ii,omitempty"`
+	NNS         *SubnetSpec  `json:"nns,omitempty"`
+	SNS         *SubnetSpec  `json:"sns,omitempty"`
+	System      []SubnetSpec `json:"system"`
+}
+
 type RejectError string
 
 func (e RejectError) Error() string {
@@ -313,55 +457,8 @@ func (e ReplyError) Error() string {
 	return fmt.Sprintf("code: %d, description: %s", e.Code, e.Description)
 }
 
-type SubnetConfig struct {
-	Application uint
-	Bitcoin     bool
-	Fiduciary   bool
-	II          bool
-	NNS         bool
-	NNSConfig   *NNSConfig
-	SNS         bool
-	System      uint
-}
-
-func (s SubnetConfig) MarshalJSON() ([]byte, error) {
-	newBool := func(b bool) *string {
-		if b {
-			n := "New"
-			return &n
-		}
-		return nil
-	}
-	newUint := func(u uint) []string {
-		n := make([]string, 0, u)
-		for i := uint(0); i < u; i++ {
-			n = append(n, "New")
-		}
-		return n
-	}
-	newNNS := func(b bool, config *NNSConfig) any {
-		if config != nil {
-			return map[string]interface{}{
-				"FromPath":  config.StateDirPath,
-				"subnet-id": config.SubnetID,
-			}
-		}
-		return newBool(b)
-	}
-	return json.Marshal(map[string]interface{}{
-		"application": newUint(s.Application),
-		"bitcoin":     newBool(s.Bitcoin),
-		"fiduciary":   newBool(s.Fiduciary),
-		"ii":          newBool(s.II),
-		"nns":         newNNS(s.NNS, s.NNSConfig),
-		"sns":         newBool(s.SNS),
-		"system":      newUint(s.System),
-	})
-}
-
-func (s SubnetConfig) validate() bool {
-	// At least one subnet must be enabled.
-	return 0 < s.Application || s.Bitcoin || s.Fiduciary || s.II || s.NNS || s.SNS || 0 < s.System
+type SubnetInstructionConfig interface {
+	instructionConfig()
 }
 
 type SubnetKind string
@@ -375,6 +472,17 @@ var (
 	SNSSubnet         SubnetKind = "SNS"
 	SystemSubnet      SubnetKind = "System"
 )
+
+// SubnetSpec specifies various configurations for a subnet.
+type SubnetSpec struct {
+	StateConfig       SubnetStateConfig       `json:"state_config"`
+	InstructionConfig SubnetInstructionConfig `json:"instruction_config"`
+	DtsFlag           DtsFlag                 `json:"dts_flag"`
+}
+
+type SubnetStateConfig interface {
+	stateConfig()
+}
 
 type installCodeArgs struct {
 	WasmModule []byte              `ic:"wasm_module"`
