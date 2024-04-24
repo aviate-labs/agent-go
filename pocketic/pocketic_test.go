@@ -28,16 +28,16 @@ func TestPocketIC(t *testing.T) {
 	dfxCacheCmd := exec.Command(dfxPath, "cache", "show")
 	dfxCacheCmd.Stdout = &out
 	if err := dfxCacheCmd.Run(); err != nil {
-		t.Skip(err)
+		t.Fatal(err)
 	}
 	mocPath := fmt.Sprintf("%s/moc", strings.TrimSpace(out.String()))
 	mocCmd := exec.Command(mocPath, "testdata/main.mo", "-o", "testdata/main.wasm", "--idl")
 	if err := mocCmd.Run(); err != nil {
-		t.Skip(err)
+		t.Fatal(err)
 	}
 	helloWasm, err := os.Open("testdata/main.wasm")
 	if err != nil {
-		t.Skip(err)
+		t.Fatal(err)
 	}
 	canisterID, err := s.CreateAndInstallCanister(helloWasm, nil, nil)
 	if err != nil {
@@ -82,6 +82,15 @@ func TestPocketIC(t *testing.T) {
 	})
 	t.Run("Agent UpdateCall", func(t *testing.T) {
 		t.Skip("PocketIC does not advance automatically, so the time is not updated.")
+
+		if err := s.AutoProgress(); err != nil {
+			t.Fatal(err)
+		}
+		defer func() {
+			if err := s.StopProgress(); err != nil {
+				t.Fatal(err)
+			}
+		}()
 
 		resp, err := a.HelloUpdate("there")
 		if err != nil {

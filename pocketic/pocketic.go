@@ -199,6 +199,16 @@ func (pic PocketIC) CanisterExits(canisterID principal.Principal) bool {
 	return err == nil
 }
 
+// AutoProgress enables auto progress for the PocketIC instance.
+func (pic PocketIC) AutoProgress() error {
+	return pic.server.InstancePost(pic.instanceID, "auto_progress", nil, nil)
+}
+
+// StopProgress disables auto progress for the PocketIC instance.
+func (pic PocketIC) StopProgress() error {
+	return pic.server.InstancePost(pic.instanceID, "stop_progress", nil, nil)
+}
+
 func (pic PocketIC) CreateAndInstallCanister(wasmModule io.Reader, arg []byte, subnetPID *principal.Principal) (*principal.Principal, error) {
 	canisterID, err := pic.CreateCanister(CreateCanisterArgs{}, subnetPID)
 	if err != nil {
