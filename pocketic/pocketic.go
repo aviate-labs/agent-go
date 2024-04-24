@@ -6,16 +6,20 @@ import (
 	"fmt"
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/principal"
+	"io"
 	"time"
 )
 
-var DefaultSubnetConfig = ExtendedSubnetConfigSet{
-	NNS: &SubnetSpec{
+var (
+	DefaultSubnetSpec = SubnetSpec{
 		StateConfig:       NewSubnetStateConfig{},
 		InstructionConfig: ProductionSubnetInstructionConfig{},
 		DtsFlag:           false,
-	},
-}
+	}
+	DefaultSubnetConfig = ExtendedSubnetConfigSet{
+		NNS: &DefaultSubnetSpec,
+	}
+)
 
 // BenchmarkingSubnetInstructionConfig uses very high instruction limits useful for asymptotic canister benchmarking.
 type BenchmarkingSubnetInstructionConfig struct{}
@@ -78,11 +82,25 @@ type EffectiveSubnetID struct {
 	SubnetID string `json:"SubnetId"`
 }
 
+type ExtendedSubnetConfigSet struct {
+	Application []SubnetSpec `json:"application"`
+	Bitcoin     *SubnetSpec  `json:"bitcoin,omitempty"`
+	Fiduciary   *SubnetSpec  `json:"fiduciary,omitempty"`
+	II          *SubnetSpec  `json:"ii,omitempty"`
+	NNS         *SubnetSpec  `json:"nns,omitempty"`
+	SNS         *SubnetSpec  `json:"sns,omitempty"`
+	System      []SubnetSpec `json:"system"`
+}
+
 // FromPathSubnetStateConfig load existing subnet state from the given path. The path must be on a filesystem
 // accessible to the server process.
 type FromPathSubnetStateConfig struct {
 	Path     string
 	SubnetID RawSubnetID
+}
+
+func (c FromPathSubnetStateConfig) MarshalJSON() ([]byte, error) {
+	return json.Marshal([]any{c.Path, c.SubnetID})
 }
 
 func (c FromPathSubnetStateConfig) UnmarshalJSON(bytes []byte) error {
@@ -97,10 +115,6 @@ func (c FromPathSubnetStateConfig) UnmarshalJSON(bytes []byte) error {
 		return err
 	}
 	return json.Unmarshal(v[1], &c.SubnetID)
-}
-
-func (c FromPathSubnetStateConfig) MarshalJSON() ([]byte, error) {
-	return json.Marshal([]any{c.Path, c.SubnetID})
 }
 
 func (FromPathSubnetStateConfig) stateConfig() {}
@@ -185,7 +199,7 @@ func (pic PocketIC) CanisterExits(canisterID principal.Principal) bool {
 	return err == nil
 }
 
-func (pic PocketIC) CreateAndInstallCanister(wasmModule []byte, arg []byte, subnetPID *principal.Principal) (*principal.Principal, error) {
+func (pic PocketIC) CreateAndInstallCanister(wasmModule io.Reader, arg []byte, subnetPID *principal.Principal) (*principal.Principal, error) {
 	canisterID, err := pic.CreateCanister(CreateCanisterArgs{}, subnetPID)
 	if err != nil {
 		return nil, err
@@ -237,6 +251,15 @@ func (pic PocketIC) GetCycleBalance(canisterID principal.Principal) (int, error)
 		return 0, err
 	}
 	return body.Cycles, nil
+}
+
+// GetHost returns the host of the PocketIC instance.
+func (pic PocketIC) GetHost() string {
+	return fmt.Sprintf(
+		"%s/instances/%d",
+		pic.server.URL(),
+		pic.instanceID,
+	)
 }
 
 // GetRootKey returns the root key of the PocketIC instance.
@@ -296,7 +319,11 @@ func (pic PocketIC) GetTime() (*time.Time, error) {
 	return &t, nil
 }
 
-func (pic PocketIC) InstallCode(canisterID principal.Principal, wasmModule []byte, arg []byte) error {
+func (pic PocketIC) InstallCode(canisterID principal.Principal, wasmModuleReader io.Reader, arg []byte) error {
+	wasmModule, err := io.ReadAll(wasmModuleReader)
+	if err != nil {
+		return err
+	}
 	payload, err := idl.Marshal([]any{installCodeArgs{
 		WasmModule: wasmModule,
 		CanisterID: canisterID,
@@ -432,16 +459,6 @@ func (r *RawSubnetID) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-type ExtendedSubnetConfigSet struct {
-	Application []SubnetSpec `json:"application"`
-	Bitcoin     *SubnetSpec  `json:"bitcoin,omitempty"`
-	Fiduciary   *SubnetSpec  `json:"fiduciary,omitempty"`
-	II          *SubnetSpec  `json:"ii,omitempty"`
-	NNS         *SubnetSpec  `json:"nns,omitempty"`
-	SNS         *SubnetSpec  `json:"sns,omitempty"`
-	System      []SubnetSpec `json:"system"`
-}
-
 type RejectError string
 
 func (e RejectError) Error() string {
@@ -449,12 +466,12 @@ func (e RejectError) Error() string {
 }
 
 type ReplyError struct {
-	Code        int    `json:"code"`
+	Code        string `json:"code"`
 	Description string `json:"description"`
 }
 
 func (e ReplyError) Error() string {
-	return fmt.Sprintf("code: %d, description: %s", e.Code, e.Description)
+	return fmt.Sprintf("code: %s, description: %s", e.Code, e.Description)
 }
 
 type SubnetInstructionConfig interface {

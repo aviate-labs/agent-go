@@ -1,11 +1,11 @@
 package agent
 
 import (
+	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math/rand"
 	"net/url"
 	"reflect"
 	"time"
@@ -52,6 +52,14 @@ func effectiveCanisterID(canisterID principal.Principal, args []any) principal.P
 		}
 	}
 	return canisterID
+}
+
+func newNonce() ([]byte, error) {
+	/* Read 10 bytes of random data, which is smaller than the max allowed by the IC (32 bytes)
+	 * and should still be enough from a practical point of view. */
+	nonce := make([]byte, 10)
+	_, err := rand.Read(nonce)
+	return nonce, err
 }
 
 func uint64FromBytes(raw []byte) uint64 {
@@ -137,6 +145,10 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 		// Default to the empty Candid argument list.
 		rawArgs = []byte{'D', 'I', 'D', 'L', 0, 0}
 	}
+	nonce, err := newNonce()
+	if err != nil {
+		return err
+	}
 	requestID, data, err := a.sign(Request{
 		Type:          RequestTypeCall,
 		Sender:        a.Sender(),
@@ -144,7 +156,7 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 		MethodName:    methodName,
 		Arguments:     rawArgs,
 		IngressExpiry: a.expiryDate(),
-		Nonce:         newNonce(),
+		Nonce:         nonce,
 	})
 	if err != nil {
 		return err
@@ -237,14 +249,6 @@ func (a Agent) GetRootKey() []byte {
 	return a.rootKey
 }
 
-func newNonce() []byte {
-	/* Read 10 bytes of random data, which is smaller than the max allowed by the IC (32 bytes)
-	 * and should still be enough from a practical point of view. */
-	nonce := make([]byte, 10)
-	rand.Read(nonce)
-	return nonce
-}
-
 func (a Agent) Query(canisterID principal.Principal, methodName string, args []any, values []any) error {
 	rawArgs, err := idl.Marshal(args)
 	if err != nil {
@@ -254,6 +258,10 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 		// Default to the empty Candid argument list.
 		rawArgs = []byte{'D', 'I', 'D', 'L', 0, 0}
 	}
+	nonce, err := newNonce()
+	if err != nil {
+		return err
+	}
 	_, data, err := a.sign(Request{
 		Type:          RequestTypeQuery,
 		Sender:        a.Sender(),
@@ -261,7 +269,7 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 		MethodName:    methodName,
 		Arguments:     rawArgs,
 		IngressExpiry: a.expiryDate(),
-		Nonce:         newNonce(),
+		Nonce:         nonce,
 	})
 	if err != nil {
 		return err

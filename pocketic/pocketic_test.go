@@ -3,8 +3,10 @@ package pocketic_test
 import (
 	"bytes"
 	"fmt"
+	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/pocketic"
 	"github.com/aviate-labs/agent-go/principal"
+	"net/url"
 	"os"
 	"os/exec"
 	"strings"
@@ -33,7 +35,7 @@ func TestPocketIC(t *testing.T) {
 	if err := mocCmd.Run(); err != nil {
 		t.Skip(err)
 	}
-	helloWasm, err := os.ReadFile("testdata/main.wasm")
+	helloWasm, err := os.Open("testdata/main.wasm")
 	if err != nil {
 		t.Skip(err)
 	}
@@ -55,10 +57,44 @@ func TestPocketIC(t *testing.T) {
 	if helloWorld != "Hello, there!" {
 		t.Errorf("hello world is %s, expected Hello, there!", helloWorld)
 	}
+
+	host, err := url.Parse(s.GetHost())
+	if err != nil {
+		t.Fatal(err)
+	}
+	a, err := NewAgent(*canisterID, agent.Config{
+		FetchRootKey: true,
+		ClientConfig: &agent.ClientConfig{
+			Host: host,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Run("Agent QueryCall", func(t *testing.T) {
+		resp, err := a.HelloQuery("world")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if *resp != "Hello, world!" {
+			t.Errorf("resp is %s, expected Hello, world!", *resp)
+		}
+	})
+	t.Run("Agent UpdateCall", func(t *testing.T) {
+		t.Skip("PocketIC does not advance automatically, so the time is not updated.")
+
+		resp, err := a.HelloUpdate("there")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if *resp != "Hello, there!" {
+			t.Errorf("resp is %s, expected Hello, there!", *resp)
+		}
+	})
 }
 
 func TestPocketIC_CreateAndInstallCanister(t *testing.T) {
-	if _, err := s.CreateAndInstallCanister(wasmModule, nil, nil); err != nil {
+	if _, err := s.CreateAndInstallCanister(bytes.NewReader(wasmModule), nil, nil); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -103,7 +139,7 @@ func TestPocketIC_CreateCanister(t *testing.T) {
 	}, nil); err == nil {
 		t.Error("expected error")
 	}
-	if err := s.InstallCode(cID, wasmModule, nil); err != nil {
+	if err := s.InstallCode(cID, bytes.NewReader(wasmModule), nil); err != nil {
 		t.Fatal(err)
 	}
 }
