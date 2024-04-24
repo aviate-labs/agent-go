@@ -61,14 +61,16 @@ type server struct {
 func newServer() (*server, error) {
 	// Try to find the pocket-ic binary.
 	path, err := exec.LookPath("pocket-ic-server")
-	if path, err = exec.LookPath("pocket-ic"); err != nil {
-		// If the binary is not found, try to find it in the POCKET_IC_BIN environment variable.
-		if pathEnv := os.Getenv("POCKET_IC_BIN"); pathEnv != "" {
-			path = pathEnv
-		} else {
-			path = "./pocket-ic"
-			if _, err := os.Stat(path); err != nil {
-				return nil, fmt.Errorf("pocket-ic binary not found: %v", err)
+	if err != nil {
+		if path, err = exec.LookPath("pocket-ic"); err != nil {
+			// If the binary is not found, try to find it in the POCKET_IC_BIN environment variable.
+			if pathEnv := os.Getenv("POCKET_IC_BIN"); pathEnv != "" {
+				path = pathEnv
+			} else {
+				path = "./pocket-ic"
+				if _, err := os.Stat(path); err != nil {
+					return nil, fmt.Errorf("pocket-ic binary not found: %v", err)
+				}
 			}
 		}
 	}
