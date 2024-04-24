@@ -24,7 +24,6 @@ func checkResponse(resp *http.Response, body any) error {
 		return fmt.Errorf("failed to read instances: %v", err)
 	}
 	if !(resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated || resp.StatusCode == http.StatusAccepted) {
-		fmt.Println(string(raw))
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 	if err := json.Unmarshal(raw, body); body != nil && err != nil {
@@ -85,7 +84,8 @@ func newServer() (*server, error) {
 	}
 
 	pid := os.Getpid()
-	cmd := exec.Command(path, "--pid", strconv.Itoa(pid))
+	cmdArgs := []string{"--pid", strconv.Itoa(pid)}
+	cmd := exec.Command(path, cmdArgs...)
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("failed to start pocket-ic: %v", err)
 	}
@@ -142,6 +142,22 @@ func (s server) DeleteInstance(instanceID int) error {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 	return nil
+}
+
+func (s server) GetBlobStoreEntry(id string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/blobstore/%s", s.URL(), id), nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %v", err)
+	}
+	req.Header = HEADER
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get blob store entry: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+	return io.ReadAll(resp.Body)
 }
 
 // InstanceGet provides a generic way the HTTP GET method for an instance.
@@ -214,7 +230,6 @@ func (s server) NewInstance(subnetConfig ExtendedSubnetConfigSet) (*NewInstanceR
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal subnet config: %v", err)
 	}
-	fmt.Println(string(raw))
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/instances", s.URL()), bytes.NewBuffer(raw))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %v", err)
@@ -234,10 +249,10 @@ func (s server) NewInstance(subnetConfig ExtendedSubnetConfigSet) (*NewInstanceR
 }
 
 // SetBlobStoreEntry sets a blob store entry.
-func (s server) SetBlobStoreEntry(blob []byte, compressed bool) error {
+func (s server) SetBlobStoreEntry(blob []byte, compressed bool) (string, error) {
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/blobstore", s.URL()), bytes.NewBuffer(blob))
 	if err != nil {
-		return fmt.Errorf("failed to create request: %v", err)
+		return "", fmt.Errorf("failed to create request: %v", err)
 	}
 	req.Header = HEADER
 	if compressed {
@@ -245,7 +260,27 @@ func (s server) SetBlobStoreEntry(blob []byte, compressed bool) error {
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("failed to set blob store entry: %v", err)
+		return "", fmt.Errorf("failed to set blob store entry: %v", err)
+	}
+	raw, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response: %v", err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+	return string(raw), nil
+}
+
+func (s server) Status() error {
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/status", s.URL()), nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request: %v", err)
+	}
+	req.Header = HEADER
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to get status: %v", err)
 	}
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
