@@ -1,12 +1,14 @@
 package pocketic
 
 import (
+	"bytes"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/principal"
 	"io"
+	"net/http"
 	"time"
 )
 
@@ -119,6 +121,27 @@ func (c FromPathSubnetStateConfig) UnmarshalJSON(bytes []byte) error {
 
 func (FromPathSubnetStateConfig) stateConfig() {}
 
+type HttpGatewayBackend interface {
+	gatewayBackend()
+}
+
+type HttpGatewayConfig struct {
+	ForwardTo HttpGatewayBackend `json:"forward_to"`
+	ListenAt  *int               `json:"listen_at,omitempty"`
+}
+
+type HttpGatewayPocketIcInstance struct {
+	PocketIcInstance int `json:"PocketIcInstance"`
+}
+
+func (HttpGatewayPocketIcInstance) gatewayBackend() {}
+
+type HttpGatewayReplica struct {
+	Replica string `json:"Replica"`
+}
+
+func (HttpGatewayReplica) gatewayBackend() {}
+
 type NNSConfig struct {
 	StateDirPath string
 	SubnetID     principal.Principal
@@ -144,29 +167,8 @@ func (c NewSubnetStateConfig) UnmarshalJSON(bytes []byte) error {
 
 func (NewSubnetStateConfig) stateConfig() {}
 
-type PocketIC struct {
-	server     *server
-	instanceID int
-	topology   map[string]Topology
-	sender     principal.Principal
-}
-
-// New creates a new PocketIC instance with the given subnet configuration.
-func New(subnetConfig ExtendedSubnetConfigSet) (*PocketIC, error) {
-	s, err := newServer()
-	if err != nil {
-		return nil, err
-	}
-	resp, err := s.NewInstance(subnetConfig)
-	if err != nil {
-		return nil, err
-	}
-	return &PocketIC{
-		server:     s,
-		instanceID: resp.InstanceID,
-		topology:   resp.Topology,
-		sender:     principal.AnonymousID,
-	}, nil
+func (pic PocketIC) Topology() map[string]Topology {
+	return pic.topology
 }
 
 func (pic PocketIC) AddCycles(canisterID principal.Principal, amount int) (int, error) {
@@ -193,20 +195,15 @@ func (pic PocketIC) AdvanceTime(nanoSeconds int) error {
 	}, nil)
 }
 
-// CanisterExits returns true if the given canister exists in the PocketIC instance.
-func (pic PocketIC) CanisterExits(canisterID principal.Principal) bool {
-	_, err := pic.GetSubnet(canisterID)
-	return err == nil
-}
-
 // AutoProgress enables auto progress for the PocketIC instance.
 func (pic PocketIC) AutoProgress() error {
 	return pic.server.InstancePost(pic.instanceID, "auto_progress", nil, nil)
 }
 
-// StopProgress disables auto progress for the PocketIC instance.
-func (pic PocketIC) StopProgress() error {
-	return pic.server.InstancePost(pic.instanceID, "stop_progress", nil, nil)
+// CanisterExits returns true if the given canister exists in the PocketIC instance.
+func (pic PocketIC) CanisterExits(canisterID principal.Principal) bool {
+	_, err := pic.GetSubnet(canisterID)
+	return err == nil
 }
 
 func (pic PocketIC) CreateAndInstallCanister(wasmModule io.Reader, arg []byte, subnetPID *principal.Principal) (*principal.Principal, error) {
@@ -356,6 +353,50 @@ func (pic PocketIC) InstallCode(canisterID principal.Principal, wasmModuleReader
 	)
 }
 
+func (pic PocketIC) MakeDeterministic() error {
+	if err := pic.StopGateway(); err != nil {
+		return err
+	}
+	return pic.StopProgress()
+}
+
+func (pic PocketIC) MakeLive(port *int) (string, error) {
+	if err := pic.AutoProgress(); err != nil {
+		return "", err
+	}
+	if pic.server.httpPort != nil {
+		return fmt.Sprintf("http://127.0.0.1:%d", *pic.server.httpPort), nil
+	}
+	url := fmt.Sprintf("%s/http_gateway", pic.server.URL())
+	config := HttpGatewayConfig{
+		ListenAt: port,
+		ForwardTo: &HttpGatewayPocketIcInstance{
+			PocketIcInstance: pic.instanceID,
+		},
+	}
+	payload, err := json.Marshal(config)
+	if err != nil {
+		return "", err
+	}
+	resp, err := http.Post(url, "application/json", bytes.NewReader(payload))
+	if err != nil {
+		return "", err
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var httpResponse createHttpGatewayResponse
+	if err := json.Unmarshal(body, &httpResponse); err != nil {
+		return "", err
+	}
+	if httpResponse.Created != nil {
+		return fmt.Sprintf("http://127.0.0.1:%d", httpResponse.Created.Port), nil
+	}
+	return "", fmt.Errorf("failed to create HTTP gateway: %s", httpResponse.Error.Message)
+}
+
 func (pic PocketIC) QueryCall(canisterID principal.Principal, method string, payload []any, body []any) error {
 	rawPayload, err := idl.Marshal(payload)
 	if err != nil {
@@ -374,6 +415,25 @@ func (pic PocketIC) SetTime(nanosSinceEpoch int) error {
 	return pic.server.InstancePost(pic.instanceID, "update/set_time", map[string]any{
 		"nanos_since_epoch": nanosSinceEpoch,
 	}, nil)
+}
+
+func (pic PocketIC) StopGateway() error {
+	if pic.server.httpPort == nil {
+		return nil
+	}
+	resp, err := http.Post(fmt.Sprintf("%s/http_gateway/%d/stop", pic.server.URL(), *pic.server.httpPort), "application/json", nil)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+	return nil
+}
+
+// StopProgress disables auto progress for the PocketIC instance.
+func (pic PocketIC) StopProgress() error {
+	return pic.server.InstancePost(pic.instanceID, "stop_progress", nil, nil)
 }
 
 // Tick advances the PocketIC instance by one block.
@@ -509,6 +569,16 @@ type SubnetSpec struct {
 
 type SubnetStateConfig interface {
 	stateConfig()
+}
+
+type createHttpGatewayResponse struct {
+	Created *struct {
+		InstanceID int `json:"instance_id"`
+		Port       int `json:"port"`
+	} `json:"Created,omitempty"`
+	Error *struct {
+		Message string `json:"message"`
+	} `json:"Error,omitempty"`
 }
 
 type installCodeArgs struct {

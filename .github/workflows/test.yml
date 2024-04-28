@@ -7,9 +7,9 @@ jobs:
       - uses: actions/setup-go@v4
         with:
           go-version: '1.21.0'
-      - uses: aviate-labs/setup-dfx@v0.3.1
+      - uses: aviate-labs/setup-dfx@v0.3.2
         with:
           dfx-version: 0.18.0
-          pocketic-version: 3.0.1
+          pocket-ic-version: release-2024-04-24_23-01-base
       - run: mv ic/testdata/networks.json $HOME/.config/dfx/networks.json
       - run: make test

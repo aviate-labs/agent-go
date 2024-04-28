@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	s, setupErr = pocketic.New(pocketic.DefaultSubnetConfig)
+	s, setupErr = pocketic.New()
 	wasmModule  = []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00}
 )
 
@@ -58,7 +58,17 @@ func TestPocketIC(t *testing.T) {
 		t.Errorf("hello world is %s, expected Hello, there!", helloWorld)
 	}
 
-	host, err := url.Parse(s.GetHost())
+	httpGateway, err := s.MakeLive(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if err := s.MakeDeterministic(); err != nil {
+			t.Fatal(err)
+		}
+	}()
+
+	host, err := url.Parse(httpGateway)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -81,17 +91,6 @@ func TestPocketIC(t *testing.T) {
 		}
 	})
 	t.Run("Agent UpdateCall", func(t *testing.T) {
-		t.Skip("PocketIC does not advance automatically, so the time is not updated.")
-
-		if err := s.AutoProgress(); err != nil {
-			t.Fatal(err)
-		}
-		defer func() {
-			if err := s.StopProgress(); err != nil {
-				t.Fatal(err)
-			}
-		}()
-
 		resp, err := a.HelloUpdate("there")
 		if err != nil {
 			t.Fatal(err)
