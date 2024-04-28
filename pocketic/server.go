@@ -2,8 +2,10 @@ package pocketic
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/aviate-labs/agent-go/principal"
 	"io"
 	"net/http"
 	"os"
@@ -41,6 +43,12 @@ type CanisterIDRange struct {
 	} `json:"end"`
 }
 
+func (c CanisterIDRange) Range() (principal.Principal, principal.Principal) {
+	rawStart, _ := base64.StdEncoding.DecodeString(c.Start.CanisterID)
+	rawEnd, _ := base64.StdEncoding.DecodeString(c.End.CanisterID)
+	return principal.Principal{Raw: rawStart}, principal.Principal{Raw: rawEnd}
+}
+
 type NewInstanceResponse struct {
 	InstanceID int                 `json:"instance_id"`
 	Topology   map[string]Topology `json:"topology"`
@@ -53,9 +61,10 @@ type Topology struct {
 }
 
 type server struct {
-	binPath string
-	port    int
-	cmd     *exec.Cmd
+	binPath  string
+	httpPort *int
+	port     int
+	cmd      *exec.Cmd
 }
 
 func newServer() (*server, error) {
