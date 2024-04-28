@@ -71,11 +71,12 @@ func uint64FromBytes(raw []byte) uint64 {
 
 // Agent is a client for the Internet Computer.
 type Agent struct {
-	client        Client
-	identity      identity.Identity
-	ingressExpiry time.Duration
-	rootKey       []byte
-	logger        Logger
+	client         Client
+	identity       identity.Identity
+	ingressExpiry  time.Duration
+	rootKey        []byte
+	logger         Logger
+	delay, timeout time.Duration
 }
 
 // New returns a new Agent based on the given configuration.
@@ -107,12 +108,22 @@ func New(cfg Config) (*Agent, error) {
 		}
 		rootKey = status.RootKey
 	}
+	delay := time.Second
+	if cfg.PollDelay != 0 {
+		delay = cfg.PollDelay
+	}
+	timeout := 10 * time.Second
+	if cfg.PollTimeout != 0 {
+		timeout = cfg.PollTimeout
+	}
 	return &Agent{
 		client:        client,
 		identity:      id,
 		ingressExpiry: cfg.IngressExpiry,
 		rootKey:       rootKey,
 		logger:        logger,
+		delay:         delay,
+		timeout:       timeout,
 	}, nil
 }
 
@@ -144,7 +155,7 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 		return err
 	}
 
-	raw, err := a.poll(ecID, *requestID, time.Second, time.Second*10)
+	raw, err := a.poll(ecID, *requestID)
 	if err != nil {
 		return err
 	}
@@ -321,9 +332,9 @@ func (a Agent) expiryDate() uint64 {
 	return uint64(time.Now().Add(a.ingressExpiry).UnixNano())
 }
 
-func (a Agent) poll(ecID principal.Principal, requestID RequestID, delay, timeout time.Duration) ([]byte, error) {
-	ticker := time.NewTicker(delay)
-	timer := time.NewTimer(timeout)
+func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, error) {
+	ticker := time.NewTicker(a.delay)
+	timer := time.NewTimer(a.timeout)
 	for {
 		select {
 		case <-ticker.C:
@@ -355,7 +366,7 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID, delay, timeou
 				}
 			}
 		case <-timer.C:
-			return nil, fmt.Errorf("out of time... waited %d seconds", timeout/time.Second)
+			return nil, fmt.Errorf("out of time... waited %d seconds", a.timeout/time.Second)
 		}
 	}
 }
@@ -411,9 +422,18 @@ func (a Agent) sign(request Request) (*RequestID, []byte, error) {
 
 // Config is the configuration for an Agent.
 type Config struct {
-	Identity      identity.Identity
+	// Identity is the identity used by the Agent.
+	Identity identity.Identity
+	// IngressExpiry is the duration for which an ingress message is valid.
 	IngressExpiry time.Duration
-	ClientConfig  *ClientConfig
-	FetchRootKey  bool
-	Logger        Logger
+	// ClientConfig is the configuration for the underlying Client.
+	ClientConfig *ClientConfig
+	// FetchRootKey determines whether the root key should be fetched from the IC.
+	FetchRootKey bool
+	// Logger is the logger used by the Agent.
+	Logger Logger
+	// PollDelay is the delay between polling for a response.
+	PollDelay time.Duration
+	// PollTimeout is the timeout for polling for a response.
+	PollTimeout time.Duration
 }
