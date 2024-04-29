@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -35,22 +36,22 @@ func newServer(opts ...serverOption) (*server, error) {
 	}
 
 	// Try to find the pocket-ic binary.
-	path, err := exec.LookPath("pocket-ic-server")
+	binPath, err := exec.LookPath("pocket-ic-server")
 	if err != nil {
-		if path, err = exec.LookPath("pocket-ic"); err != nil {
+		if binPath, err = exec.LookPath("pocket-ic"); err != nil {
 			// If the binary is not found, try to find it in the POCKET_IC_BIN environment variable.
 			if pathEnv := os.Getenv("POCKET_IC_BIN"); pathEnv != "" {
-				path = pathEnv
+				binPath = pathEnv
 			} else {
-				path = "./pocket-ic"
-				if _, err := os.Stat(path); err != nil {
+				binPath = "./pocket-ic"
+				if _, err := os.Stat(binPath); err != nil {
 					return nil, fmt.Errorf("pocket-ic binary not found: %v", err)
 				}
 			}
 		}
 	}
 
-	versionCmd := exec.Command(path, "--version")
+	versionCmd := exec.Command(binPath, "--version")
 	rawVersion, err := versionCmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get pocket-ic version: %v", err)
@@ -65,12 +66,13 @@ func newServer(opts ...serverOption) (*server, error) {
 	if config.ttl != nil {
 		cmdArgs = append(cmdArgs, "--ttl", strconv.Itoa(*config.ttl))
 	}
-	cmd := exec.Command(path, cmdArgs...)
+	cmd := exec.Command(binPath, cmdArgs...)
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("failed to start pocket-ic: %v", err)
 	}
 
-	readyFile := fmt.Sprintf("%spocket_ic_%d.ready", os.TempDir(), pid)
+	tmpDir := os.TempDir()
+	readyFile := path.Join(tmpDir, fmt.Sprintf("pocket_ic_%d.ready", pid))
 	stopAt := time.Now().Add(10 * time.Second)
 	for _, err := os.Stat(readyFile); os.IsNotExist(err); _, err = os.Stat(readyFile) {
 		time.Sleep(100 * time.Millisecond)
@@ -79,7 +81,7 @@ func newServer(opts ...serverOption) (*server, error) {
 		}
 	}
 
-	portFile := fmt.Sprintf("%spocket_ic_%d.port", os.TempDir(), pid)
+	portFile := path.Join(tmpDir, fmt.Sprintf("pocket_ic_%d.port", pid))
 	f, err := os.OpenFile(portFile, os.O_RDONLY, 0644)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open port file: %v", err)
