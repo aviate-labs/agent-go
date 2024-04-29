@@ -97,7 +97,7 @@ func New(cfg Config) (*Agent, error) {
 	if cfg.Identity != nil {
 		id = cfg.Identity
 	}
-	var logger Logger = &defaultLogger{}
+	var logger Logger = new(NoopLogger)
 	if cfg.Logger != nil {
 		logger = cfg.Logger
 	}

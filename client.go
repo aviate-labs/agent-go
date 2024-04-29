@@ -24,14 +24,14 @@ func NewClient(cfg ClientConfig) Client {
 	return Client{
 		client: http.Client{},
 		config: cfg,
-		logger: &defaultLogger{},
+		logger: new(NoopLogger),
 	}
 }
 
 // NewClientWithLogger creates a new client based on the given configuration and logger.
 func NewClientWithLogger(cfg ClientConfig, logger Logger) Client {
 	if logger == nil {
-		logger = &defaultLogger{}
+		logger = new(NoopLogger)
 	}
 	return Client{
 		client: http.Client{},

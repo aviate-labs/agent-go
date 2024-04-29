@@ -4,6 +4,6 @@ type Logger interface {
 	Printf(format string, v ...any)
 }
 
-type defaultLogger struct{}
+type NoopLogger struct{}
 
-func (l defaultLogger) Printf(format string, v ...any) {}
+func (l NoopLogger) Printf(format string, v ...any) {}
