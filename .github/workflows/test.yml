@@ -10,6 +10,6 @@ jobs:
       - uses: aviate-labs/setup-dfx@v0.3.2
         with:
           dfx-version: 0.18.0
-          pocket-ic-version: release-2024-04-24_23-01-base
+          pocket-ic-version: 4.0.0
       - run: mv ic/testdata/networks.json $HOME/.config/dfx/networks.json
       - run: make test

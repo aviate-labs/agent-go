@@ -57,7 +57,7 @@ func newServer(opts ...serverOption) (*server, error) {
 		return nil, fmt.Errorf("failed to get pocket-ic version: %v", err)
 	}
 	version := strings.TrimPrefix(strings.TrimSpace(string(rawVersion)), "pocket-ic-server ")
-	if !strings.HasPrefix(version, "3.") {
+	if !strings.HasPrefix(version, "4.") {
 		return nil, fmt.Errorf("unsupported pocket-ic version, must be v3.x: %s", version)
 	}
 
