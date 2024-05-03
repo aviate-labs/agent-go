@@ -106,6 +106,9 @@ func main() {
 				if err != nil {
 					log.Panic(err)
 				}
+				if name == "ic" {
+					g = g.Indirect()
+				}
 				raw, err := g.Generate()
 				if err != nil {
 					log.Panic(err)

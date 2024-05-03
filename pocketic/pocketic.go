@@ -61,13 +61,6 @@ type Config struct {
 	logger       agent.Logger
 }
 
-// WithTTL sets the time-to-live for the PocketIC server, in seconds.
-func WithTTL(ttl int) Option {
-	return func(p *Config) {
-		p.serverConfig = append(p.serverConfig, withTTL(ttl))
-	}
-}
-
 type DTSFlag bool
 
 func (f DTSFlag) MarshalJSON() ([]byte, error) {
@@ -178,10 +171,17 @@ func WithSystemSubnet() Option {
 	}
 }
 
+// WithTTL sets the time-to-live for the PocketIC server, in seconds.
+func WithTTL(ttl int) Option {
+	return func(p *Config) {
+		p.serverConfig = append(p.serverConfig, withTTL(ttl))
+	}
+}
+
 // PocketIC is a client for the local PocketIC server.
 type PocketIC struct {
 	InstanceID  int
-	httpGateway *httpGatewayInfo
+	httpGateway *HttpGatewayInfo
 	topology    map[string]Topology
 
 	logger agent.Logger
@@ -220,12 +220,10 @@ func New(opts ...Option) (*PocketIC, error) {
 			InstanceID int                 `json:"instance_id"`
 			Topology   map[string]Topology `json:"topology"`
 		} `json:"Created,omitempty"`
-		Error struct {
-			Message string `json:"message"`
-		} `json:"Error,omitempty"`
+		Error *ErrorMessage `json:"Error,omitempty"`
 	}
-	if respBody.Error.Message != "" {
-		return nil, fmt.Errorf("failed to create instance: %s", respBody.Error.Message)
+	if respBody.Error != nil {
+		return nil, respBody.Error
 	}
 	if err := checkResponse(resp, http.StatusCreated, &respBody); err != nil {
 		return nil, fmt.Errorf("failed to create instance: %v", err)
@@ -244,6 +242,11 @@ func New(opts ...Option) (*PocketIC, error) {
 // Close closes the PocketIC client.
 func (pic *PocketIC) Close() error {
 	return pic.server.Close()
+}
+
+// Topology returns the topology of the PocketIC instance.
+func (pic PocketIC) Topology() map[string]Topology {
+	return pic.topology
 }
 
 // instanceURL returns the URL of the PocketIC instance.
@@ -422,9 +425,4 @@ type canisterID struct {
 type canisterIDRange struct {
 	Start canisterID `json:"start"`
 	End   canisterID `json:"end"`
-}
-
-type httpGatewayInfo struct {
-	InstanceID int
-	Port       int
 }

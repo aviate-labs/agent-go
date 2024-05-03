@@ -67,6 +67,9 @@ actor class _wallet() : async actor {} {
     public shared func wallet_call128(_arg0 : { canister : Principal; method_name : Text; args : Blob; cycles : Nat }) : async (T.WalletResultCall) {
         (#Ok({ return = "xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3" }))
     };
+    public shared func wallet_call_with_max_cycles(_arg0 : { canister : Principal; method_name : Text; args : Blob }) : async (T.WalletResultCallWithMaxCycles) {
+        (#Ok({ return = "xAABD0E49110AC27F321B5538A4BD8E1D253F8AFFD1A9C81C5B6EBD2C7EE44EF3"; attached_cycles = 9207851698408531338 }))
+    };
     public shared func add_address(_arg0 : T.AddressEntry) : async () {
         ()
     };

@@ -8,13 +8,13 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
-// Agent is a client for the "types" canister.
+// TypesAgent is a client for the "types" canister.
 type TypesAgent struct {
 	a          *agent.Agent
 	canisterId principal.Principal
 }
 
-// NewAgent creates a new agent for the "types" canister.
+// NewTypesAgent creates a new agent for the "types" canister.
 func NewTypesAgent(canisterId principal.Principal, config agent.Config) (*TypesAgent, error) {
 	a, err := agent.New(config)
 	if err != nil {

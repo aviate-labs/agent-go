@@ -643,7 +643,9 @@ func Record(p *ast.Parser) (*ast.Node, error) {
 			TypeStrings: NodeTypes,
 			Value: op.And{
 				"record",
-				Sp,
+				op.Optional(
+					Sp,
+				),
 				'{',
 				Ws,
 				op.Optional(

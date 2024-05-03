@@ -76,6 +76,8 @@ type Generator struct {
 	PackageName        string
 	ServiceDescription did.Description
 	usedIDL            bool
+
+	indirect bool
 }
 
 // NewGenerator creates a new generator for the given service description.
@@ -145,7 +147,11 @@ func (g *Generator) Generate() ([]byte, error) {
 			})
 		}
 	}
-	t, ok := templates["agent"]
+	tmplName := "agent"
+	if g.indirect {
+		tmplName = "agent_indirect"
+	}
+	t, ok := templates[tmplName]
 	if !ok {
 		return nil, fmt.Errorf("template not found")
 	}
@@ -318,6 +324,12 @@ func (g *Generator) GenerateMock() ([]byte, error) {
 		return nil, err
 	}
 	return io.ReadAll(&tmpl)
+}
+
+// Indirect sets the generator to generate indirect calls.
+func (g *Generator) Indirect() *Generator {
+	g.indirect = true
+	return g
 }
 
 func (g *Generator) dataToGoReturnValue(definitions map[string]did.Data, prefix string, data did.Data) string {

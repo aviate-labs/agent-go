@@ -40,6 +40,15 @@ func (a Agent) BitcoinGetBalance(arg0 BitcoinGetBalanceArgs) (*BitcoinGetBalance
 	return &r0, nil
 }
 
+// BitcoinGetBalanceCall creates an indirect representation of the "bitcoin_get_balance" method on the "ic" canister.
+func (a Agent) BitcoinGetBalanceCall(arg0 BitcoinGetBalanceArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"bitcoin_get_balance",
+		arg0,
+	)
+}
+
 // BitcoinGetBalanceQuery calls the "bitcoin_get_balance_query" method on the "ic" canister.
 func (a Agent) BitcoinGetBalanceQuery(arg0 BitcoinGetBalanceQueryArgs) (*BitcoinGetBalanceQueryResult, error) {
 	var r0 BitcoinGetBalanceQueryResult
@@ -52,6 +61,15 @@ func (a Agent) BitcoinGetBalanceQuery(arg0 BitcoinGetBalanceQueryArgs) (*Bitcoin
 		return nil, err
 	}
 	return &r0, nil
+}
+
+// BitcoinGetBalanceQueryQuery creates an indirect representation of the "bitcoin_get_balance_query" method on the "ic" canister.
+func (a Agent) BitcoinGetBalanceQueryQuery(arg0 BitcoinGetBalanceQueryArgs) (*agent.Query, error) {
+	return a.a.CreateQuery(
+		a.canisterId,
+		"bitcoin_get_balance_query",
+		arg0,
+	)
 }
 
 // BitcoinGetCurrentFeePercentiles calls the "bitcoin_get_current_fee_percentiles" method on the "ic" canister.
@@ -68,6 +86,15 @@ func (a Agent) BitcoinGetCurrentFeePercentiles(arg0 BitcoinGetCurrentFeePercenti
 	return &r0, nil
 }
 
+// BitcoinGetCurrentFeePercentilesCall creates an indirect representation of the "bitcoin_get_current_fee_percentiles" method on the "ic" canister.
+func (a Agent) BitcoinGetCurrentFeePercentilesCall(arg0 BitcoinGetCurrentFeePercentilesArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"bitcoin_get_current_fee_percentiles",
+		arg0,
+	)
+}
+
 // BitcoinGetUtxos calls the "bitcoin_get_utxos" method on the "ic" canister.
 func (a Agent) BitcoinGetUtxos(arg0 BitcoinGetUtxosArgs) (*BitcoinGetUtxosResult, error) {
 	var r0 BitcoinGetUtxosResult
@@ -80,6 +107,15 @@ func (a Agent) BitcoinGetUtxos(arg0 BitcoinGetUtxosArgs) (*BitcoinGetUtxosResult
 		return nil, err
 	}
 	return &r0, nil
+}
+
+// BitcoinGetUtxosCall creates an indirect representation of the "bitcoin_get_utxos" method on the "ic" canister.
+func (a Agent) BitcoinGetUtxosCall(arg0 BitcoinGetUtxosArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"bitcoin_get_utxos",
+		arg0,
+	)
 }
 
 // BitcoinGetUtxosQuery calls the "bitcoin_get_utxos_query" method on the "ic" canister.
@@ -96,6 +132,15 @@ func (a Agent) BitcoinGetUtxosQuery(arg0 BitcoinGetUtxosQueryArgs) (*BitcoinGetU
 	return &r0, nil
 }
 
+// BitcoinGetUtxosQueryQuery creates an indirect representation of the "bitcoin_get_utxos_query" method on the "ic" canister.
+func (a Agent) BitcoinGetUtxosQueryQuery(arg0 BitcoinGetUtxosQueryArgs) (*agent.Query, error) {
+	return a.a.CreateQuery(
+		a.canisterId,
+		"bitcoin_get_utxos_query",
+		arg0,
+	)
+}
+
 // BitcoinSendTransaction calls the "bitcoin_send_transaction" method on the "ic" canister.
 func (a Agent) BitcoinSendTransaction(arg0 BitcoinSendTransactionArgs) error {
 	if err := a.a.Call(
@@ -107,6 +152,15 @@ func (a Agent) BitcoinSendTransaction(arg0 BitcoinSendTransactionArgs) error {
 		return err
 	}
 	return nil
+}
+
+// BitcoinSendTransactionCall creates an indirect representation of the "bitcoin_send_transaction" method on the "ic" canister.
+func (a Agent) BitcoinSendTransactionCall(arg0 BitcoinSendTransactionArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"bitcoin_send_transaction",
+		arg0,
+	)
 }
 
 // CanisterInfo calls the "canister_info" method on the "ic" canister.
@@ -123,6 +177,15 @@ func (a Agent) CanisterInfo(arg0 CanisterInfoArgs) (*CanisterInfoResult, error) 
 	return &r0, nil
 }
 
+// CanisterInfoCall creates an indirect representation of the "canister_info" method on the "ic" canister.
+func (a Agent) CanisterInfoCall(arg0 CanisterInfoArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"canister_info",
+		arg0,
+	)
+}
+
 // CanisterStatus calls the "canister_status" method on the "ic" canister.
 func (a Agent) CanisterStatus(arg0 CanisterStatusArgs) (*CanisterStatusResult, error) {
 	var r0 CanisterStatusResult
@@ -137,6 +200,15 @@ func (a Agent) CanisterStatus(arg0 CanisterStatusArgs) (*CanisterStatusResult, e
 	return &r0, nil
 }
 
+// CanisterStatusCall creates an indirect representation of the "canister_status" method on the "ic" canister.
+func (a Agent) CanisterStatusCall(arg0 CanisterStatusArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"canister_status",
+		arg0,
+	)
+}
+
 // ClearChunkStore calls the "clear_chunk_store" method on the "ic" canister.
 func (a Agent) ClearChunkStore(arg0 ClearChunkStoreArgs) error {
 	if err := a.a.Call(
@@ -148,6 +220,15 @@ func (a Agent) ClearChunkStore(arg0 ClearChunkStoreArgs) error {
 		return err
 	}
 	return nil
+}
+
+// ClearChunkStoreCall creates an indirect representation of the "clear_chunk_store" method on the "ic" canister.
+func (a Agent) ClearChunkStoreCall(arg0 ClearChunkStoreArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"clear_chunk_store",
+		arg0,
+	)
 }
 
 // CreateCanister calls the "create_canister" method on the "ic" canister.
@@ -164,6 +245,15 @@ func (a Agent) CreateCanister(arg0 CreateCanisterArgs) (*CreateCanisterResult, e
 	return &r0, nil
 }
 
+// CreateCanisterCall creates an indirect representation of the "create_canister" method on the "ic" canister.
+func (a Agent) CreateCanisterCall(arg0 CreateCanisterArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"create_canister",
+		arg0,
+	)
+}
+
 // DeleteCanister calls the "delete_canister" method on the "ic" canister.
 func (a Agent) DeleteCanister(arg0 DeleteCanisterArgs) error {
 	if err := a.a.Call(
@@ -177,6 +267,15 @@ func (a Agent) DeleteCanister(arg0 DeleteCanisterArgs) error {
 	return nil
 }
 
+// DeleteCanisterCall creates an indirect representation of the "delete_canister" method on the "ic" canister.
+func (a Agent) DeleteCanisterCall(arg0 DeleteCanisterArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"delete_canister",
+		arg0,
+	)
+}
+
 // DepositCycles calls the "deposit_cycles" method on the "ic" canister.
 func (a Agent) DepositCycles(arg0 DepositCyclesArgs) error {
 	if err := a.a.Call(
@@ -188,6 +287,15 @@ func (a Agent) DepositCycles(arg0 DepositCyclesArgs) error {
 		return err
 	}
 	return nil
+}
+
+// DepositCyclesCall creates an indirect representation of the "deposit_cycles" method on the "ic" canister.
+func (a Agent) DepositCyclesCall(arg0 DepositCyclesArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"deposit_cycles",
+		arg0,
+	)
 }
 
 // EcdsaPublicKey calls the "ecdsa_public_key" method on the "ic" canister.
@@ -204,6 +312,15 @@ func (a Agent) EcdsaPublicKey(arg0 EcdsaPublicKeyArgs) (*EcdsaPublicKeyResult, e
 	return &r0, nil
 }
 
+// EcdsaPublicKeyCall creates an indirect representation of the "ecdsa_public_key" method on the "ic" canister.
+func (a Agent) EcdsaPublicKeyCall(arg0 EcdsaPublicKeyArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"ecdsa_public_key",
+		arg0,
+	)
+}
+
 // HttpRequest calls the "http_request" method on the "ic" canister.
 func (a Agent) HttpRequest(arg0 HttpRequestArgs) (*HttpRequestResult, error) {
 	var r0 HttpRequestResult
@@ -216,6 +333,15 @@ func (a Agent) HttpRequest(arg0 HttpRequestArgs) (*HttpRequestResult, error) {
 		return nil, err
 	}
 	return &r0, nil
+}
+
+// HttpRequestCall creates an indirect representation of the "http_request" method on the "ic" canister.
+func (a Agent) HttpRequestCall(arg0 HttpRequestArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"http_request",
+		arg0,
+	)
 }
 
 // InstallChunkedCode calls the "install_chunked_code" method on the "ic" canister.
@@ -231,6 +357,15 @@ func (a Agent) InstallChunkedCode(arg0 InstallChunkedCodeArgs) error {
 	return nil
 }
 
+// InstallChunkedCodeCall creates an indirect representation of the "install_chunked_code" method on the "ic" canister.
+func (a Agent) InstallChunkedCodeCall(arg0 InstallChunkedCodeArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"install_chunked_code",
+		arg0,
+	)
+}
+
 // InstallCode calls the "install_code" method on the "ic" canister.
 func (a Agent) InstallCode(arg0 InstallCodeArgs) error {
 	if err := a.a.Call(
@@ -242,6 +377,15 @@ func (a Agent) InstallCode(arg0 InstallCodeArgs) error {
 		return err
 	}
 	return nil
+}
+
+// InstallCodeCall creates an indirect representation of the "install_code" method on the "ic" canister.
+func (a Agent) InstallCodeCall(arg0 InstallCodeArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"install_code",
+		arg0,
+	)
 }
 
 // NodeMetricsHistory calls the "node_metrics_history" method on the "ic" canister.
@@ -258,6 +402,15 @@ func (a Agent) NodeMetricsHistory(arg0 NodeMetricsHistoryArgs) (*NodeMetricsHist
 	return &r0, nil
 }
 
+// NodeMetricsHistoryCall creates an indirect representation of the "node_metrics_history" method on the "ic" canister.
+func (a Agent) NodeMetricsHistoryCall(arg0 NodeMetricsHistoryArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"node_metrics_history",
+		arg0,
+	)
+}
+
 // ProvisionalCreateCanisterWithCycles calls the "provisional_create_canister_with_cycles" method on the "ic" canister.
 func (a Agent) ProvisionalCreateCanisterWithCycles(arg0 ProvisionalCreateCanisterWithCyclesArgs) (*ProvisionalCreateCanisterWithCyclesResult, error) {
 	var r0 ProvisionalCreateCanisterWithCyclesResult
@@ -272,6 +425,15 @@ func (a Agent) ProvisionalCreateCanisterWithCycles(arg0 ProvisionalCreateCaniste
 	return &r0, nil
 }
 
+// ProvisionalCreateCanisterWithCyclesCall creates an indirect representation of the "provisional_create_canister_with_cycles" method on the "ic" canister.
+func (a Agent) ProvisionalCreateCanisterWithCyclesCall(arg0 ProvisionalCreateCanisterWithCyclesArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"provisional_create_canister_with_cycles",
+		arg0,
+	)
+}
+
 // ProvisionalTopUpCanister calls the "provisional_top_up_canister" method on the "ic" canister.
 func (a Agent) ProvisionalTopUpCanister(arg0 ProvisionalTopUpCanisterArgs) error {
 	if err := a.a.Call(
@@ -283,6 +445,15 @@ func (a Agent) ProvisionalTopUpCanister(arg0 ProvisionalTopUpCanisterArgs) error
 		return err
 	}
 	return nil
+}
+
+// ProvisionalTopUpCanisterCall creates an indirect representation of the "provisional_top_up_canister" method on the "ic" canister.
+func (a Agent) ProvisionalTopUpCanisterCall(arg0 ProvisionalTopUpCanisterArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"provisional_top_up_canister",
+		arg0,
+	)
 }
 
 // RawRand calls the "raw_rand" method on the "ic" canister.
@@ -299,6 +470,14 @@ func (a Agent) RawRand() (*RawRandResult, error) {
 	return &r0, nil
 }
 
+// RawRandCall creates an indirect representation of the "raw_rand" method on the "ic" canister.
+func (a Agent) RawRandCall() (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"raw_rand",
+	)
+}
+
 // SignWithEcdsa calls the "sign_with_ecdsa" method on the "ic" canister.
 func (a Agent) SignWithEcdsa(arg0 SignWithEcdsaArgs) (*SignWithEcdsaResult, error) {
 	var r0 SignWithEcdsaResult
@@ -311,6 +490,15 @@ func (a Agent) SignWithEcdsa(arg0 SignWithEcdsaArgs) (*SignWithEcdsaResult, erro
 		return nil, err
 	}
 	return &r0, nil
+}
+
+// SignWithEcdsaCall creates an indirect representation of the "sign_with_ecdsa" method on the "ic" canister.
+func (a Agent) SignWithEcdsaCall(arg0 SignWithEcdsaArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"sign_with_ecdsa",
+		arg0,
+	)
 }
 
 // StartCanister calls the "start_canister" method on the "ic" canister.
@@ -326,6 +514,15 @@ func (a Agent) StartCanister(arg0 StartCanisterArgs) error {
 	return nil
 }
 
+// StartCanisterCall creates an indirect representation of the "start_canister" method on the "ic" canister.
+func (a Agent) StartCanisterCall(arg0 StartCanisterArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"start_canister",
+		arg0,
+	)
+}
+
 // StopCanister calls the "stop_canister" method on the "ic" canister.
 func (a Agent) StopCanister(arg0 StopCanisterArgs) error {
 	if err := a.a.Call(
@@ -337,6 +534,15 @@ func (a Agent) StopCanister(arg0 StopCanisterArgs) error {
 		return err
 	}
 	return nil
+}
+
+// StopCanisterCall creates an indirect representation of the "stop_canister" method on the "ic" canister.
+func (a Agent) StopCanisterCall(arg0 StopCanisterArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"stop_canister",
+		arg0,
+	)
 }
 
 // StoredChunks calls the "stored_chunks" method on the "ic" canister.
@@ -353,6 +559,15 @@ func (a Agent) StoredChunks(arg0 StoredChunksArgs) (*StoredChunksResult, error) 
 	return &r0, nil
 }
 
+// StoredChunksCall creates an indirect representation of the "stored_chunks" method on the "ic" canister.
+func (a Agent) StoredChunksCall(arg0 StoredChunksArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"stored_chunks",
+		arg0,
+	)
+}
+
 // UninstallCode calls the "uninstall_code" method on the "ic" canister.
 func (a Agent) UninstallCode(arg0 UninstallCodeArgs) error {
 	if err := a.a.Call(
@@ -364,6 +579,15 @@ func (a Agent) UninstallCode(arg0 UninstallCodeArgs) error {
 		return err
 	}
 	return nil
+}
+
+// UninstallCodeCall creates an indirect representation of the "uninstall_code" method on the "ic" canister.
+func (a Agent) UninstallCodeCall(arg0 UninstallCodeArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"uninstall_code",
+		arg0,
+	)
 }
 
 // UpdateSettings calls the "update_settings" method on the "ic" canister.
@@ -379,6 +603,15 @@ func (a Agent) UpdateSettings(arg0 UpdateSettingsArgs) error {
 	return nil
 }
 
+// UpdateSettingsCall creates an indirect representation of the "update_settings" method on the "ic" canister.
+func (a Agent) UpdateSettingsCall(arg0 UpdateSettingsArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"update_settings",
+		arg0,
+	)
+}
+
 // UploadChunk calls the "upload_chunk" method on the "ic" canister.
 func (a Agent) UploadChunk(arg0 UploadChunkArgs) (*UploadChunkResult, error) {
 	var r0 UploadChunkResult
@@ -391,6 +624,15 @@ func (a Agent) UploadChunk(arg0 UploadChunkArgs) (*UploadChunkResult, error) {
 		return nil, err
 	}
 	return &r0, nil
+}
+
+// UploadChunkCall creates an indirect representation of the "upload_chunk" method on the "ic" canister.
+func (a Agent) UploadChunkCall(arg0 UploadChunkArgs) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"upload_chunk",
+		arg0,
+	)
 }
 
 type BitcoinAddress = string

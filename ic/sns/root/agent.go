@@ -260,6 +260,7 @@ type ManageDappCanisterSettingsRequest struct {
 	CanisterIds         []principal.Principal `ic:"canister_ids" json:"canister_ids"`
 	ReservedCyclesLimit *uint64               `ic:"reserved_cycles_limit,omitempty" json:"reserved_cycles_limit,omitempty"`
 	LogVisibility       *int32                `ic:"log_visibility,omitempty" json:"log_visibility,omitempty"`
+	WasmMemoryLimit     *uint64               `ic:"wasm_memory_limit,omitempty" json:"wasm_memory_limit,omitempty"`
 	MemoryAllocation    *uint64               `ic:"memory_allocation,omitempty" json:"memory_allocation,omitempty"`
 	ComputeAllocation   *uint64               `ic:"compute_allocation,omitempty" json:"compute_allocation,omitempty"`
 }

@@ -716,6 +716,48 @@ func Test_WalletCall128(t *testing.T) {
 
 }
 
+// Test_WalletCallWithMaxCycles tests the "wallet_call_with_max_cycles" method on the "wallet" canister.
+func Test_WalletCallWithMaxCycles(t *testing.T) {
+	a, err := newAgent([]mock.Method{
+		{
+			Name: "wallet_call_with_max_cycles",
+			Arguments: []any{new(struct {
+				Canister   principal.Principal `ic:"canister" json:"canister"`
+				MethodName string              `ic:"method_name" json:"method_name"`
+				Args       []byte              `ic:"args" json:"args"`
+			})},
+			Handler: func(request mock.Request) ([]any, error) {
+				return []any{wallet.WalletResultCallWithMaxCycles{
+					Ok: idl.Ptr(struct {
+						Return         []byte  `ic:"return" json:"return"`
+						AttachedCycles idl.Nat `ic:"attached_cycles" json:"attached_cycles"`
+					}{
+						*new([]byte),
+						idl.NewNat(uint(0)),
+					}),
+				}}, nil
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var a0 = struct {
+		Canister   principal.Principal `ic:"canister" json:"canister"`
+		MethodName string              `ic:"method_name" json:"method_name"`
+		Args       []byte              `ic:"args" json:"args"`
+	}{
+		*new(principal.Principal),
+		*new(string),
+		*new([]byte),
+	}
+	if _, err := a.WalletCallWithMaxCycles(a0); err != nil {
+		t.Fatal(err)
+	}
+
+}
+
 // Test_WalletCreateCanister tests the "wallet_create_canister" method on the "wallet" canister.
 func Test_WalletCreateCanister(t *testing.T) {
 	a, err := newAgent([]mock.Method{

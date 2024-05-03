@@ -289,6 +289,20 @@ func (a Agent) Icrc3GetArchives(arg0 GetArchivesArgs) (*GetArchivesResult, error
 	return &r0, nil
 }
 
+// Icrc3GetBlocks calls the "icrc3_get_blocks" method on the "ledger" canister.
+func (a Agent) Icrc3GetBlocks(arg0 []GetBlocksArgs) (*GetBlocksResult, error) {
+	var r0 GetBlocksResult
+	if err := a.a.Query(
+		a.canisterId,
+		"icrc3_get_blocks",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 // Icrc3GetTipCertificate calls the "icrc3_get_tip_certificate" method on the "ledger" canister.
 func (a Agent) Icrc3GetTipCertificate() (**ICRC3DataCertificate, error) {
 	var r0 *ICRC3DataCertificate
@@ -409,6 +423,17 @@ type Burn struct {
 	Spender       *Account   `ic:"spender,omitempty" json:"spender,omitempty"`
 }
 
+type ChangeArchiveOptions struct {
+	NumBlocksToArchive         *uint64                `ic:"num_blocks_to_archive,omitempty" json:"num_blocks_to_archive,omitempty"`
+	MaxTransactionsPerResponse *uint64                `ic:"max_transactions_per_response,omitempty" json:"max_transactions_per_response,omitempty"`
+	TriggerThreshold           *uint64                `ic:"trigger_threshold,omitempty" json:"trigger_threshold,omitempty"`
+	MaxMessageSizeBytes        *uint64                `ic:"max_message_size_bytes,omitempty" json:"max_message_size_bytes,omitempty"`
+	CyclesForArchiveCreation   *uint64                `ic:"cycles_for_archive_creation,omitempty" json:"cycles_for_archive_creation,omitempty"`
+	NodeMaxMemorySizeBytes     *uint64                `ic:"node_max_memory_size_bytes,omitempty" json:"node_max_memory_size_bytes,omitempty"`
+	ControllerId               *principal.Principal   `ic:"controller_id,omitempty" json:"controller_id,omitempty"`
+	MoreControllerIds          *[]principal.Principal `ic:"more_controller_ids,omitempty" json:"more_controller_ids,omitempty"`
+}
+
 type ChangeFeeCollector struct {
 	Unset *idl.Null `ic:"Unset,variant"`
 	SetTo *Account  `ic:"SetTo,variant"`
@@ -452,6 +477,19 @@ type GetBlocksResponse struct {
 	} `ic:"archived_blocks" json:"archived_blocks"`
 }
 
+type GetBlocksResult struct {
+	LogLength idl.Nat `ic:"log_length" json:"log_length"`
+	Blocks    []struct {
+		Id    idl.Nat    `ic:"id" json:"id"`
+		Block ICRC3Value `ic:"block" json:"block"`
+	} `ic:"blocks" json:"blocks"`
+	ArchivedBlocks []struct {
+		Args     []GetBlocksArgs `ic:"args" json:"args"`
+		Callback struct {        /* NOT SUPPORTED */
+		} `ic:"callback" json:"callback"`
+	} `ic:"archived_blocks" json:"archived_blocks"`
+}
+
 type GetTransactionsRequest struct {
 	Start  TxIndex `ic:"start" json:"start"`
 	Length idl.Nat `ic:"length" json:"length"`
@@ -490,6 +528,18 @@ type HttpResponse struct {
 type ICRC3DataCertificate struct {
 	Certificate []byte `ic:"certificate" json:"certificate"`
 	HashTree    []byte `ic:"hash_tree" json:"hash_tree"`
+}
+
+type ICRC3Value struct {
+	Blob  *[]byte       `ic:"Blob,variant"`
+	Text  *string       `ic:"Text,variant"`
+	Nat   *idl.Nat      `ic:"Nat,variant"`
+	Int   *idl.Int      `ic:"Int,variant"`
+	Array *[]ICRC3Value `ic:"Array,variant"`
+	Map   *[]struct {
+		Field0 string     `ic:"0" json:"0"`
+		Field1 ICRC3Value `ic:"1" json:"1"`
+	} `ic:"Map,variant"`
 }
 
 type InitArgs struct {
@@ -674,14 +724,15 @@ type UpgradeArgs struct {
 		Field0 string        `ic:"0" json:"0"`
 		Field1 MetadataValue `ic:"1" json:"1"`
 	} `ic:"metadata,omitempty" json:"metadata,omitempty"`
-	TokenSymbol                  *string             `ic:"token_symbol,omitempty" json:"token_symbol,omitempty"`
-	TokenName                    *string             `ic:"token_name,omitempty" json:"token_name,omitempty"`
-	TransferFee                  *idl.Nat            `ic:"transfer_fee,omitempty" json:"transfer_fee,omitempty"`
-	ChangeFeeCollector           *ChangeFeeCollector `ic:"change_fee_collector,omitempty" json:"change_fee_collector,omitempty"`
-	MaxMemoLength                *uint16             `ic:"max_memo_length,omitempty" json:"max_memo_length,omitempty"`
-	FeatureFlags                 *FeatureFlags       `ic:"feature_flags,omitempty" json:"feature_flags,omitempty"`
-	MaximumNumberOfAccounts      *uint64             `ic:"maximum_number_of_accounts,omitempty" json:"maximum_number_of_accounts,omitempty"`
-	AccountsOverflowTrimQuantity *uint64             `ic:"accounts_overflow_trim_quantity,omitempty" json:"accounts_overflow_trim_quantity,omitempty"`
+	TokenSymbol                  *string               `ic:"token_symbol,omitempty" json:"token_symbol,omitempty"`
+	TokenName                    *string               `ic:"token_name,omitempty" json:"token_name,omitempty"`
+	TransferFee                  *idl.Nat              `ic:"transfer_fee,omitempty" json:"transfer_fee,omitempty"`
+	ChangeFeeCollector           *ChangeFeeCollector   `ic:"change_fee_collector,omitempty" json:"change_fee_collector,omitempty"`
+	MaxMemoLength                *uint16               `ic:"max_memo_length,omitempty" json:"max_memo_length,omitempty"`
+	FeatureFlags                 *FeatureFlags         `ic:"feature_flags,omitempty" json:"feature_flags,omitempty"`
+	MaximumNumberOfAccounts      *uint64               `ic:"maximum_number_of_accounts,omitempty" json:"maximum_number_of_accounts,omitempty"`
+	AccountsOverflowTrimQuantity *uint64               `ic:"accounts_overflow_trim_quantity,omitempty" json:"accounts_overflow_trim_quantity,omitempty"`
+	ChangeArchiveOptions         *ChangeArchiveOptions `ic:"change_archive_options,omitempty" json:"change_archive_options,omitempty"`
 }
 
 type Value struct {
