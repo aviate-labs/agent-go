@@ -16,19 +16,6 @@ type server struct {
 	cmd  *exec.Cmd
 }
 
-type serverConfig struct {
-	ttl *int
-}
-
-type serverOption func(*serverConfig)
-
-// withTTL sets the time-to-live for the pocket-ic server, in seconds.
-func withTTL(ttl int) serverOption {
-	return func(c *serverConfig) {
-		c.ttl = &ttl
-	}
-}
-
 func newServer(opts ...serverOption) (*server, error) {
 	config := serverConfig{}
 	for _, fn := range opts {
@@ -110,4 +97,17 @@ func (s server) Close() error {
 
 func (s server) URL() string {
 	return fmt.Sprintf("http://127.0.0.1:%d", s.port)
+}
+
+type serverConfig struct {
+	ttl *int
+}
+
+type serverOption func(*serverConfig)
+
+// withTTL sets the time-to-live for the pocket-ic server, in seconds.
+func withTTL(ttl int) serverOption {
+	return func(c *serverConfig) {
+		c.ttl = &ttl
+	}
 }

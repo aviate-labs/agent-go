@@ -137,9 +137,18 @@ func New(cfg Config) (*Agent, error) {
 
 // Call calls a method on a canister and unmarshals the result into the given values.
 func (a Agent) Call(canisterID principal.Principal, methodName string, args []any, values []any) error {
-	rawArgs, err := idl.Marshal(args)
+	call, err := a.CreateCall(canisterID, methodName, args...)
 	if err != nil {
 		return err
+	}
+	return call.CallAndWait(values...)
+}
+
+// CreateCall creates a new call to the given canister and method.
+func (a *Agent) CreateCall(canisterID principal.Principal, methodName string, args ...any) (*Call, error) {
+	rawArgs, err := idl.Marshal(args)
+	if err != nil {
+		return nil, err
 	}
 	if len(args) == 0 {
 		// Default to the empty Candid argument list.
@@ -147,7 +156,7 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 	}
 	nonce, err := newNonce()
 	if err != nil {
-		return err
+		return nil, err
 	}
 	requestID, data, err := a.sign(Request{
 		Type:          RequestTypeCall,
@@ -159,19 +168,49 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 		Nonce:         nonce,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	ecID := effectiveCanisterID(canisterID, args)
-	a.logger.Printf("[AGENT] CALL %s %s (%x)", ecID, methodName, *requestID)
-	if _, err := a.call(ecID, data); err != nil {
-		return err
-	}
+	return &Call{
+		a:                   a,
+		methodName:          methodName,
+		effectiveCanisterID: effectiveCanisterID(canisterID, args),
+		requestID:           *requestID,
+		data:                data,
+	}, nil
+}
 
-	raw, err := a.poll(ecID, *requestID)
+// CreateQuery creates a new query to the given canister and method.
+func (a *Agent) CreateQuery(canisterID principal.Principal, methodName string, args ...any) (*Query, error) {
+	rawArgs, err := idl.Marshal(args)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return idl.Unmarshal(raw, values)
+	if len(args) == 0 {
+		// Default to the empty Candid argument list.
+		rawArgs = []byte{'D', 'I', 'D', 'L', 0, 0}
+	}
+	nonce, err := newNonce()
+	if err != nil {
+		return nil, err
+	}
+	_, data, err := a.sign(Request{
+		Type:          RequestTypeQuery,
+		Sender:        a.Sender(),
+		CanisterID:    canisterID,
+		MethodName:    methodName,
+		Arguments:     rawArgs,
+		IngressExpiry: a.expiryDate(),
+		Nonce:         nonce,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &Query{
+		a:                   a,
+		methodName:          methodName,
+		effectiveCanisterID: effectiveCanisterID(canisterID, args),
+		data:                data,
+	}, nil
 }
 
 // GetCanisterControllers returns the list of principals that can control the given canister.
@@ -245,51 +284,18 @@ func (a Agent) GetCanisterModuleHash(canisterID principal.Principal) ([]byte, er
 	return h, err
 }
 
+// GetRootKey returns the root key of the host.
 func (a Agent) GetRootKey() []byte {
 	return a.rootKey
 }
 
+// Query calls a method on a canister and unmarshals the result into the given values.
 func (a Agent) Query(canisterID principal.Principal, methodName string, args []any, values []any) error {
-	rawArgs, err := idl.Marshal(args)
+	query, err := a.CreateQuery(canisterID, methodName, args...)
 	if err != nil {
 		return err
 	}
-	if len(args) == 0 {
-		// Default to the empty Candid argument list.
-		rawArgs = []byte{'D', 'I', 'D', 'L', 0, 0}
-	}
-	nonce, err := newNonce()
-	if err != nil {
-		return err
-	}
-	_, data, err := a.sign(Request{
-		Type:          RequestTypeQuery,
-		Sender:        a.Sender(),
-		CanisterID:    canisterID,
-		MethodName:    methodName,
-		Arguments:     rawArgs,
-		IngressExpiry: a.expiryDate(),
-		Nonce:         nonce,
-	})
-	if err != nil {
-		return err
-	}
-	ecID := effectiveCanisterID(canisterID, args)
-	a.logger.Printf("[AGENT] QUERY %s %s", ecID, methodName)
-	resp, err := a.query(ecID, data)
-	if err != nil {
-		return err
-	}
-	var raw []byte
-	switch resp.Status {
-	case "replied":
-		raw = resp.Reply["arg"]
-	case "rejected":
-		return fmt.Errorf("(%d) %s", resp.RejectCode, resp.RejectMsg)
-	default:
-		panic("unreachable")
-	}
-	return idl.Unmarshal(raw, values)
+	return query.Query(values...)
 }
 
 // RequestStatus returns the status of the request with the given ID.
@@ -332,8 +338,8 @@ func (a Agent) Sender() principal.Principal {
 	return a.identity.Sender()
 }
 
-func (a Agent) call(ecid principal.Principal, data []byte) ([]byte, error) {
-	return a.client.call(ecid, data)
+func (a Agent) call(ecID principal.Principal, data []byte) ([]byte, error) {
+	return a.client.call(ecID, data)
 }
 
 func (a Agent) expiryDate() uint64 {
@@ -428,6 +434,34 @@ func (a Agent) sign(request Request) (*RequestID, []byte, error) {
 	return &requestID, data, nil
 }
 
+// Call is an intermediate representation of a call to a canister.
+type Call struct {
+	a                   *Agent
+	methodName          string
+	effectiveCanisterID principal.Principal
+	requestID           RequestID
+	data                []byte
+}
+
+// CallAndWait calls a method on a canister and waits for the result.
+func (c Call) CallAndWait(values ...any) error {
+	c.a.logger.Printf("[AGENT] CALL %s %s (%x)", c.effectiveCanisterID, c.methodName, c.requestID)
+	if _, err := c.a.call(c.effectiveCanisterID, c.data); err != nil {
+		return err
+	}
+	raw, err := c.a.poll(c.effectiveCanisterID, c.requestID)
+	if err != nil {
+		return err
+	}
+	return idl.Unmarshal(raw, values)
+}
+
+// WithEffectiveCanisterID sets the effective canister ID for the call.
+func (c *Call) WithEffectiveCanisterID(canisterID principal.Principal) *Call {
+	c.effectiveCanisterID = canisterID
+	return c
+}
+
 // Config is the configuration for an Agent.
 type Config struct {
 	// Identity is the identity used by the Agent.
@@ -444,4 +478,31 @@ type Config struct {
 	PollDelay time.Duration
 	// PollTimeout is the timeout for polling for a response.
 	PollTimeout time.Duration
+}
+
+// Query is an intermediate representation of a query to a canister.
+type Query struct {
+	a                   *Agent
+	methodName          string
+	effectiveCanisterID principal.Principal
+	data                []byte
+}
+
+// Query calls a method on a canister and unmarshals the result into the given values.
+func (q Query) Query(values ...any) error {
+	q.a.logger.Printf("[AGENT] QUERY %s %s", q.effectiveCanisterID, q.methodName)
+	resp, err := q.a.query(q.effectiveCanisterID, q.data)
+	if err != nil {
+		return err
+	}
+	var raw []byte
+	switch resp.Status {
+	case "replied":
+		raw = resp.Reply["arg"]
+	case "rejected":
+		return fmt.Errorf("(%d) %s", resp.RejectCode, resp.RejectMsg)
+	default:
+		panic("unreachable")
+	}
+	return idl.Unmarshal(raw, values)
 }

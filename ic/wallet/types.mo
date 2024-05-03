@@ -16,6 +16,7 @@ module T {
     public type WalletResultCreate = { #Ok : { canister_id : Principal }; #Err : Text };
     public type WalletResult = { #Ok : (); #Err : Text };
     public type WalletResultCall = { #Ok : { return : Blob }; #Err : Text };
+    public type WalletResultCallWithMaxCycles = { #Ok : { return : Blob; attached_cycles : Nat }; #Err : Text };
     public type CanisterSettings = { controller : ?Principal; controllers : ?[Principal]; compute_allocation : ?Nat; memory_allocation : ?Nat; freezing_threshold : ?Nat };
     public type CreateCanisterArgs = { cycles : Nat64; settings : T.CanisterSettings };
     public type CreateCanisterArgs128 = { cycles : Nat; settings : T.CanisterSettings };

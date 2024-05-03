@@ -410,6 +410,24 @@ func (a Agent) WalletCall128(arg0 struct {
 	return &r0, nil
 }
 
+// WalletCallWithMaxCycles calls the "wallet_call_with_max_cycles" method on the "wallet" canister.
+func (a Agent) WalletCallWithMaxCycles(arg0 struct {
+	Canister   principal.Principal `ic:"canister" json:"canister"`
+	MethodName string              `ic:"method_name" json:"method_name"`
+	Args       []byte              `ic:"args" json:"args"`
+}) (*WalletResultCallWithMaxCycles, error) {
+	var r0 WalletResultCallWithMaxCycles
+	if err := a.a.Call(
+		a.canisterId,
+		"wallet_call_with_max_cycles",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 // WalletCreateCanister calls the "wallet_create_canister" method on the "wallet" canister.
 func (a Agent) WalletCreateCanister(arg0 CreateCanisterArgs) (*WalletResultCreate, error) {
 	var r0 WalletResultCreate
@@ -729,6 +747,14 @@ type WalletResult struct {
 type WalletResultCall struct {
 	Ok *struct {
 		Return []byte `ic:"return" json:"return"`
+	} `ic:"Ok,variant"`
+	Err *string `ic:"Err,variant"`
+}
+
+type WalletResultCallWithMaxCycles struct {
+	Ok *struct {
+		Return         []byte  `ic:"return" json:"return"`
+		AttachedCycles idl.Nat `ic:"attached_cycles" json:"attached_cycles"`
 	} `ic:"Ok,variant"`
 	Err *string `ic:"Err,variant"`
 }

@@ -11,6 +11,7 @@ test-cover:
 	go tool cover -html=coverage.out
 
 gen:
+	cd pocketic && go generate
 	cd candid && go generate
 
 gen-ic:

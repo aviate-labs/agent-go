@@ -18,6 +18,10 @@ func checkResponse(resp *http.Response, statusCode int, v any) error {
 	if resp.StatusCode != statusCode {
 		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
+	if v == nil {
+		// No need to decode the response body.
+		return nil
+	}
 	return json.NewDecoder(resp.Body).Decode(v)
 }
 
@@ -44,6 +48,7 @@ func (pic PocketIC) AwaitCall(messageID RawMessageID) ([]byte, error) {
 	if err := pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/update/await_ingress_message", pic.instanceURL()),
+		http.StatusOK,
 		messageID,
 		&resp,
 	); err != nil {
@@ -95,6 +100,7 @@ func (pic PocketIC) SubmitCallWithEP(
 	if err := pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/update/submit_ingress_message", pic.instanceURL()),
+		http.StatusOK,
 		RawCanisterCall{
 			CanisterID:         canisterID.Raw,
 			EffectivePrincipal: effectivePrincipal,
@@ -123,6 +129,7 @@ func (pic PocketIC) canisterCall(endpoint string, canisterID principal.Principal
 	if err := pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/%s", pic.instanceURL(), endpoint),
+		http.StatusOK,
 		RawCanisterCall{
 			CanisterID:         canisterID.Raw,
 			EffectivePrincipal: effectivePrincipal,
@@ -143,7 +150,7 @@ func (pic PocketIC) canisterCall(endpoint string, canisterID principal.Principal
 	return resp.Ok.Reply, nil
 }
 
-func (pic PocketIC) do(method, url string, input, output any) error {
+func (pic PocketIC) do(method, url string, statusCode int, input, output any) error {
 	pic.logger.Printf("[POCKETIC] %s %s %+v", method, url, input)
 	req, err := newRequest(method, url, input)
 	if err != nil {
@@ -153,7 +160,7 @@ func (pic PocketIC) do(method, url string, input, output any) error {
 	if err != nil {
 		return err
 	}
-	return checkResponse(resp, http.StatusOK, output)
+	return checkResponse(resp, statusCode, output)
 }
 
 // updateCallWithEP calls SubmitCallWithEP and AwaitCall in sequence.

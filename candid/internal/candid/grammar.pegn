@@ -31,7 +31,7 @@ ConsType   <- Blob
 Blob      <-- 'blob'
 Opt       <-- 'opt' Sp DataType
 Vec       <-- 'vec' Sp DataType
-Record    <-- 'record' Sp '{' Ws Fields? Ws '}'
+Record    <-- 'record' Sp? '{' Ws Fields? Ws '}'
 Variant   <-- 'variant' Sp '{' Ws Fields? Ws '}'
 Fields     <- FieldType (';' Ws FieldType)* ';'?
 
