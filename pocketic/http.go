@@ -99,7 +99,7 @@ func (pic PocketIC) MakeLive(port *int) (string, error) {
 	var resp CreateHttpGatewayResponse
 	if err := pic.do(
 		http.MethodPost,
-		fmt.Sprintf("http://127.0.0.1:%d/http_gateway", pic.server.port),
+		fmt.Sprintf("%s/http_gateway", pic.server.URL()),
 		http.StatusCreated,
 		HttpGatewayConfig{
 			ListenAt: port,

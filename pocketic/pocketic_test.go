@@ -16,17 +16,11 @@ import (
 	"testing"
 )
 
-func TestPocketIC_CreateCanister(t *testing.T) {
+func CreateCanister(t *testing.T) *pocketic.PocketIC {
 	pic, err := pocketic.New(pocketic.WithLogger(new(testLogger)))
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		err := pic.Close()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
 
 	canisterID, err := pic.CreateCanister()
 	if err != nil {
@@ -35,9 +29,11 @@ func TestPocketIC_CreateCanister(t *testing.T) {
 	if _, err := pic.AddCycles(*canisterID, 2_000_000_000_000); err != nil {
 		t.Fatal(err)
 	}
+
+	return pic
 }
 
-func TestPocketIC_MakeLive(t *testing.T) {
+func MakeLive(t *testing.T) *pocketic.PocketIC {
 	pic, err := pocketic.New(
 		pocketic.WithLogger(new(testLogger)),
 		pocketic.WithNNSSubnet(),
@@ -46,12 +42,6 @@ func TestPocketIC_MakeLive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		err := pic.Close()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}()
 
 	endpoint, err := pic.MakeLive(nil)
 	if err != nil {
@@ -101,6 +91,23 @@ func TestPocketIC_MakeLive(t *testing.T) {
 		WasmModule: wasmModule,
 	}); err != nil {
 		t.Fatal(err)
+	}
+
+	return pic
+}
+
+func TestPocketIC(t *testing.T) {
+	var instances []*pocketic.PocketIC
+	t.Run("CreateCanister", func(t *testing.T) {
+		instances = append(instances, CreateCanister(t))
+	})
+	t.Run("MakeLive", func(t *testing.T) {
+		instances = append(instances, MakeLive(t))
+	})
+	for _, i := range instances {
+		if err := i.Close(); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 

@@ -48,19 +48,23 @@ func newServer(opts ...serverOption) (*server, error) {
 		return nil, fmt.Errorf("unsupported pocket-ic version, must be v3.x: %s", version)
 	}
 
-	pid := os.Getpid()
+	pid := os.Getppid()
 	cmdArgs := []string{"--pid", strconv.Itoa(pid)}
 	if config.ttl != nil {
 		cmdArgs = append(cmdArgs, "--ttl", strconv.Itoa(*config.ttl))
 	}
 	cmd := exec.Command(binPath, cmdArgs...)
+	if os.Getenv("POCKET_IC_MUTE_SERVER") == "" {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("failed to start pocket-ic: %v", err)
 	}
 
 	tmpDir := os.TempDir()
 	readyFile := path.Join(tmpDir, fmt.Sprintf("pocket_ic_%d.ready", pid))
-	stopAt := time.Now().Add(10 * time.Second)
+	stopAt := time.Now().Add(5 * time.Second)
 	for _, err := os.Stat(readyFile); os.IsNotExist(err); _, err = os.Stat(readyFile) {
 		time.Sleep(100 * time.Millisecond)
 		if time.Now().After(stopAt) {
