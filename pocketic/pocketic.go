@@ -244,6 +244,16 @@ func (pic *PocketIC) Close() error {
 	return pic.server.Close()
 }
 
+func (pic PocketIC) Status() error {
+	return pic.do(
+		http.MethodGet,
+		fmt.Sprintf("%s/status", pic.server.URL()),
+		http.StatusOK,
+		nil,
+		nil,
+	)
+}
+
 // Topology returns the topology of the PocketIC instance.
 func (pic PocketIC) Topology() map[string]Topology {
 	return pic.topology

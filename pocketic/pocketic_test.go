@@ -33,7 +33,7 @@ func CreateCanister(t *testing.T) *pocketic.PocketIC {
 	return pic
 }
 
-func MakeLive(t *testing.T) *pocketic.PocketIC {
+func HttpGateway(t *testing.T) *pocketic.PocketIC {
 	pic, err := pocketic.New(
 		pocketic.WithLogger(new(testLogger)),
 		pocketic.WithNNSSubnet(),
@@ -52,11 +52,12 @@ func MakeLive(t *testing.T) *pocketic.PocketIC {
 		t.Fatal(err)
 	}
 
-	mgmtAgent, err := ic0.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.Config{
+	agentConfig := agent.Config{
 		ClientConfig: &agent.ClientConfig{Host: host},
 		FetchRootKey: true,
 		Logger:       new(testLogger),
-	})
+	}
+	mgmtAgent, err := ic0.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agentConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -93,6 +94,22 @@ func MakeLive(t *testing.T) *pocketic.PocketIC {
 		t.Fatal(err)
 	}
 
+	helloAgent, err := NewAgent(result.CanisterId, agentConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err := helloAgent.HelloUpdate("world")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if *resp != "Hello, world!" {
+		t.Fatalf("unexpected response: %s", *resp)
+	}
+
+	if err := pic.MakeDeterministic(); err != nil {
+		t.Fatal(err)
+	}
+
 	return pic
 }
 
@@ -101,8 +118,8 @@ func TestPocketIC(t *testing.T) {
 	t.Run("CreateCanister", func(t *testing.T) {
 		instances = append(instances, CreateCanister(t))
 	})
-	t.Run("MakeLive", func(t *testing.T) {
-		instances = append(instances, MakeLive(t))
+	t.Run("HttpGateway", func(t *testing.T) {
+		instances = append(instances, HttpGateway(t))
 	})
 	for _, i := range instances {
 		if err := i.Close(); err != nil {

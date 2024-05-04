@@ -1,47 +1,45 @@
 # PocketIC Golang: A Canister Testing Library
 
-The client is currently implemented for an unreleased version of the PocketIC server.
+The client requires at least version 4 of the PocketIC server.
 The client is not yet stable and is subject to change.
-
-You can download the server [here](https://download.dfinity.systems/ic/136a026d67139ecddbc48db3050e488a3c29bb74/binaries/x86_64-linux/pocket-ic.gz).
-
-```go
-package actor_test
-
-import (
-	"os"
-	"testing"
-
-	"github.com/aviate-labs/agent-go/pocketic"
-)
-
-func TestActor(t *testing.T) {
-	pic, err := pocketic.New(pocketic.DefaultSubnetConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	wasmModule, err := os.ReadFile("actor.wasm")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cID, err := pic.CreateAndInstallCanister(wasmModule, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Call the actor, it has native support for the idl types of the agent-go library.
-	var greeting string
-	if err := pic.QueryCall(*cID, "hello", nil, []any{&greeting}); err != nil {
-		t.Fatal(err)
-	}
-	_ = greeting
-}
-
-```
 
 ## References
 
 - [PocketIC](https://github.com/dfinity/pocketic)
 - [PocketIC Server](https://github.com/dfinity/ic/tree/master/rs/pocket_ic_server)
+
+## List of Supported Endpoints
+
+| Supported | Method | Endpoint                                          |
+|-----------|--------|---------------------------------------------------|
+| ✅         | GET    | /status                                           |
+| ✅         | POST   | /blobstore                                        |
+| ✅         | GET    | /blobstore/{id}                                   |
+| ❌         | POST   | /verify_signature                                 |
+| ❌         | GET    | /read_graph/{state_label}/{op_id}                 |
+| ❌         | GET    | /instances/                                       |
+| ❌         | POST   | /instances/                                       |
+| ❌         | DELETE | /instances/{id}                                   |
+| ✅         | POST   | /instances/{id}/read/query                        |
+| ❌         | GET    | /instances/{id}/read/get_time                     |
+| ❌         | POST   | /instances/{id}/read/get_cycles                   |
+| ❌         | POST   | /instances/{id}/read/get_stable_memory            |
+| ❌         | POST   | /instances/{id}/read/get_subnet                   |
+| ❌         | POST   | /instances/{id}/read/pub_key                      |
+| ✅         | POST   | /instances/{id}/update/submit_ingress_message     |
+| ✅         | POST   | /instances/{id}/update/await_ingress_message      |
+| ❌         | POST   | /instances/{id}/update/execute_ingress_message    |
+| ✅         | POST   | /instances/{id}/update/set_time                   |
+| ✅         | POST   | /instances/{id}/update/add_cycles                 |
+| ❌         | POST   | /instances/{id}/update/set_stable_memory          |
+| ❌         | POST   | /instances/{id}/update/tick                       |
+| ❌         | GET    | /instances/{id}/api/v2/status                     |
+| ❌         | POST   | /instances/{id}/api/v2/canister/{ecid}/call       |
+| ❌         | POST   | /instances/{id}/api/v2/canister/{ecid}/query      |
+| ❌         | POST   | /instances/{id}/api/v2/canister/{ecid}/read_state |
+| ✅         | POST   | /instances/{id}/auto_progress                     |
+| ✅         | POST   | /instances/{id}/stop_progress                     |
+| ✅         | POST   | /http_gateway/                                    |
+| ✅         | POST   | /http_gateway/{id}/stop                           |
+
+

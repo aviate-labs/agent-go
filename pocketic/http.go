@@ -85,6 +85,15 @@ func (pic PocketIC) AutoProgress() error {
 	)
 }
 
+// MakeDeterministic makes the IC instance deterministic by stopping automatic progress (time updates and round
+// executions) on the IC instance and stops the HTTP gateway for this IC instance.
+func (pic PocketIC) MakeDeterministic() error {
+	if err := pic.stopHttpGateway(); err != nil {
+		return err
+	}
+	return pic.StopProgress()
+}
+
 // MakeLive creates an HTTP gateway for this IC instance listening on an optionally specified port and configures the IC
 // instance to make progress automatically, i.e., periodically update the time of the IC to the real time and execute
 // rounds on the subnets. Returns the URL at which `/api/v2` requests for this instance can be made.
@@ -128,4 +137,31 @@ func (pic PocketIC) SetTime(time time.Time) error {
 		},
 		nil,
 	)
+}
+
+// StopProgress stops automatic progress (see `auto_progress`) on the IC.
+func (pic PocketIC) StopProgress() error {
+	return pic.do(
+		http.MethodPost,
+		fmt.Sprintf("%s/stop_progress", pic.instanceURL()),
+		http.StatusOK,
+		nil,
+		nil,
+	)
+}
+
+func (pic *PocketIC) stopHttpGateway() error {
+	if pic.httpGateway != nil {
+		if err := pic.do(
+			http.MethodPost,
+			fmt.Sprintf("%s/http_gateway/%d/stop", pic.server.URL(), pic.httpGateway.InstanceID),
+			http.StatusOK,
+			nil,
+			nil,
+		); err != nil {
+			return err
+		}
+		pic.httpGateway = nil
+	}
+	return nil
 }

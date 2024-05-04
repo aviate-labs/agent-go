@@ -10,6 +10,7 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
+// AddCycles add cycles to a canister. Returns the new balance.
 func (pic PocketIC) AddCycles(canisterID principal.Principal, amount int) (int, error) {
 	var resp struct {
 		Cycles int `json:"cycles"`
