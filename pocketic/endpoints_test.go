@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestEndpoints(t *testing.T) {
+func Endpoints(t *testing.T) *pocketic.PocketIC {
 	pic, err := pocketic.New(
 		pocketic.WithLogger(new(testLogger)),
 		pocketic.WithNNSSubnet(),
@@ -14,11 +14,6 @@ func TestEndpoints(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer func() {
-		if err := pic.Close(); err != nil {
-			t.Fatal(err)
-		}
-	}()
 
 	t.Run("status", func(t *testing.T) {
 		if err := pic.Status(); err != nil {
@@ -38,4 +33,6 @@ func TestEndpoints(t *testing.T) {
 			t.Fatalf("unexpected blob size: %d", len(bytes))
 		}
 	})
+
+	return pic
 }

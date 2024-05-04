@@ -121,6 +121,9 @@ func TestPocketIC(t *testing.T) {
 	t.Run("HttpGateway", func(t *testing.T) {
 		instances = append(instances, HttpGateway(t))
 	})
+	t.Run("Endpoints", func(t *testing.T) {
+		instances = append(instances, Endpoints(t))
+	})
 	for _, i := range instances {
 		if err := i.Close(); err != nil {
 			t.Fatal(err)
