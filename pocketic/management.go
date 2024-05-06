@@ -18,7 +18,7 @@ func (pic PocketIC) AddCycles(canisterID principal.Principal, amount int) (int, 
 	if err := pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/update/add_cycles", pic.InstanceURL()),
-		RawAddCycles{
+		rawAddCycles{
 			Amount:     amount,
 			CanisterID: canisterID.Raw,
 		},
@@ -29,6 +29,14 @@ func (pic PocketIC) AddCycles(canisterID principal.Principal, amount int) (int, 
 	return resp.Cycles, nil
 }
 
+func (pic PocketIC) CreateAndInstallCode(wasmModule []byte, arg []byte, optSender *principal.Principal) (*principal.Principal, error) {
+	canisterID, err := pic.CreateCanister()
+	if err != nil {
+		return nil, err
+	}
+	return canisterID, pic.InstallCode(*canisterID, wasmModule, arg, optSender)
+}
+
 // CreateCanister creates a canister with default settings as the anonymous principal.
 func (pic PocketIC) CreateCanister() (*principal.Principal, error) {
 	return pic.CreateCanisterWithArgs(ProvisionalCreateCanisterArgument{})
@@ -36,17 +44,17 @@ func (pic PocketIC) CreateCanister() (*principal.Principal, error) {
 
 // CreateCanisterOnSubnet creates a canister on the specified subnet with the specified settings.
 func (pic PocketIC) CreateCanisterOnSubnet(subnetID principal.Principal, args ProvisionalCreateCanisterArgument) (*principal.Principal, error) {
-	return pic.createCanister(&RawEffectivePrincipalSubnetID{SubnetID: subnetID.Raw}, args)
+	return pic.createCanister(&EffectivePrincipalSubnetID{SubnetID: subnetID.Raw}, args)
 }
 
 // CreateCanisterWithArgs creates a canister with the specified settings and cycles.
 func (pic PocketIC) CreateCanisterWithArgs(args ProvisionalCreateCanisterArgument) (*principal.Principal, error) {
-	return pic.createCanister(new(RawEffectivePrincipalNone), args)
+	return pic.createCanister(new(EffectivePrincipalNone), args)
 }
 
 // CreateCanisterWithID creates a canister with the specified canister ID and settings.
 func (pic PocketIC) CreateCanisterWithID(canisterID principal.Principal, args ProvisionalCreateCanisterArgument) (*principal.Principal, error) {
-	return pic.createCanister(&RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw}, args)
+	return pic.createCanister(&EffectivePrincipalCanisterID{CanisterID: canisterID.Raw}, args)
 }
 
 // InstallCode installs a canister with the specified wasm module and arguments.
@@ -68,7 +76,7 @@ func (pic PocketIC) InstallCode(canisterID principal.Principal, wasmModule []byt
 	}
 	_, err = pic.updateCallWithEP(
 		ic.MANAGEMENT_CANISTER_PRINCIPAL,
-		&RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw},
+		&EffectivePrincipalCanisterID{CanisterID: canisterID.Raw},
 		sender,
 		"install_code",
 		payload,
@@ -90,7 +98,7 @@ func (pic PocketIC) UninstallCode(canisterID principal.Principal, optSender *pri
 	}
 	_, err = pic.updateCallWithEP(
 		ic.MANAGEMENT_CANISTER_PRINCIPAL,
-		&RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw},
+		&EffectivePrincipalCanisterID{CanisterID: canisterID.Raw},
 		sender,
 		"uninstall_code",
 		payload,
@@ -98,7 +106,7 @@ func (pic PocketIC) UninstallCode(canisterID principal.Principal, optSender *pri
 	return err
 }
 
-func (pic PocketIC) createCanister(effectivePrincipal RawEffectivePrincipal, args ProvisionalCreateCanisterArgument) (*principal.Principal, error) {
+func (pic PocketIC) createCanister(effectivePrincipal EffectivePrincipal, args ProvisionalCreateCanisterArgument) (*principal.Principal, error) {
 	payload, err := idl.Marshal([]any{args})
 	if err != nil {
 		return nil, err

@@ -35,8 +35,8 @@ func newRequest(method, url string, body any) (*http.Request, error) {
 }
 
 // AwaitCall awaits an update call submitted previously by `submit_call_with_effective_principal`.
-func (pic PocketIC) AwaitCall(messageID RawMessageID) ([]byte, error) {
-	var resp Result[WASMResult[[]byte]]
+func (pic PocketIC) AwaitCall(messageID MessageID) ([]byte, error) {
+	var resp result[wasmResult[[]byte]]
 	if err := pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/update/await_ingress_message", pic.InstanceURL()),
@@ -57,16 +57,16 @@ func (pic PocketIC) AwaitCall(messageID RawMessageID) ([]byte, error) {
 // ExecuteCall executes an update call on a canister.
 func (pic PocketIC) ExecuteCall(
 	canisterID principal.Principal,
-	effectivePrincipal RawEffectivePrincipal,
+	effectivePrincipal EffectivePrincipal,
 	sender principal.Principal,
 	method string,
 	payload []byte,
 ) ([]byte, error) {
-	var resp RawCanisterResult
+	var resp rawCanisterResult
 	if err := pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/update/execute_ingress_message", pic.InstanceURL()),
-		RawCanisterCall{
+		rawCanisterCall{
 			CanisterID:         canisterID.Raw,
 			EffectivePrincipal: effectivePrincipal,
 			Method:             method,
@@ -92,11 +92,11 @@ func (pic PocketIC) QueryCall(canisterID principal.Principal, sender principal.P
 	if err != nil {
 		return err
 	}
-	raw, err := pic.canisterCall("read/query", canisterID, new(RawEffectivePrincipalNone), sender, method, payload)
+	raw, err := pic.canisterCall("read/query", canisterID, new(EffectivePrincipalNone), sender, method, payload)
 	if err != nil {
 		return err
 	}
-	if err := idl.Unmarshal(*raw, ret); err != nil {
+	if err := idl.Unmarshal(raw, ret); err != nil {
 		return err
 	}
 	return nil
@@ -108,10 +108,10 @@ func (pic PocketIC) SubmitCall(
 	sender principal.Principal,
 	method string,
 	payload []byte,
-) (*RawMessageID, error) {
+) (*MessageID, error) {
 	return pic.SubmitCallWithEP(
 		canisterID,
-		new(RawEffectivePrincipalNone),
+		new(EffectivePrincipalNone),
 		sender,
 		method,
 		payload,
@@ -121,16 +121,16 @@ func (pic PocketIC) SubmitCall(
 // SubmitCallWithEP submits an update call with a provided effective principal (without executing it immediately).
 func (pic PocketIC) SubmitCallWithEP(
 	canisterID principal.Principal,
-	effectivePrincipal RawEffectivePrincipal,
+	effectivePrincipal EffectivePrincipal,
 	sender principal.Principal,
 	method string,
 	payload []byte,
-) (*RawMessageID, error) {
-	var resp RawSubmitIngressResult
+) (*MessageID, error) {
+	var resp rawSubmitIngressResult
 	if err := pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/update/submit_ingress_message", pic.InstanceURL()),
-		RawCanisterCall{
+		rawCanisterCall{
 			CanisterID:         canisterID.Raw,
 			EffectivePrincipal: effectivePrincipal,
 			Method:             method,
@@ -153,7 +153,7 @@ func (pic PocketIC) UpdateCall(canisterID principal.Principal, sender principal.
 	if err != nil {
 		return err
 	}
-	raw, err := pic.updateCallWithEP(canisterID, &RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw}, sender, method, payload)
+	raw, err := pic.updateCallWithEP(canisterID, &EffectivePrincipalCanisterID{CanisterID: canisterID.Raw}, sender, method, payload)
 	if err != nil {
 		return err
 	}
@@ -161,12 +161,12 @@ func (pic PocketIC) UpdateCall(canisterID principal.Principal, sender principal.
 }
 
 // canisterCall calls the canister endpoint with the provided arguments.
-func (pic PocketIC) canisterCall(endpoint string, canisterID principal.Principal, effectivePrincipal RawEffectivePrincipal, sender principal.Principal, method string, payload []byte) (*Base64EncodedBlob, error) {
-	var resp RawCanisterResult
+func (pic PocketIC) canisterCall(endpoint string, canisterID principal.Principal, effectivePrincipal EffectivePrincipal, sender principal.Principal, method string, payload []byte) ([]byte, error) {
+	var resp rawCanisterResult
 	if err := pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/%s", pic.InstanceURL(), endpoint),
-		RawCanisterCall{
+		rawCanisterCall{
 			CanisterID:         canisterID.Raw,
 			EffectivePrincipal: effectivePrincipal,
 			Method:             method,
@@ -183,11 +183,11 @@ func (pic PocketIC) canisterCall(endpoint string, canisterID principal.Principal
 	if resp.Ok.Reject != nil {
 		return nil, resp.Ok.Reject
 	}
-	return resp.Ok.Reply, nil
+	return *resp.Ok.Reply, nil
 }
 
 // updateCallWithEP calls SubmitCallWithEP and AwaitCall in sequence.
-func (pic PocketIC) updateCallWithEP(canisterID principal.Principal, effectivePrincipal RawEffectivePrincipal, sender principal.Principal, method string, payload []byte) ([]byte, error) {
+func (pic PocketIC) updateCallWithEP(canisterID principal.Principal, effectivePrincipal EffectivePrincipal, sender principal.Principal, method string, payload []byte) ([]byte, error) {
 	messageID, err := pic.SubmitCallWithEP(canisterID, effectivePrincipal, sender, method, payload)
 	if err != nil {
 		return nil, err

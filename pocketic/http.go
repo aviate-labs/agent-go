@@ -136,7 +136,7 @@ func (pic PocketIC) SetTime(time time.Time) error {
 	return pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/update/set_time", pic.InstanceURL()),
-		RawTime{
+		rawTime{
 			NanosSinceEpoch: time.UnixNano(),
 		},
 		nil,

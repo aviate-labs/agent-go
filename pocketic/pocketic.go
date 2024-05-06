@@ -32,8 +32,8 @@ type CanisterIDRange struct {
 
 func (c CanisterIDRange) MarshalJSON() ([]byte, error) {
 	return json.Marshal(canisterIDRange{
-		Start: canisterID{CanisterID: base64.StdEncoding.EncodeToString(c.Start.Raw)},
-		End:   canisterID{CanisterID: base64.StdEncoding.EncodeToString(c.End.Raw)},
+		Start: rawCanisterID{CanisterID: base64.StdEncoding.EncodeToString(c.Start.Raw)},
+		End:   rawCanisterID{CanisterID: base64.StdEncoding.EncodeToString(c.End.Raw)},
 	})
 }
 
@@ -227,7 +227,7 @@ func New(opts ...Option) (*PocketIC, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create instance: %v", err)
 	}
-	var respBody CreateResponse[InstanceConfig]
+	var respBody createResponse[InstanceConfig]
 	if respBody.Error != nil {
 		return nil, respBody.Error
 	}
@@ -271,7 +271,7 @@ func (pic PocketIC) Topology() map[string]Topology {
 }
 
 // VerifySignature verifies a signature.
-func (pic PocketIC) VerifySignature(sig RawVerifyCanisterSigArg) error {
+func (pic PocketIC) VerifySignature(sig VerifyCanisterSigArg) error {
 	return pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/verify_signature", pic.server.URL()),
@@ -370,7 +370,7 @@ type SubnetStateConfig interface {
 // accessible to the server process.
 type SubnetStateConfigFromPath struct {
 	Path     string
-	SubnetID RawSubnetID
+	SubnetID SubnetID
 }
 
 func (c SubnetStateConfigFromPath) MarshalJSON() ([]byte, error) {
@@ -419,11 +419,11 @@ type Topology struct {
 	CanisterRanges []CanisterIDRange `json:"canister_ranges"`
 }
 
-type canisterID struct {
+type rawCanisterID struct {
 	CanisterID string `json:"canister_id"`
 }
 
 type canisterIDRange struct {
-	Start canisterID `json:"start"`
-	End   canisterID `json:"end"`
+	Start rawCanisterID `json:"start"`
+	End   rawCanisterID `json:"end"`
 }

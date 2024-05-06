@@ -38,30 +38,25 @@ func (b *Base64EncodedBlob) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-type CreateResponse[T any] struct {
+type createResponse[T any] struct {
 	Created *T            `json:"Created"`
 	Error   *ErrorMessage `json:"Error"`
 }
 
-type InstanceConfig struct {
-	InstanceID int                 `json:"instance_id"`
-	Topology   map[string]Topology `json:"topology"`
-}
-
-type RawAddCycles struct {
+type rawAddCycles struct {
 	Amount     int               `json:"amount"`
 	CanisterID Base64EncodedBlob `json:"canister_id"`
 }
 
-type RawCanisterCall struct {
-	CanisterID         Base64EncodedBlob     `json:"canister_id"`
-	EffectivePrincipal RawEffectivePrincipal `json:"effective_principal"`
-	Method             string                `json:"method"`
-	Payload            Base64EncodedBlob     `json:"payload"`
-	Sender             Base64EncodedBlob     `json:"sender"`
+type rawCanisterCall struct {
+	CanisterID         Base64EncodedBlob  `json:"canister_id"`
+	EffectivePrincipal EffectivePrincipal `json:"effective_principal"`
+	Method             string             `json:"method"`
+	Payload            Base64EncodedBlob  `json:"payload"`
+	Sender             Base64EncodedBlob  `json:"sender"`
 }
 
-func (r *RawCanisterCall) UnmarshalJSON(bytes []byte) error {
+func (r *rawCanisterCall) UnmarshalJSON(bytes []byte) error {
 	var raw struct {
 		CanisterID         Base64EncodedBlob `json:"canister_id"`
 		EffectivePrincipal json.RawMessage   `json:"effective_principal"`
@@ -88,18 +83,18 @@ type RawCanisterID struct {
 	CanisterID Base64EncodedBlob `json:"canister_id"`
 }
 
-type RawCanisterResult Result[RawWasmResult]
+type rawCanisterResult result[rawWasmResult]
 
-type RawCycles struct {
+type rawCycles struct {
 	Cycles int `json:"cycles"`
 }
 
-type RawEffectivePrincipal interface {
+type EffectivePrincipal interface {
 	rawEffectivePrincipal()
 }
 
-func unmarshalRawEffectivePrincipal(bytes []byte) (RawEffectivePrincipal, error) {
-	var none RawEffectivePrincipalNone
+func unmarshalRawEffectivePrincipal(bytes []byte) (EffectivePrincipal, error) {
+	var none EffectivePrincipalNone
 	if err := json.Unmarshal(bytes, &none); err == nil {
 		return none, nil
 	}
@@ -108,45 +103,45 @@ func unmarshalRawEffectivePrincipal(bytes []byte) (RawEffectivePrincipal, error)
 		return nil, err
 	}
 	if canisterID, ok := m["CanisterId"]; ok {
-		return RawEffectivePrincipalCanisterID{CanisterID: canisterID}, nil
+		return EffectivePrincipalCanisterID{CanisterID: canisterID}, nil
 	}
 	if subnetID, ok := m["SubnetId"]; ok {
-		return RawEffectivePrincipalSubnetID{SubnetID: subnetID}, nil
+		return EffectivePrincipalSubnetID{SubnetID: subnetID}, nil
 	}
 	return nil, fmt.Errorf("unknown effective principal: %s", string(bytes))
 }
 
-type RawEffectivePrincipalCanisterID struct {
+type EffectivePrincipalCanisterID struct {
 	CanisterID Base64EncodedBlob `json:"CanisterId"`
 }
 
-func (RawEffectivePrincipalCanisterID) rawEffectivePrincipal() {}
+func (EffectivePrincipalCanisterID) rawEffectivePrincipal() {}
 
-type RawEffectivePrincipalNone struct{}
+type EffectivePrincipalNone struct{}
 
-func (n RawEffectivePrincipalNone) MarshalJSON() ([]byte, error) {
+func (n EffectivePrincipalNone) MarshalJSON() ([]byte, error) {
 	return json.Marshal(new(None))
 }
 
-func (n RawEffectivePrincipalNone) UnmarshalJSON(bytes []byte) error {
+func (n EffectivePrincipalNone) UnmarshalJSON(bytes []byte) error {
 	var none None
 	return json.Unmarshal(bytes, &none)
 }
 
-func (RawEffectivePrincipalNone) rawEffectivePrincipal() {}
+func (EffectivePrincipalNone) rawEffectivePrincipal() {}
 
-type RawEffectivePrincipalSubnetID struct {
+type EffectivePrincipalSubnetID struct {
 	SubnetID Base64EncodedBlob `json:"SubnetId"`
 }
 
-func (RawEffectivePrincipalSubnetID) rawEffectivePrincipal() {}
+func (EffectivePrincipalSubnetID) rawEffectivePrincipal() {}
 
-type RawMessageID struct {
-	EffectivePrincipal RawEffectivePrincipal `json:"effective_principal"`
-	MessageID          Base64EncodedBlob     `json:"message_id"`
+type MessageID struct {
+	EffectivePrincipal EffectivePrincipal `json:"effective_principal"`
+	MessageID          Base64EncodedBlob  `json:"message_id"`
 }
 
-func (r *RawMessageID) UnmarshalJSON(bytes []byte) error {
+func (r *MessageID) UnmarshalJSON(bytes []byte) error {
 	var raw struct {
 		EffectivePrincipal json.RawMessage   `json:"effective_principal"`
 		MessageID          Base64EncodedBlob `json:"message_id"`
@@ -163,33 +158,33 @@ func (r *RawMessageID) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-type RawSetStableMemory struct {
+type rawSetStableMemory struct {
 	BlobID     Base64EncodedBlob `json:"blob_id"`
 	CanisterID Base64EncodedBlob `json:"canister_id"`
 }
 
-type RawStableMemory struct {
+type rawStableMemory struct {
 	Blob Base64EncodedBlob `json:"blob"`
 }
 
-type RawSubmitIngressResult Result[RawMessageID]
+type rawSubmitIngressResult result[MessageID]
 
-type RawSubnetID struct {
+type SubnetID struct {
 	SubnetID Base64EncodedBlob `json:"subnet_id"`
 }
 
-type RawTime struct {
+type rawTime struct {
 	NanosSinceEpoch int64 `json:"nanos_since_epoch"`
 }
 
-type RawVerifyCanisterSigArg struct {
+type VerifyCanisterSigArg struct {
 	Message    Base64EncodedBlob `json:"msg"`
 	PublicKey  Base64EncodedBlob `json:"pubkey"`
 	RootPubKey Base64EncodedBlob `json:"root_pubkey"`
 	Signature  Base64EncodedBlob `json:"sig"`
 }
 
-type RawWasmResult WASMResult[Base64EncodedBlob]
+type rawWasmResult wasmResult[Base64EncodedBlob]
 
 type Reject string
 
@@ -197,7 +192,7 @@ func (r Reject) Error() string {
 	return string(r)
 }
 
-type Result[R any] struct {
+type result[R any] struct {
 	Ok  *R         `json:"Ok,omitempty"`
 	Err *UserError `json:"Err,omitempty"`
 }
@@ -211,8 +206,8 @@ func (e UserError) Error() string {
 	return fmt.Sprintf("(%s) %s", e.Code, e.Description)
 }
 
-// WASMResult describes the different types that executing a WASM function in a canister can produce.
-type WASMResult[Blob any] struct {
+// wasmResult describes the different types that executing a WASM function in a canister can produce.
+type wasmResult[Blob any] struct {
 	// Raw response, returned in a successful case.
 	Reply *Blob `json:"reply,omitempty"`
 	// Returned with an error message when the canister decides to reject the message.
