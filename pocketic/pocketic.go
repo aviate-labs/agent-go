@@ -215,13 +215,7 @@ func New(opts ...Option) (*PocketIC, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create instance: %v", err)
 	}
-	var respBody struct {
-		Created *struct {
-			InstanceID int                 `json:"instance_id"`
-			Topology   map[string]Topology `json:"topology"`
-		} `json:"Created,omitempty"`
-		Error *ErrorMessage `json:"Error,omitempty"`
-	}
+	var respBody CreateResponse[InstanceConfig]
 	if respBody.Error != nil {
 		return nil, respBody.Error
 	}
@@ -244,6 +238,7 @@ func (pic *PocketIC) Close() error {
 	return pic.server.Close()
 }
 
+// Status pings the PocketIC instance.
 func (pic PocketIC) Status() error {
 	return pic.do(
 		http.MethodGet,
@@ -259,34 +254,19 @@ func (pic PocketIC) Topology() map[string]Topology {
 	return pic.topology
 }
 
+func (pic PocketIC) VerifySignature(sig RawVerifyCanisterSigArg) error {
+	return pic.do(
+		http.MethodPost,
+		fmt.Sprintf("%s/verify_signature", pic.server.URL()),
+		http.StatusOK,
+		sig,
+		nil,
+	)
+}
+
 // instanceURL returns the URL of the PocketIC instance.
 func (pic PocketIC) instanceURL() string {
 	return fmt.Sprintf("%s/instances/%d", pic.server.URL(), pic.InstanceID)
-}
-
-type RawSubnetID struct {
-	SubnetID string `json:"subnet_id"`
-}
-
-func (r RawSubnetID) MarshalJSON() ([]byte, error) {
-	return json.Marshal(map[string]interface{}{
-		"subnet-id": base64.StdEncoding.EncodeToString([]byte(r.SubnetID)),
-	})
-}
-
-func (r *RawSubnetID) UnmarshalJSON(bytes []byte) error {
-	var rawSubnetID struct {
-		SubnetID string `json:"subnet_id-id"`
-	}
-	if err := json.Unmarshal(bytes, &rawSubnetID); err != nil {
-		return err
-	}
-	subnetID, err := base64.StdEncoding.DecodeString(rawSubnetID.SubnetID)
-	if err != nil {
-		return err
-	}
-	r.SubnetID = string(subnetID)
-	return nil
 }
 
 type SubnetConfigSet struct {

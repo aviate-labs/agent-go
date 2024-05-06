@@ -23,7 +23,7 @@ func (pic PocketIC) GetBlob(blobID []byte) ([]byte, error) {
 }
 
 // UploadBlob uploads and stores a binary blob to the PocketIC server.
-func (pic PocketIC) UploadBlob(bytes []byte) ([]byte, error) {
+func (pic PocketIC) UploadBlob(bytes []byte, gzipCompression bool) ([]byte, error) {
 	method := http.MethodPost
 	url := fmt.Sprintf("%s/blobstore", pic.server.URL())
 	pic.logger.Printf("[POCKETIC] %s %s %+v", method, url, bytes)
@@ -32,6 +32,9 @@ func (pic PocketIC) UploadBlob(bytes []byte) ([]byte, error) {
 		return nil, err
 	}
 	req.Header.Set("content-type", "application/octet-stream")
+	if gzipCompression {
+		req.Header.Set("content-encoding", "gzip")
+	}
 	resp, err := pic.client.Do(req)
 	if err != nil {
 		return nil, err

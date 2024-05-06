@@ -79,11 +79,7 @@ func HttpGateway(t *testing.T) *pocketic.PocketIC {
 		t.Fatal(err)
 	}
 
-	compileMotoko(t, "testdata/main.mo", "testdata/main.wasm")
-	wasmModule, err := os.ReadFile("testdata/main.wasm")
-	if err != nil {
-		t.Fatal(err)
-	}
+	wasmModule := compileMotoko(t, "testdata/main.mo", "testdata/main.wasm")
 	if err := mgmtAgent.InstallCode(ic0.InstallCodeArgs{
 		Mode: ic0.CanisterInstallMode{
 			Install: new(idl.Null),
@@ -131,7 +127,7 @@ func TestPocketIC(t *testing.T) {
 	}
 }
 
-func compileMotoko(t *testing.T, in, out string) {
+func compileMotoko(t *testing.T, in, out string) []byte {
 	dfxPath, err := exec.LookPath("dfx")
 	if err != nil {
 		t.Skipf("dfx not found: %v", err)
@@ -146,6 +142,11 @@ func compileMotoko(t *testing.T, in, out string) {
 	if err := cmd.Run(); err != nil {
 		t.Fatal(err)
 	}
+	wasmModule, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return wasmModule
 }
 
 type testLogger struct{}
