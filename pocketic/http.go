@@ -79,7 +79,6 @@ func (pic PocketIC) AutoProgress() error {
 	return pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/auto_progress", pic.instanceURL()),
-		http.StatusOK,
 		nil,
 		nil,
 	)
@@ -105,25 +104,31 @@ func (pic PocketIC) MakeLive(port *int) (string, error) {
 	if pic.httpGateway != nil {
 		return fmt.Sprintf("http://127.0.0.1:%d", pic.httpGateway.Port), nil
 	}
-	var resp CreateHttpGatewayResponse
-	if err := pic.do(
+	req, err := newRequest(
 		http.MethodPost,
 		fmt.Sprintf("%s/http_gateway", pic.server.URL()),
-		http.StatusCreated,
 		HttpGatewayConfig{
 			ListenAt: port,
 			ForwardTo: HttpGatewayBackendPocketICInstance{
 				PocketIcInstance: pic.InstanceID,
 			},
 		},
-		&resp,
-	); err != nil {
+	)
+	if err != nil {
 		return "", err
 	}
-	if resp.Error != nil {
-		return "", resp.Error
+	resp, err := pic.client.Do(req)
+	if err != nil {
+		return "", err
 	}
-	return fmt.Sprintf("http://127.0.0.1:%d", resp.Created.Port), nil
+	var gatewayResp CreateHttpGatewayResponse
+	if err := json.NewDecoder(resp.Body).Decode(&gatewayResp); err != nil {
+		return "", err
+	}
+	if gatewayResp.Error != nil {
+		return "", gatewayResp.Error
+	}
+	return fmt.Sprintf("http://127.0.0.1:%d", gatewayResp.Created.Port), nil
 }
 
 // SetTime sets the current time of the IC, on all subnets.
@@ -131,7 +136,6 @@ func (pic PocketIC) SetTime(time time.Time) error {
 	return pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/update/set_time", pic.instanceURL()),
-		http.StatusOK,
 		RawTime{
 			NanosSinceEpoch: time.UnixNano(),
 		},
@@ -144,7 +148,6 @@ func (pic PocketIC) StopProgress() error {
 	return pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/stop_progress", pic.instanceURL()),
-		http.StatusOK,
 		nil,
 		nil,
 	)
@@ -155,7 +158,6 @@ func (pic *PocketIC) stopHttpGateway() error {
 		if err := pic.do(
 			http.MethodPost,
 			fmt.Sprintf("%s/http_gateway/%d/stop", pic.server.URL(), pic.httpGateway.InstanceID),
-			http.StatusOK,
 			nil,
 			nil,
 		); err != nil {

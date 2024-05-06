@@ -70,6 +70,10 @@ var root = cmd.NewCommandFork(
 					Name:     "packageName",
 					HasValue: true,
 				},
+				{
+					Name:     "indirect",
+					HasValue: false,
+				},
 			},
 			func(args []string, options map[string]string) error {
 				inputPath := args[0]
@@ -89,7 +93,8 @@ var root = cmd.NewCommandFork(
 					packageName = p
 				}
 
-				return writeDID(canisterName, packageName, path, rawDID)
+				_, indirect := options["indirect"]
+				return writeDID(canisterName, packageName, path, rawDID, indirect)
 			},
 		),
 		cmd.NewCommand(
@@ -104,6 +109,10 @@ var root = cmd.NewCommandFork(
 				{
 					Name:     "packageName",
 					HasValue: true,
+				},
+				{
+					Name:     "indirect",
+					HasValue: false,
 				},
 			},
 			func(args []string, options map[string]string) error {
@@ -128,7 +137,8 @@ var root = cmd.NewCommandFork(
 					packageName = p
 				}
 
-				return writeDID(canisterName, packageName, path, rawDID)
+				_, indirect := options["indirect"]
+				return writeDID(canisterName, packageName, path, rawDID, indirect)
 			},
 		),
 	),
@@ -156,10 +166,13 @@ func main() {
 	}
 }
 
-func writeDID(canisterName, packageName, outputPath string, rawDID []byte) error {
+func writeDID(canisterName, packageName, outputPath string, rawDID []byte, indirect bool) error {
 	g, err := gen.NewGenerator("", canisterName, packageName, rawDID)
 	if err != nil {
 		return err
+	}
+	if indirect {
+		g.Indirect()
 	}
 	raw, err := g.Generate()
 	if err != nil {

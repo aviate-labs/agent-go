@@ -40,6 +40,15 @@ func (a Agent) HelloQuery(arg0 string) (*string, error) {
 	return &r0, nil
 }
 
+// HelloQueryQuery creates an indirect representation of the "helloQuery" method on the "hello" canister.
+func (a Agent) HelloQueryQuery(arg0 string) (*agent.Query, error) {
+	return a.a.CreateQuery(
+		a.canisterId,
+		"helloQuery",
+		arg0,
+	)
+}
+
 // HelloUpdate calls the "helloUpdate" method on the "hello" canister.
 func (a Agent) HelloUpdate(arg0 string) (*string, error) {
 	var r0 string
@@ -52,4 +61,13 @@ func (a Agent) HelloUpdate(arg0 string) (*string, error) {
 		return nil, err
 	}
 	return &r0, nil
+}
+
+// HelloUpdateCall creates an indirect representation of the "helloUpdate" method on the "hello" canister.
+func (a Agent) HelloUpdateCall(arg0 string) (*agent.Call, error) {
+	return a.a.CreateCall(
+		a.canisterId,
+		"helloUpdate",
+		arg0,
+	)
 }

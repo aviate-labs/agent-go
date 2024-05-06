@@ -13,7 +13,6 @@ func (pic PocketIC) GetBlob(blobID []byte) ([]byte, error) {
 	if err := pic.do(
 		http.MethodGet,
 		fmt.Sprintf("%s/blobstore/%s", pic.server.URL(), hex.EncodeToString(blobID)),
-		http.StatusOK,
 		nil,
 		&bytes,
 	); err != nil {

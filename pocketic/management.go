@@ -18,7 +18,6 @@ func (pic PocketIC) AddCycles(canisterID principal.Principal, amount int) (int, 
 	if err := pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/update/add_cycles", pic.instanceURL()),
-		http.StatusOK,
 		RawAddCycles{
 			Amount:     amount,
 			CanisterID: canisterID.Raw,
