@@ -148,8 +148,16 @@ func (pic PocketIC) SubmitCallWithEP(
 }
 
 // UpdateCall executes an update call on a canister.
-func (pic PocketIC) UpdateCall(canisterID principal.Principal, sender principal.Principal, method string, payload []byte) ([]byte, error) {
-	return pic.updateCallWithEP(canisterID, &RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw}, sender, method, payload)
+func (pic PocketIC) UpdateCall(canisterID principal.Principal, sender principal.Principal, method string, args []any, ret []any) error {
+	payload, err := idl.Marshal(args)
+	if err != nil {
+		return err
+	}
+	raw, err := pic.updateCallWithEP(canisterID, &RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw}, sender, method, payload)
+	if err != nil {
+		return err
+	}
+	return idl.Unmarshal(raw, ret)
 }
 
 // canisterCall calls the canister endpoint with the provided arguments.

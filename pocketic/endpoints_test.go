@@ -100,6 +100,19 @@ func TestEndpoints(t *testing.T) {
 			}
 		})
 
+		t.Run("update", func(t *testing.T) {
+			if err := pic.UpdateCall(*canisterID, principal.AnonymousID, "void", nil, nil); err == nil {
+				t.Fatal()
+			}
+			var resp string
+			if err := pic.UpdateCall(*canisterID, principal.AnonymousID, "helloUpdate", []any{"world"}, []any{&resp}); err != nil {
+				t.Fatal(err)
+			}
+			if resp != "Hello, world!" {
+				t.Fatalf("unexpected response: %s", resp)
+			}
+		})
+
 		t.Run("get_time", func(t *testing.T) {
 			dt, err := pic.GetTime()
 			if err != nil {
