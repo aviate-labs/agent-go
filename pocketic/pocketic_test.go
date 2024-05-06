@@ -15,10 +15,11 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 )
 
 func TestConcurrentCalls(t *testing.T) {
-	pic, err := pocketic.New()
+	pic, err := pocketic.New(pocketic.WithPollingDelay(10*time.Millisecond, 10*time.Second))
 	if err != nil {
 		t.Fatal(err)
 	}
