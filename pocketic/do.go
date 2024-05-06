@@ -35,10 +35,12 @@ func (pic PocketIC) do(method, url string, input, output any) error {
 			if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 				return err
 			}
+			pic.logger.Printf("[POCKETIC] Accepted: %s %s", response.StateLabel, response.OpID)
 			if method == http.MethodGet {
 				continue
 			}
 			for {
+				pic.logger.Printf("[POCKETIC] Waiting for %s %s", response.StateLabel, response.OpID)
 				if pic.timeout < time.Since(start) {
 					return fmt.Errorf("timeout exceeded")
 				}
@@ -81,6 +83,7 @@ func (pic PocketIC) do(method, url string, input, output any) error {
 			if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
 				return err
 			}
+			pic.logger.Printf("[POCKETIC] Conflict: %s %s", response.StateLabel, response.OpID)
 			time.Sleep(pic.delay) // Retry after a short delay.
 			continue
 		default:
