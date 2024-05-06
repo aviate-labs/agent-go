@@ -255,6 +255,11 @@ func (pic *PocketIC) Close() error {
 	return pic.server.Close()
 }
 
+// InstanceURL returns the URL of the PocketIC instance.
+func (pic PocketIC) InstanceURL() string {
+	return fmt.Sprintf("%s/instances/%d", pic.server.URL(), pic.InstanceID)
+}
+
 // Status pings the PocketIC instance.
 func (pic PocketIC) Status() error {
 	return pic.do(
@@ -278,11 +283,6 @@ func (pic PocketIC) VerifySignature(sig RawVerifyCanisterSigArg) error {
 		sig,
 		nil,
 	)
-}
-
-// instanceURL returns the URL of the PocketIC instance.
-func (pic PocketIC) instanceURL() string {
-	return fmt.Sprintf("%s/instances/%d", pic.server.URL(), pic.InstanceID)
 }
 
 type SubnetConfigSet struct {

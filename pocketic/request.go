@@ -39,7 +39,7 @@ func (pic PocketIC) AwaitCall(messageID RawMessageID) ([]byte, error) {
 	var resp Result[WASMResult[[]byte]]
 	if err := pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/update/await_ingress_message", pic.instanceURL()),
+		fmt.Sprintf("%s/update/await_ingress_message", pic.InstanceURL()),
 		messageID,
 		&resp,
 	); err != nil {
@@ -65,7 +65,7 @@ func (pic PocketIC) ExecuteCall(
 	var resp RawCanisterResult
 	if err := pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/update/execute_ingress_message", pic.instanceURL()),
+		fmt.Sprintf("%s/update/execute_ingress_message", pic.InstanceURL()),
 		RawCanisterCall{
 			CanisterID:         canisterID.Raw,
 			EffectivePrincipal: effectivePrincipal,
@@ -129,7 +129,7 @@ func (pic PocketIC) SubmitCallWithEP(
 	var resp RawSubmitIngressResult
 	if err := pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/update/submit_ingress_message", pic.instanceURL()),
+		fmt.Sprintf("%s/update/submit_ingress_message", pic.InstanceURL()),
 		RawCanisterCall{
 			CanisterID:         canisterID.Raw,
 			EffectivePrincipal: effectivePrincipal,
@@ -157,7 +157,7 @@ func (pic PocketIC) canisterCall(endpoint string, canisterID principal.Principal
 	var resp RawCanisterResult
 	if err := pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/%s", pic.instanceURL(), endpoint),
+		fmt.Sprintf("%s/%s", pic.InstanceURL(), endpoint),
 		RawCanisterCall{
 			CanisterID:         canisterID.Raw,
 			EffectivePrincipal: effectivePrincipal,

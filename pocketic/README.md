@@ -1,7 +1,6 @@
 # PocketIC Golang: A Canister Testing Library
 
 The client requires at least version 4 of the PocketIC server.
-The client is not yet stable and is subject to change.
 
 ## References
 
@@ -33,13 +32,18 @@ The client is not yet stable and is subject to change.
 | ✅         | POST   | /instances/{id}/update/add_cycles                 |
 | ✅         | POST   | /instances/{id}/update/set_stable_memory          |
 | ✅         | POST   | /instances/{id}/update/tick                       |
-| ❌         | GET    | /instances/{id}/api/v2/status                     |
-| ❌         | POST   | /instances/{id}/api/v2/canister/{ecid}/call       |
-| ❌         | POST   | /instances/{id}/api/v2/canister/{ecid}/query      |
-| ❌         | POST   | /instances/{id}/api/v2/canister/{ecid}/read_state |
+| ⚠️        | GET    | /instances/{id}/api/v2/status                     |
+| ⚠️        | POST   | /instances/{id}/api/v2/canister/{ecid}/call       |
+| ⚠️        | POST   | /instances/{id}/api/v2/canister/{ecid}/query      |
+| ⚠️        | POST   | /instances/{id}/api/v2/canister/{ecid}/read_state |
 | ✅         | POST   | /instances/{id}/auto_progress                     |
 | ✅         | POST   | /instances/{id}/stop_progress                     |
 | ✅         | POST   | /http_gateway/                                    |
 | ✅         | POST   | /http_gateway/{id}/stop                           |
 
+---
 
+- ✅ Supported
+- ✳️ Supported, but only used internally.
+- ⚠️ Supported, but only through the agent.
+- ❌ Not supported.
