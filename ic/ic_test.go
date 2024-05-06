@@ -1,64 +1,38 @@
 package ic_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/ic"
 	"github.com/aviate-labs/agent-go/ic/assetstorage"
 	ic0 "github.com/aviate-labs/agent-go/ic/ic"
+	"github.com/aviate-labs/agent-go/pocketic"
 	"github.com/aviate-labs/agent-go/principal"
 	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"strings"
 	"testing"
 )
 
 func TestModules(t *testing.T) {
-	homeDir, _ := os.UserHomeDir()
-	rawNetworksConfig, err := os.ReadFile(fmt.Sprintf("%s/.config/dfx/networks.json", homeDir))
+	pic, err := pocketic.New()
 	if err != nil {
 		t.Skip(err)
 	}
-	var networksConfig networkConfig
-	if err := json.Unmarshal(rawNetworksConfig, &networksConfig); err != nil {
-		t.Fatal(err)
-	}
-	host, err := url.Parse(fmt.Sprintf("http://%s", networksConfig.Local.Bind))
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log("Using DFX host:", host)
-
-	dfxPath, err := exec.LookPath("dfx")
-	if err != nil {
-		t.Skip(err)
-	}
-	start := exec.Command(dfxPath, "start", "--background", "--clean")
-	if err := start.Start(); err != nil {
-		t.Fatal(err)
-	}
-	if err := start.Wait(); err != nil {
-		t.Error(err)
-	}
-	t.Log("Started DFX")
 	defer func() {
-		out, _ := exec.Command(dfxPath, "stop").CombinedOutput()
-		t.Log(sanitizeOutput(out))
+		if err := pic.Close(); err != nil {
+			t.Error(err)
+		}
 	}()
 
-	deploy := exec.Command(dfxPath, "deploy", "--no-wallet")
-	if out, err := deploy.CombinedOutput(); err != nil {
-		t.Fatal(sanitizeOutput(out))
-	}
-
-	raw, err := os.ReadFile(".dfx/local/canister_ids.json")
+	rawHost, err := pic.MakeLive(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var m map[string]map[string]string
-	if err := json.Unmarshal(raw, &m); err != nil {
+	host, err := url.Parse(rawHost)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -69,8 +43,17 @@ func TestModules(t *testing.T) {
 	}
 
 	t.Run("assetstorage", func(t *testing.T) {
-		cId, _ := principal.Decode(m["assetstorage"]["local"])
-		a, err := assetstorage.NewAgent(cId, config)
+		canisterID, err := pic.CreateCanister()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		wasmModule := compileMotoko(t, "assetstorage/actor.mo", "assetstorage/actor.wasm")
+		if err := pic.InstallCode(*canisterID, wasmModule, nil, nil); err != nil {
+			t.Fatal(err)
+		}
+
+		a, err := assetstorage.NewAgent(*canisterID, config)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -87,7 +70,7 @@ func TestModules(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			did, err := a.GetCanisterMetadata(cId, "candid:service")
+			did, err := a.GetCanisterMetadata(*canisterID, "candid:service")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -98,29 +81,23 @@ func TestModules(t *testing.T) {
 	})
 
 	t.Run("management canister", func(t *testing.T) {
-		controller := principal.AnonymousID
-		addController := exec.Command(dfxPath, "canister", "update-settings", "--add-controller", controller.String(), "ic0")
-		if out, err := addController.CombinedOutput(); err != nil {
-			t.Fatal(sanitizeOutput(out))
-		}
-
-		getContollers := exec.Command(dfxPath, "canister", "info", "ic0")
-		out, err := getContollers.CombinedOutput()
+		canisterID, err := pic.CreateCanister()
 		if err != nil {
-			t.Fatal(sanitizeOutput(out))
-		}
-		if !strings.Contains(string(out), controller.String()) {
-			t.Error("controller not added")
+			t.Fatal(err)
 		}
 
-		cId, _ := principal.Decode(m["ic0"]["local"])
+		wasmModule := compileMotoko(t, "ic/actor.mo", "ic/actor.wasm")
+		if err := pic.InstallCode(*canisterID, wasmModule, nil, nil); err != nil {
+			t.Fatal(err)
+		}
+
 		a, err := ic0.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, config)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		if err := a.UpdateSettings(ic0.UpdateSettingsArgs{
-			CanisterId: cId,
+			CanisterId: *canisterID,
 			Settings: ic0.CanisterSettings{
 				Controllers: &[]principal.Principal{
 					principal.AnonymousID,
@@ -135,7 +112,7 @@ func TestModules(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			h, err := a.GetCanisterModuleHash(cId)
+			h, err := a.GetCanisterModuleHash(*canisterID)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -143,12 +120,11 @@ func TestModules(t *testing.T) {
 				t.Error("hash length mismatch")
 			}
 
-			uninstall := exec.Command(dfxPath, "canister", "uninstall-code", "ic0", "--identity", "anonymous")
-			if out, err := uninstall.CombinedOutput(); err != nil {
-				t.Fatal(sanitizeOutput(out))
+			if err := pic.UninstallCode(*canisterID, nil); err != nil {
+				t.Fatal(err)
 			}
 
-			h, err = a.GetCanisterModuleHash(cId)
+			h, err = a.GetCanisterModuleHash(*canisterID)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -159,23 +135,30 @@ func TestModules(t *testing.T) {
 	})
 }
 
-func sanitizeOutput(out []byte) string {
-	const artifact = "\u001B(B" // Not sure where this comes from...
-	var s string
-	for _, p := range strings.Split(strings.TrimSpace(string(out)), "\n") {
-		s += strings.TrimSpace(strings.ReplaceAll(p, artifact, "")) + "\n"
+func compileMotoko(t *testing.T, in, out string) []byte {
+	dfxPath, err := exec.LookPath("dfx")
+	if err != nil {
+		t.Skipf("dfx not found: %v", err)
 	}
-	return s
+	cmd := exec.Command(dfxPath, "cache", "show")
+	raw, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	mocPath := path.Join(strings.TrimSpace(string(raw)), "moc")
+	cmd = exec.Command(mocPath, in, "-o", out)
+	if err := cmd.Run(); err != nil {
+		t.Fatal(err)
+	}
+	wasmModule, err := os.ReadFile(out)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return wasmModule
 }
 
 type localLogger struct{}
 
 func (l localLogger) Printf(format string, v ...any) {
 	fmt.Printf("[LOCAL]"+format+"\n", v...)
-}
-
-type networkConfig struct {
-	Local struct {
-		Bind string `json:"bind"`
-	} `json:"local"`
 }

@@ -11,5 +11,4 @@ jobs:
         with:
           dfx-version: 0.18.0
           pocket-ic-version: 4.0.0
-      - run: mv ic/testdata/networks.json $HOME/.config/dfx/networks.json
       - run: make test

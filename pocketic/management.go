@@ -49,6 +49,7 @@ func (pic PocketIC) CreateCanisterWithID(canisterID principal.Principal, args Pr
 	return pic.createCanister(&RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw}, args)
 }
 
+// InstallCode installs a canister with the specified wasm module and arguments.
 func (pic PocketIC) InstallCode(canisterID principal.Principal, wasmModule []byte, arg []byte, optSender *principal.Principal) error {
 	sender := principal.AnonymousID
 	if optSender != nil {
@@ -70,6 +71,28 @@ func (pic PocketIC) InstallCode(canisterID principal.Principal, wasmModule []byt
 		&RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw},
 		sender,
 		"install_code",
+		payload,
+	)
+	return err
+}
+
+// UninstallCode uninstalls a canister.
+func (pic PocketIC) UninstallCode(canisterID principal.Principal, optSender *principal.Principal) error {
+	sender := principal.AnonymousID
+	if optSender != nil {
+		sender = *optSender
+	}
+	payload, err := idl.Marshal([]any{ic0.UninstallCodeArgs{
+		CanisterId: canisterID,
+	}})
+	if err != nil {
+		return err
+	}
+	_, err = pic.updateCallWithEP(
+		ic.MANAGEMENT_CANISTER_PRINCIPAL,
+		&RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw},
+		sender,
+		"uninstall_code",
 		payload,
 	)
 	return err
