@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func Endpoints(t *testing.T) *pocketic.PocketIC {
+func TestEndpoints(t *testing.T) {
 	pic, err := pocketic.New(
 		pocketic.WithLogger(new(testLogger)),
 		pocketic.WithNNSSubnet(),
@@ -228,6 +228,4 @@ func Endpoints(t *testing.T) *pocketic.PocketIC {
 			}
 		})
 	})
-
-	return pic
 }

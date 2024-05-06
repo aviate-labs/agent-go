@@ -250,11 +250,6 @@ func New(opts ...Option) (*PocketIC, error) {
 	}, nil
 }
 
-// Close closes the PocketIC client.
-func (pic *PocketIC) Close() error {
-	return pic.server.Close()
-}
-
 // InstanceURL returns the URL of the PocketIC instance.
 func (pic PocketIC) InstanceURL() string {
 	return fmt.Sprintf("%s/instances/%d", pic.server.URL(), pic.InstanceID)

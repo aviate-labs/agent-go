@@ -21,11 +21,6 @@ func TestModules(t *testing.T) {
 	if err != nil {
 		t.Skip(err)
 	}
-	defer func() {
-		if err := pic.Close(); err != nil {
-			t.Error(err)
-		}
-	}()
 
 	rawHost, err := pic.MakeLive(nil)
 	if err != nil {

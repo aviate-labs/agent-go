@@ -59,7 +59,6 @@ func (pic PocketIC) GetInstances() ([]string, error) {
 	); err != nil {
 		return nil, err
 	}
-	fmt.Println(instances)
 	return instances, nil
 }
 
