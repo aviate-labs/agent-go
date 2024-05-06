@@ -15,8 +15,14 @@ func (b Base64EncodedBlob) MarshalJSON() ([]byte, error) {
 	return json.Marshal(encoded)
 }
 
+// String returns the base64 encoded string of the blob.
+// NOTE: it will truncate the string if it is too long.
 func (b Base64EncodedBlob) String() string {
-	return base64.StdEncoding.EncodeToString(b)
+	str := base64.StdEncoding.EncodeToString(b)
+	if len(str) > 20 {
+		return str[:10] + "..." + str[len(str)-10:]
+	}
+	return str
 }
 
 func (b *Base64EncodedBlob) UnmarshalJSON(bytes []byte) error {
@@ -30,6 +36,16 @@ func (b *Base64EncodedBlob) UnmarshalJSON(bytes []byte) error {
 	}
 	*b = decoded
 	return nil
+}
+
+type CreateResponse[T any] struct {
+	Created *T            `json:"Created"`
+	Error   *ErrorMessage `json:"Error"`
+}
+
+type InstanceConfig struct {
+	InstanceID int                 `json:"instance_id"`
+	Topology   map[string]Topology `json:"topology"`
 }
 
 type RawAddCycles struct {
@@ -73,6 +89,10 @@ type RawCanisterID struct {
 }
 
 type RawCanisterResult Result[RawWasmResult]
+
+type RawCycles struct {
+	Cycles int `json:"cycles"`
+}
 
 type RawEffectivePrincipal interface {
 	rawEffectivePrincipal()
@@ -148,14 +168,18 @@ type RawSetStableMemory struct {
 	CanisterID Base64EncodedBlob `json:"canister_id"`
 }
 
+type RawStableMemory struct {
+	Blob Base64EncodedBlob `json:"blob"`
+}
+
 type RawSubmitIngressResult Result[RawMessageID]
 
-type RawSubnetId struct {
+type RawSubnetID struct {
 	SubnetID Base64EncodedBlob `json:"subnet_id"`
 }
 
 type RawTime struct {
-	NanosSinceEpoch int `json:"nanos_since_epoch"`
+	NanosSinceEpoch int64 `json:"nanos_since_epoch"`
 }
 
 type RawVerifyCanisterSigArg struct {
@@ -179,12 +203,12 @@ type Result[R any] struct {
 }
 
 type UserError struct {
-	Code        int    `json:"code"`
+	Code        string `json:"code"`
 	Description string `json:"description"`
 }
 
 func (e UserError) Error() string {
-	return fmt.Sprintf("(%d) %s", e.Code, e.Description)
+	return fmt.Sprintf("(%s) %s", e.Code, e.Description)
 }
 
 // WASMResult describes the different types that executing a WASM function in a canister can produce.

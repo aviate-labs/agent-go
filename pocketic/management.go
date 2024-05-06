@@ -32,13 +32,58 @@ func (pic PocketIC) AddCycles(canisterID principal.Principal, amount int) (int, 
 
 // CreateCanister creates a canister with default settings as the anonymous principal.
 func (pic PocketIC) CreateCanister() (*principal.Principal, error) {
-	payload, err := idl.Marshal([]any{ProvisionalCreateCanisterArgument{}})
+	return pic.CreateCanisterWithArgs(ProvisionalCreateCanisterArgument{})
+}
+
+// CreateCanisterOnSubnet creates a canister on the specified subnet with the specified settings.
+func (pic PocketIC) CreateCanisterOnSubnet(subnetID principal.Principal, args ProvisionalCreateCanisterArgument) (*principal.Principal, error) {
+	return pic.createCanister(&RawEffectivePrincipalSubnetID{SubnetID: subnetID.Raw}, args)
+}
+
+// CreateCanisterWithArgs creates a canister with the specified settings and cycles.
+func (pic PocketIC) CreateCanisterWithArgs(args ProvisionalCreateCanisterArgument) (*principal.Principal, error) {
+	return pic.createCanister(new(RawEffectivePrincipalNone), args)
+}
+
+// CreateCanisterWithID creates a canister with the specified canister ID and settings.
+func (pic PocketIC) CreateCanisterWithID(canisterID principal.Principal, args ProvisionalCreateCanisterArgument) (*principal.Principal, error) {
+	return pic.createCanister(&RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw}, args)
+}
+
+func (pic PocketIC) InstallCode(canisterID principal.Principal, wasmModule []byte, arg []byte, optSender *principal.Principal) error {
+	sender := principal.AnonymousID
+	if optSender != nil {
+		sender = *optSender
+	}
+	payload, err := idl.Marshal([]any{ic0.InstallCodeArgs{
+		Mode: ic0.CanisterInstallMode{
+			Install: new(idl.Null),
+		},
+		WasmModule: wasmModule,
+		CanisterId: canisterID,
+		Arg:        arg,
+	}})
+	if err != nil {
+		return err
+	}
+	_, err = pic.updateCallWithEP(
+		ic.MANAGEMENT_CANISTER_PRINCIPAL,
+		&RawEffectivePrincipalCanisterID{CanisterID: canisterID.Raw},
+		sender,
+		"install_code",
+		payload,
+	)
+	return err
+}
+
+func (pic PocketIC) createCanister(effectivePrincipal RawEffectivePrincipal, args ProvisionalCreateCanisterArgument) (*principal.Principal, error) {
+	payload, err := idl.Marshal([]any{args})
 	if err != nil {
 		return nil, err
 	}
 	raw, err := pic.updateCallWithEP(
 		ic.MANAGEMENT_CANISTER_PRINCIPAL,
-		new(RawEffectivePrincipalNone),
+		effectivePrincipal,
 		principal.AnonymousID,
 		"provisional_create_canister_with_cycles",
 		payload,
