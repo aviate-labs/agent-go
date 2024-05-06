@@ -1,6 +1,8 @@
 package principal
 
 import (
+	"bytes"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
 	"encoding/binary"
@@ -18,6 +20,30 @@ var encoding = base32.StdEncoding.WithPadding(base32.NoPadding)
 // Principal are generic identifiers for canisters, users and possibly other concepts in the future.
 type Principal struct {
 	Raw []byte
+}
+
+// NewRandomPrincipal returns a new random principal.
+func NewRandomPrincipal() Principal {
+	var raw [29]byte
+	_, err := rand.Read(raw[:])
+	if err != nil {
+		panic(err)
+	}
+	return Principal{Raw: raw[:]}
+}
+
+// Equal checks if two principals are equal.
+func (p Principal) Equal(other Principal) bool {
+	return bytes.Equal(p.Raw, other.Raw)
+}
+
+// MustDecode converts a textual representation into a principal. It panics if the input is invalid.
+func MustDecode(s string) Principal {
+	p, err := Decode(s)
+	if err != nil {
+		panic(err)
+	}
+	return p
 }
 
 // Decode converts a textual representation into a principal.
