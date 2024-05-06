@@ -17,7 +17,7 @@ import (
 	"testing"
 )
 
-func ConcurrentCalls(t *testing.T) *pocketic.PocketIC {
+func TestConcurrentCalls(t *testing.T) {
 	pic, err := pocketic.New()
 	if err != nil {
 		t.Fatal(err)
@@ -41,10 +41,9 @@ func ConcurrentCalls(t *testing.T) *pocketic.PocketIC {
 		}()
 	}
 	wg.Wait()
-	return pic
 }
 
-func CreateCanister(t *testing.T) *pocketic.PocketIC {
+func TestCreateCanister(t *testing.T) {
 	pic, err := pocketic.New(pocketic.WithLogger(new(testLogger)))
 	if err != nil {
 		t.Fatal(err)
@@ -57,11 +56,9 @@ func CreateCanister(t *testing.T) *pocketic.PocketIC {
 	if _, err := pic.AddCycles(*canisterID, 2_000_000_000_000); err != nil {
 		t.Fatal(err)
 	}
-
-	return pic
 }
 
-func HttpGateway(t *testing.T) *pocketic.PocketIC {
+func TestHttpGateway(t *testing.T) {
 	pic, err := pocketic.New(
 		pocketic.WithLogger(new(testLogger)),
 		pocketic.WithNNSSubnet(),
@@ -132,29 +129,6 @@ func HttpGateway(t *testing.T) *pocketic.PocketIC {
 
 	if err := pic.MakeDeterministic(); err != nil {
 		t.Fatal(err)
-	}
-
-	return pic
-}
-
-func TestPocketIC(t *testing.T) {
-	var instances []*pocketic.PocketIC
-	t.Run("CreateCanister", func(t *testing.T) {
-		instances = append(instances, CreateCanister(t))
-	})
-	t.Run("HttpGateway", func(t *testing.T) {
-		instances = append(instances, HttpGateway(t))
-	})
-	t.Run("ConcurrentCalls", func(t *testing.T) {
-		instances = append(instances, ConcurrentCalls(t))
-	})
-	t.Run("Endpoints", func(t *testing.T) {
-		instances = append(instances, Endpoints(t))
-	})
-	for _, i := range instances {
-		if err := i.Close(); err != nil {
-			t.Fatal(err)
-		}
 	}
 }
 

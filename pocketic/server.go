@@ -11,6 +11,13 @@ import (
 	"time"
 )
 
+type printWriter struct{}
+
+func (w printWriter) Write(p []byte) (n int, err error) {
+	fmt.Print(string(p))
+	return len(p), nil
+}
+
 type server struct {
 	port int
 	cmd  *exec.Cmd
@@ -55,8 +62,8 @@ func newServer(opts ...serverOption) (*server, error) {
 	}
 	cmd := exec.Command(binPath, cmdArgs...)
 	if os.Getenv("POCKET_IC_MUTE_SERVER") == "" {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
+		cmd.Stdout = new(printWriter)
+		cmd.Stderr = new(printWriter)
 	}
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("failed to start pocket-ic: %v", err)
@@ -90,13 +97,6 @@ func newServer(opts ...serverOption) (*server, error) {
 		port: port,
 		cmd:  cmd,
 	}, nil
-}
-
-func (s server) Close() error {
-	if err := s.cmd.Process.Kill(); err != nil {
-		return fmt.Errorf("failed to kill pocket-ic: %v", err)
-	}
-	return nil
 }
 
 func (s server) URL() string {
