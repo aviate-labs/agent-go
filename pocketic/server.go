@@ -55,7 +55,7 @@ func newServer(opts ...serverOption) (*server, error) {
 		return nil, fmt.Errorf("unsupported pocket-ic version, must be v3.x: %s", version)
 	}
 
-	pid := os.Getppid()
+	pid := os.Getpid()
 	cmdArgs := []string{"--pid", strconv.Itoa(pid)}
 	if config.ttl != nil {
 		cmdArgs = append(cmdArgs, "--ttl", strconv.Itoa(*config.ttl))
