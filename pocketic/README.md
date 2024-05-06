@@ -16,7 +16,7 @@ The client is not yet stable and is subject to change.
 | ✅         | POST   | /blobstore                                        |
 | ✅         | GET    | /blobstore/{id}                                   |
 | ✅         | POST   | /verify_signature                                 |
-| ❌         | GET    | /read_graph/{state_label}/{op_id}                 |
+| ✳️        | GET    | /read_graph/{state_label}/{op_id}                 |
 | ✅         | GET    | /instances/                                       |
 | ✅         | POST   | /instances/                                       |
 | ✅         | DELETE | /instances/{id}                                   |

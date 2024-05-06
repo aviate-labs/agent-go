@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/principal"
@@ -55,10 +56,11 @@ func (c *CanisterIDRange) UnmarshalJSON(bytes []byte) error {
 }
 
 type Config struct {
-	subnetConfig SubnetConfigSet
-	serverConfig []serverOption
-	client       *http.Client
-	logger       agent.Logger
+	subnetConfig   SubnetConfigSet
+	serverConfig   []serverOption
+	client         *http.Client
+	logger         agent.Logger
+	delay, timeout time.Duration
 }
 
 type DTSFlag bool
@@ -150,6 +152,13 @@ func WithNNSSubnet() Option {
 	}
 }
 
+func WithPollingDelay(delay, timeout time.Duration) Option {
+	return func(p *Config) {
+		p.delay = delay
+		p.timeout = timeout
+	}
+}
+
 // WithSNSSubnet adds an empty SNS subnet.
 func WithSNSSubnet() Option {
 	return func(p *Config) {
@@ -184,9 +193,10 @@ type PocketIC struct {
 	httpGateway *HttpGatewayInfo
 	topology    map[string]Topology
 
-	logger agent.Logger
-	client *http.Client
-	server *server
+	logger         agent.Logger
+	client         *http.Client
+	delay, timeout time.Duration
+	server         *server
 }
 
 // New creates a new PocketIC client.
@@ -196,6 +206,8 @@ func New(opts ...Option) (*PocketIC, error) {
 		subnetConfig: DefaultSubnetConfig,
 		client:       http.DefaultClient,
 		logger:       new(agent.NoopLogger),
+		delay:        10 * time.Millisecond,
+		timeout:      1 * time.Second,
 	}
 	for _, fn := range opts {
 		fn(&config)
@@ -219,7 +231,10 @@ func New(opts ...Option) (*PocketIC, error) {
 	if respBody.Error != nil {
 		return nil, respBody.Error
 	}
-	if err := checkResponse(resp, http.StatusCreated, &respBody); err != nil {
+	if resp.StatusCode != http.StatusCreated {
+		return nil, fmt.Errorf("failed to create instance: %s", resp.Status)
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&respBody); err != nil {
 		return nil, fmt.Errorf("failed to create instance: %v", err)
 	}
 
@@ -229,6 +244,8 @@ func New(opts ...Option) (*PocketIC, error) {
 		topology:    respBody.Created.Topology,
 		logger:      config.logger,
 		client:      config.client,
+		delay:       config.delay,
+		timeout:     config.timeout,
 		server:      s,
 	}, nil
 }
@@ -243,7 +260,6 @@ func (pic PocketIC) Status() error {
 	return pic.do(
 		http.MethodGet,
 		fmt.Sprintf("%s/status", pic.server.URL()),
-		http.StatusOK,
 		nil,
 		nil,
 	)
@@ -254,11 +270,11 @@ func (pic PocketIC) Topology() map[string]Topology {
 	return pic.topology
 }
 
+// VerifySignature verifies a signature.
 func (pic PocketIC) VerifySignature(sig RawVerifyCanisterSigArg) error {
 	return pic.do(
 		http.MethodPost,
 		fmt.Sprintf("%s/verify_signature", pic.server.URL()),
-		http.StatusOK,
 		sig,
 		nil,
 	)

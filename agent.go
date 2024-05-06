@@ -443,12 +443,23 @@ type Call struct {
 	data                []byte
 }
 
+// Call calls a method on a canister, it does not wait for the result.
+func (c Call) Call() error {
+	c.a.logger.Printf("[AGENT] CALL %s %s (%x)", c.effectiveCanisterID, c.methodName, c.requestID)
+	_, err := c.a.call(c.effectiveCanisterID, c.data)
+	return err
+}
+
 // CallAndWait calls a method on a canister and waits for the result.
 func (c Call) CallAndWait(values ...any) error {
-	c.a.logger.Printf("[AGENT] CALL %s %s (%x)", c.effectiveCanisterID, c.methodName, c.requestID)
-	if _, err := c.a.call(c.effectiveCanisterID, c.data); err != nil {
+	if err := c.Call(); err != nil {
 		return err
 	}
+	return c.Wait(values...)
+}
+
+// Wait waits for the result of the call and unmarshals it into the given values.
+func (c Call) Wait(values ...any) error {
 	raw, err := c.a.poll(c.effectiveCanisterID, c.requestID)
 	if err != nil {
 		return err

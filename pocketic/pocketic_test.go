@@ -13,8 +13,36 @@ import (
 	"os/exec"
 	"path"
 	"strings"
+	"sync"
 	"testing"
 )
+
+func ConcurrentCalls(t *testing.T) *pocketic.PocketIC {
+	pic, err := pocketic.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer func() {
+				wg.Done()
+			}()
+
+			canisterID, err := pic.CreateCanister()
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if _, err := pic.AddCycles(*canisterID, 2_000_000_000_000); err != nil {
+				t.Error(err)
+			}
+		}()
+	}
+	wg.Wait()
+	return pic
+}
 
 func CreateCanister(t *testing.T) *pocketic.PocketIC {
 	pic, err := pocketic.New(pocketic.WithLogger(new(testLogger)))
@@ -116,6 +144,9 @@ func TestPocketIC(t *testing.T) {
 	})
 	t.Run("HttpGateway", func(t *testing.T) {
 		instances = append(instances, HttpGateway(t))
+	})
+	t.Run("ConcurrentCalls", func(t *testing.T) {
+		instances = append(instances, ConcurrentCalls(t))
 	})
 	t.Run("Endpoints", func(t *testing.T) {
 		instances = append(instances, Endpoints(t))
