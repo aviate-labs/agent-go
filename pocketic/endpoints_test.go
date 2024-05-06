@@ -181,7 +181,7 @@ func TestEndpoints(t *testing.T) {
 				}
 			}
 			{
-				raw, err := pic.ExecuteCall(*canisterID, new(pocketic.RawEffectivePrincipalNone), principal.AnonymousID, "helloUpdate", payload)
+				raw, err := pic.ExecuteCall(*canisterID, new(pocketic.EffectivePrincipalNone), principal.AnonymousID, "helloUpdate", payload)
 				if err != nil {
 					t.Fatal(err)
 				}
