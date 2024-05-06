@@ -32,6 +32,7 @@ func (pic PocketIC) do(method, url string, input, output any) error {
 			if err := json.NewDecoder(resp.Body).Decode(output); err != nil {
 				return fmt.Errorf("failed to decode response body: %w", err)
 			}
+			return nil
 		case http.StatusAccepted:
 			var response startedOrBusyResponse
 			if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
@@ -73,6 +74,7 @@ func (pic PocketIC) do(method, url string, input, output any) error {
 					if err := json.NewDecoder(resp.Body).Decode(output); err != nil {
 						return fmt.Errorf("failed to decode response body: %w", err)
 					}
+					return nil
 				case http.StatusAccepted, http.StatusConflict:
 				default:
 					var errResp ErrorMessage
