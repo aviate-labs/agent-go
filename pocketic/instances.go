@@ -39,7 +39,7 @@ func (pic PocketIC) GetCycles(canisterID principal.Principal) (int, error) {
 	var cycles RawCycles
 	if err := pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/read/get_cycles", pic.instanceURL()),
+		fmt.Sprintf("%s/read/get_cycles", pic.InstanceURL()),
 		&RawCanisterID{CanisterID: canisterID.Raw},
 		&cycles,
 	); err != nil {
@@ -68,7 +68,7 @@ func (pic PocketIC) GetStableMemory(canisterID principal.Principal) ([]byte, err
 	var data RawStableMemory
 	if err := pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/read/get_stable_memory", pic.instanceURL()),
+		fmt.Sprintf("%s/read/get_stable_memory", pic.InstanceURL()),
 		&RawCanisterID{CanisterID: canisterID.Raw},
 		&data,
 	); err != nil {
@@ -82,7 +82,7 @@ func (pic PocketIC) GetSubnet(canisterID principal.Principal) (*principal.Princi
 	var subnetID RawSubnetID
 	if err := pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/read/get_subnet", pic.instanceURL()),
+		fmt.Sprintf("%s/read/get_subnet", pic.InstanceURL()),
 		&RawCanisterID{CanisterID: canisterID.Raw},
 		&subnetID,
 	); err != nil {
@@ -96,7 +96,7 @@ func (pic PocketIC) GetTime() (*time.Time, error) {
 	var t RawTime
 	if err := pic.do(
 		http.MethodGet,
-		fmt.Sprintf("%s/read/get_time", pic.instanceURL()),
+		fmt.Sprintf("%s/read/get_time", pic.InstanceURL()),
 		nil,
 		&t,
 	); err != nil {
@@ -125,7 +125,7 @@ func (pic PocketIC) RootKey() ([]byte, error) {
 	var key []byte
 	if err := pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/read/pub_key", pic.instanceURL()),
+		fmt.Sprintf("%s/read/pub_key", pic.InstanceURL()),
 		&RawSubnetID{SubnetID: subnetID.Raw},
 		&key,
 	); err != nil {
@@ -142,7 +142,7 @@ func (pic PocketIC) SetStableMemory(canisterID principal.Principal, data []byte,
 	}
 	return pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/update/set_stable_memory", pic.instanceURL()),
+		fmt.Sprintf("%s/update/set_stable_memory", pic.InstanceURL()),
 		RawSetStableMemory{
 			CanisterID: canisterID.Raw,
 			BlobID:     blobID,
@@ -154,7 +154,7 @@ func (pic PocketIC) SetStableMemory(canisterID principal.Principal, data []byte,
 func (pic PocketIC) Tick() error {
 	return pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/update/tick", pic.instanceURL()),
+		fmt.Sprintf("%s/update/tick", pic.InstanceURL()),
 		nil,
 		nil,
 	)

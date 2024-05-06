@@ -1,9 +1,11 @@
 package pocketic_test
 
 import (
+	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/pocketic"
 	"github.com/aviate-labs/agent-go/principal"
+	"net/url"
 	"testing"
 )
 
@@ -183,6 +185,46 @@ func Endpoints(t *testing.T) *pocketic.PocketIC {
 		t.Run("tick", func(t *testing.T) {
 			if err := pic.Tick(); err != nil {
 				t.Fatal(err)
+			}
+		})
+
+		t.Run("api/v2/canister", func(t *testing.T) {
+			host, err := url.Parse(pic.InstanceURL())
+			if err != nil {
+				t.Fatal(err)
+			}
+			a, err := NewAgent(*canisterID, agent.Config{
+				ClientConfig: &agent.ClientConfig{Host: host},
+				FetchRootKey: true,
+				Logger:       new(testLogger),
+			})
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if _, err := pic.MakeLive(nil); err != nil {
+				t.Fatal(err)
+			}
+			defer func() {
+				if err := pic.MakeDeterministic(); err != nil {
+					t.Fatal(err)
+				}
+			}()
+
+			q, err := a.HelloQuery("world")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if *q != "Hello, world!" {
+				t.Fatalf("unexpected response: %s", *q)
+			}
+
+			u, err := a.HelloUpdate("world")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if *u != "Hello, world!" {
+				t.Fatalf("unexpected response: %s", *u)
 			}
 		})
 	})

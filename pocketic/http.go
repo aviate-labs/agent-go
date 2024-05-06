@@ -78,7 +78,7 @@ func (pic PocketIC) AutoProgress() error {
 	}
 	return pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/auto_progress", pic.instanceURL()),
+		fmt.Sprintf("%s/auto_progress", pic.InstanceURL()),
 		nil,
 		nil,
 	)
@@ -135,7 +135,7 @@ func (pic PocketIC) MakeLive(port *int) (string, error) {
 func (pic PocketIC) SetTime(time time.Time) error {
 	return pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/update/set_time", pic.instanceURL()),
+		fmt.Sprintf("%s/update/set_time", pic.InstanceURL()),
 		RawTime{
 			NanosSinceEpoch: time.UnixNano(),
 		},
@@ -147,7 +147,7 @@ func (pic PocketIC) SetTime(time time.Time) error {
 func (pic PocketIC) StopProgress() error {
 	return pic.do(
 		http.MethodPost,
-		fmt.Sprintf("%s/stop_progress", pic.instanceURL()),
+		fmt.Sprintf("%s/stop_progress", pic.InstanceURL()),
 		nil,
 		nil,
 	)
