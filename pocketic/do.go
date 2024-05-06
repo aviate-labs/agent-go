@@ -29,11 +29,13 @@ func (pic PocketIC) do(method, url string, input, output any) error {
 				// No need to decode the response body.
 				return nil
 			}
-			return json.NewDecoder(resp.Body).Decode(output)
+			if err := json.NewDecoder(resp.Body).Decode(output); err != nil {
+				return fmt.Errorf("failed to decode response body: %w", err)
+			}
 		case http.StatusAccepted:
 			var response startedOrBusyResponse
 			if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-				return err
+				return fmt.Errorf("failed to decode accepted response body: %w", err)
 			}
 			pic.logger.Printf("[POCKETIC] Accepted: %s %s", response.StateLabel, response.OpID)
 			if method == http.MethodGet {
@@ -63,17 +65,19 @@ func (pic PocketIC) do(method, url string, input, output any) error {
 					return err
 				}
 				switch resp.StatusCode {
-				case http.StatusOK:
+				case http.StatusOK, http.StatusCreated:
 					if resp.Body == nil || output == nil {
 						// No need to decode the response body.
 						return nil
 					}
-					return json.NewDecoder(resp.Body).Decode(output)
+					if err := json.NewDecoder(resp.Body).Decode(output); err != nil {
+						return fmt.Errorf("failed to decode response body: %w", err)
+					}
 				case http.StatusAccepted, http.StatusConflict:
 				default:
 					var errResp ErrorMessage
 					if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
-						return err
+						return fmt.Errorf("failed to decode accepted/conflict response body: %w", err)
 					}
 					return errResp
 				}
@@ -81,7 +85,7 @@ func (pic PocketIC) do(method, url string, input, output any) error {
 		case http.StatusConflict:
 			var response startedOrBusyResponse
 			if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-				return err
+				return fmt.Errorf("failed to decode conflict response body: %w", err)
 			}
 			pic.logger.Printf("[POCKETIC] Conflict: %s %s", response.StateLabel, response.OpID)
 			time.Sleep(pic.delay) // Retry after a short delay.
@@ -89,7 +93,7 @@ func (pic PocketIC) do(method, url string, input, output any) error {
 		default:
 			var errResp ErrorMessage
 			if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
-				return err
+				return fmt.Errorf("failed to decode error response body: %w", err)
 			}
 			return errResp
 		}
