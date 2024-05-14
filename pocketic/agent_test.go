@@ -10,8 +10,8 @@ import (
 
 // Agent is a client for the "hello" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "hello" canister.
@@ -21,16 +21,16 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // HelloQuery calls the "helloQuery" method on the "hello" canister.
 func (a Agent) HelloQuery(arg0 string) (*string, error) {
 	var r0 string
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"helloQuery",
 		[]any{arg0},
 		[]any{&r0},
@@ -42,8 +42,8 @@ func (a Agent) HelloQuery(arg0 string) (*string, error) {
 
 // HelloQueryQuery creates an indirect representation of the "helloQuery" method on the "hello" canister.
 func (a Agent) HelloQueryQuery(arg0 string) (*agent.Query, error) {
-	return a.a.CreateQuery(
-		a.canisterId,
+	return a.Agent.CreateQuery(
+		a.CanisterId,
 		"helloQuery",
 		arg0,
 	)
@@ -52,8 +52,8 @@ func (a Agent) HelloQueryQuery(arg0 string) (*agent.Query, error) {
 // HelloUpdate calls the "helloUpdate" method on the "hello" canister.
 func (a Agent) HelloUpdate(arg0 string) (*string, error) {
 	var r0 string
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"helloUpdate",
 		[]any{arg0},
 		[]any{&r0},
@@ -65,8 +65,8 @@ func (a Agent) HelloUpdate(arg0 string) (*string, error) {
 
 // HelloUpdateCall creates an indirect representation of the "helloUpdate" method on the "hello" canister.
 func (a Agent) HelloUpdateCall(arg0 string) (*agent.Call, error) {
-	return a.a.CreateCall(
-		a.canisterId,
+	return a.Agent.CreateCall(
+		a.CanisterId,
 		"helloUpdate",
 		arg0,
 	)

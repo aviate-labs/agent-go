@@ -15,8 +15,8 @@ type {{ .Name }} {{ if .Eq }}= {{end}}{{ .Type }}
 
 // {{ .AgentName }}Agent is a client for the "{{ .CanisterName }}" canister.
 type {{ .AgentName }}Agent struct {
-    a          *agent.Agent
-    canisterId principal.Principal
+    *agent.Agent
+    CanisterId principal.Principal
 }
 
 // New{{ .AgentName }}Agent creates a new agent for the "{{ .CanisterName }}" canister.
@@ -26,8 +26,8 @@ func New{{ .AgentName }}Agent(canisterId principal.Principal, config agent.Confi
         return nil, err
     }
     return &{{ .AgentName }}Agent{
-        a:          a,
-        canisterId: canisterId,
+        Agent:      a,
+        CanisterId: canisterId,
     }, nil
 }
 {{- range .Methods }}
@@ -37,8 +37,8 @@ func (a {{ $.AgentName }}Agent) {{ .Name }}({{ range $i, $e := .ArgumentTypes }}
     {{ range $i, $e := .ReturnTypes -}}
         var r{{ $i }} {{ $e }}
     {{ end -}}
-    if err := a.a.{{ .Type }}(
-        a.canisterId,
+    if err := a.Agent.{{ .Type }}(
+        a.CanisterId,
         "{{ .RawName }}",
         []any{{ "{" }}{{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }}{{ end }}{{ "}" }},
         []any{{ "{" }}{{ range $i, $e := .ReturnTypes }}{{ if $i }}, {{ end }}&r{{ $i }}{{ end }}{{ "}"}},

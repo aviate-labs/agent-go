@@ -15,8 +15,8 @@ type Account struct {
 
 // Agent is a client for the "index" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "index" canister.
@@ -26,16 +26,16 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // GetAccountTransactions calls the "get_account_transactions" method on the "index" canister.
 func (a Agent) GetAccountTransactions(arg0 GetAccountTransactionsArgs) (*GetTransactionsResult, error) {
 	var r0 GetTransactionsResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"get_account_transactions",
 		[]any{arg0},
 		[]any{&r0},
@@ -48,8 +48,8 @@ func (a Agent) GetAccountTransactions(arg0 GetAccountTransactionsArgs) (*GetTran
 // LedgerId calls the "ledger_id" method on the "index" canister.
 func (a Agent) LedgerId() (*principal.Principal, error) {
 	var r0 principal.Principal
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"ledger_id",
 		[]any{},
 		[]any{&r0},
@@ -62,8 +62,8 @@ func (a Agent) LedgerId() (*principal.Principal, error) {
 // ListSubaccounts calls the "list_subaccounts" method on the "index" canister.
 func (a Agent) ListSubaccounts(arg0 ListSubaccountsArgs) (*[]SubAccount, error) {
 	var r0 []SubAccount
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"list_subaccounts",
 		[]any{arg0},
 		[]any{&r0},

@@ -35,23 +35,37 @@ func effectiveCanisterID(canisterID principal.Principal, args []any) principal.P
 	}
 
 	v := reflect.ValueOf(args[0])
-	if v.Kind() == reflect.Struct {
+	switch v.Kind() {
+	case reflect.Map:
+		if ecid, ok := args[0].(map[string]any)["canister_id"]; ok {
+			switch ecidp := ecid.(type) {
+			case principal.Principal:
+				return ecidp
+			default:
+				// If the field is not a principal, return the original canisterId.
+				return canisterID
+			}
+		}
+		return canisterID
+	case reflect.Struct:
 		t := v.Type()
 		// Get the field with the ic tag "canister_id".
 		for idx := range t.NumField() {
 			if tag := t.Field(idx).Tag.Get("ic"); tag == "canister_id" {
 				ecid := v.Field(idx).Interface()
-				switch ecid := ecid.(type) {
+				switch ecidp := ecid.(type) {
 				case principal.Principal:
-					return ecid
+					return ecidp
 				default:
 					// If the field is not a principal, return the original canisterId.
 					return canisterID
 				}
 			}
 		}
+		return canisterID
+	default:
+		return canisterID
 	}
-	return canisterID
 }
 
 func newNonce() ([]byte, error) {
@@ -233,7 +247,7 @@ func (a Agent) GetCanisterControllers(canisterID principal.Principal) ([]princip
 // GetCanisterInfo returns the raw certificate for the given canister based on the given sub-path.
 func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) ([]byte, error) {
 	path := []hashtree.Label{hashtree.Label("canister"), canisterID.Raw, hashtree.Label(subPath)}
-	node, err := a.ReadState(canisterID, [][]hashtree.Label{path})
+	node, err := a.ReadStateCertificate(canisterID, [][]hashtree.Label{path})
 	if err != nil {
 		return nil, err
 	}
@@ -290,8 +304,8 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 	return query.Query(values...)
 }
 
-// ReadState reads the state of the given canister at the given path.
-func (a Agent) ReadState(canisterID principal.Principal, path [][]hashtree.Label) (hashtree.Node, error) {
+// ReadStateCertificate reads the certificate state of the given canister at the given path.
+func (a Agent) ReadStateCertificate(canisterID principal.Principal, path [][]hashtree.Label) (hashtree.Node, error) {
 	c, err := a.readStateCertificate(canisterID, path)
 	if err != nil {
 		return nil, err

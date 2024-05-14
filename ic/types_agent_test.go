@@ -10,8 +10,8 @@ import (
 
 // TypesAgent is a client for the "types" canister.
 type TypesAgent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewTypesAgent creates a new agent for the "types" canister.
@@ -21,8 +21,8 @@ func NewTypesAgent(canisterId principal.Principal, config agent.Config) (*TypesA
 		return nil, err
 	}
 	return &TypesAgent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
@@ -30,8 +30,8 @@ func NewTypesAgent(canisterId principal.Principal, config agent.Config) (*TypesA
 func (a TypesAgent) Bool(arg0 bool, arg1 []bool) (*bool, *[]bool, error) {
 	var r0 bool
 	var r1 []bool
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"bool",
 		[]any{arg0, arg1},
 		[]any{&r0, &r1},
@@ -47,8 +47,8 @@ func (a TypesAgent) Float(arg0 float32, arg1 []float32, arg2 float64, arg3 []flo
 	var r1 []float32
 	var r2 float64
 	var r3 []float64
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"float",
 		[]any{arg0, arg1, arg2, arg3},
 		[]any{&r0, &r1, &r2, &r3},
@@ -65,8 +65,8 @@ func (a TypesAgent) Int(arg0 idl.Int, arg1 int8, arg2 int16, arg3 int32, arg4 in
 	var r2 int16
 	var r3 int32
 	var r4 int64
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"int",
 		[]any{arg0, arg1, arg2, arg3, arg4},
 		[]any{&r0, &r1, &r2, &r3, &r4},
@@ -83,8 +83,8 @@ func (a TypesAgent) Nat(arg0 idl.Nat, arg1 uint8, arg2 uint16, arg3 uint32, arg4
 	var r2 uint16
 	var r3 uint32
 	var r4 uint64
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"nat",
 		[]any{arg0, arg1, arg2, arg3, arg4},
 		[]any{&r0, &r1, &r2, &r3, &r4},
@@ -98,8 +98,8 @@ func (a TypesAgent) Nat(arg0 idl.Nat, arg1 uint8, arg2 uint16, arg3 uint32, arg4
 func (a TypesAgent) Principal(arg0 principal.Principal, arg1 []principal.Principal) (*principal.Principal, *[]principal.Principal, error) {
 	var r0 principal.Principal
 	var r1 []principal.Principal
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"principal",
 		[]any{arg0, arg1},
 		[]any{&r0, &r1},
@@ -113,8 +113,8 @@ func (a TypesAgent) Principal(arg0 principal.Principal, arg1 []principal.Princip
 func (a TypesAgent) Text(arg0 string, arg1 []string) (*string, *[]string, error) {
 	var r0 string
 	var r1 []string
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"text",
 		[]any{arg0, arg1},
 		[]any{&r0, &r1},
@@ -131,8 +131,8 @@ func (a TypesAgent) VecInt(arg0 []idl.Int, arg1 []int8, arg2 []int16, arg3 []int
 	var r2 []int16
 	var r3 []int32
 	var r4 []int64
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"vec_int",
 		[]any{arg0, arg1, arg2, arg3, arg4},
 		[]any{&r0, &r1, &r2, &r3, &r4},
@@ -149,8 +149,8 @@ func (a TypesAgent) VecNat(arg0 []idl.Nat, arg1 []uint8, arg2 []uint16, arg3 []u
 	var r2 []uint16
 	var r3 []uint32
 	var r4 []uint64
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"vec_nat",
 		[]any{arg0, arg1, arg2, arg3, arg4},
 		[]any{&r0, &r1, &r2, &r3, &r4},

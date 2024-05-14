@@ -3,15 +3,16 @@ package agent_test
 import (
 	"encoding/json"
 	"fmt"
+	"testing"
+
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/ic"
-	mgmt "github.com/aviate-labs/agent-go/ic/ic"
+	ic0 "github.com/aviate-labs/agent-go/ic/ic"
 	"github.com/aviate-labs/agent-go/ic/icpledger"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
-	"testing"
 )
 
 var _ = new(testLogger)
@@ -104,7 +105,7 @@ func TestAgent_Call(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	n, err := a.ReadState(ic.REGISTRY_PRINCIPAL, [][]hashtree.Label{{hashtree.Label("subnet")}})
+	n, err := a.ReadStateCertificate(ic.REGISTRY_PRINCIPAL, [][]hashtree.Label{{hashtree.Label("subnet")}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,13 +118,13 @@ func TestAgent_Call(t *testing.T) {
 }
 
 func TestAgent_Call_bitcoinGetBalanceQuery(t *testing.T) {
-	a, err := mgmt.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
+	a, err := ic0.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	r, err := a.BitcoinGetBalanceQuery(mgmt.BitcoinGetBalanceQueryArgs{
+	r, err := a.BitcoinGetBalanceQuery(ic0.BitcoinGetBalanceQueryArgs{
 		Address: "bc1qruu3xmfrt4nzkxax3lpxfmjega87jr3vqcwjn9",
-		Network: mgmt.BitcoinNetwork{
+		Network: ic0.BitcoinNetwork{
 			Mainnet: new(idl.Null),
 		},
 	})
@@ -136,11 +137,11 @@ func TestAgent_Call_bitcoinGetBalanceQuery(t *testing.T) {
 }
 
 func TestAgent_Call_provisionalTopUpCanister(t *testing.T) {
-	a, err := mgmt.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
+	a, err := ic0.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := a.ProvisionalTopUpCanister(mgmt.ProvisionalTopUpCanisterArgs{
+	if err := a.ProvisionalTopUpCanister(ic0.ProvisionalTopUpCanisterArgs{
 		CanisterId: ic.LEDGER_PRINCIPAL,
 	}); err == nil {
 		t.Fatal()

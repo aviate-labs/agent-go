@@ -10,8 +10,8 @@ import (
 
 // Agent is a client for the "root" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "root" canister.
@@ -21,16 +21,16 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // CanisterStatus calls the "canister_status" method on the "root" canister.
 func (a Agent) CanisterStatus(arg0 CanisterIdRecord) (*CanisterStatusResult, error) {
 	var r0 CanisterStatusResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"canister_status",
 		[]any{arg0},
 		[]any{&r0},
@@ -42,8 +42,8 @@ func (a Agent) CanisterStatus(arg0 CanisterIdRecord) (*CanisterStatusResult, err
 
 // ChangeCanister calls the "change_canister" method on the "root" canister.
 func (a Agent) ChangeCanister(arg0 ChangeCanisterRequest) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"change_canister",
 		[]any{arg0},
 		[]any{},
@@ -56,8 +56,8 @@ func (a Agent) ChangeCanister(arg0 ChangeCanisterRequest) error {
 // GetBuildMetadata calls the "get_build_metadata" method on the "root" canister.
 func (a Agent) GetBuildMetadata() (*string, error) {
 	var r0 string
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_build_metadata",
 		[]any{},
 		[]any{&r0},
@@ -70,8 +70,8 @@ func (a Agent) GetBuildMetadata() (*string, error) {
 // GetSnsCanistersSummary calls the "get_sns_canisters_summary" method on the "root" canister.
 func (a Agent) GetSnsCanistersSummary(arg0 GetSnsCanistersSummaryRequest) (*GetSnsCanistersSummaryResponse, error) {
 	var r0 GetSnsCanistersSummaryResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"get_sns_canisters_summary",
 		[]any{arg0},
 		[]any{&r0},
@@ -85,8 +85,8 @@ func (a Agent) GetSnsCanistersSummary(arg0 GetSnsCanistersSummaryRequest) (*GetS
 func (a Agent) ListSnsCanisters(arg0 struct {
 }) (*ListSnsCanistersResponse, error) {
 	var r0 ListSnsCanistersResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"list_sns_canisters",
 		[]any{arg0},
 		[]any{&r0},
@@ -99,8 +99,8 @@ func (a Agent) ListSnsCanisters(arg0 struct {
 // ManageDappCanisterSettings calls the "manage_dapp_canister_settings" method on the "root" canister.
 func (a Agent) ManageDappCanisterSettings(arg0 ManageDappCanisterSettingsRequest) (*ManageDappCanisterSettingsResponse, error) {
 	var r0 ManageDappCanisterSettingsResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"manage_dapp_canister_settings",
 		[]any{arg0},
 		[]any{&r0},
@@ -115,8 +115,8 @@ func (a Agent) RegisterDappCanister(arg0 RegisterDappCanisterRequest) (*struct {
 }, error) {
 	var r0 struct {
 	}
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"register_dapp_canister",
 		[]any{arg0},
 		[]any{&r0},
@@ -131,8 +131,8 @@ func (a Agent) RegisterDappCanisters(arg0 RegisterDappCanistersRequest) (*struct
 }, error) {
 	var r0 struct {
 	}
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"register_dapp_canisters",
 		[]any{arg0},
 		[]any{&r0},
@@ -145,8 +145,8 @@ func (a Agent) RegisterDappCanisters(arg0 RegisterDappCanistersRequest) (*struct
 // SetDappControllers calls the "set_dapp_controllers" method on the "root" canister.
 func (a Agent) SetDappControllers(arg0 SetDappControllersRequest) (*SetDappControllersResponse, error) {
 	var r0 SetDappControllersResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"set_dapp_controllers",
 		[]any{arg0},
 		[]any{&r0},
