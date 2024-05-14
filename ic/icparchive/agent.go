@@ -12,8 +12,8 @@ type AccountIdentifier = []byte
 
 // Agent is a client for the "icparchive" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "icparchive" canister.
@@ -23,16 +23,16 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // GetBlocks calls the "get_blocks" method on the "icparchive" canister.
 func (a Agent) GetBlocks(arg0 GetBlocksArgs) (*GetBlocksResult, error) {
 	var r0 GetBlocksResult
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_blocks",
 		[]any{arg0},
 		[]any{&r0},
@@ -45,8 +45,8 @@ func (a Agent) GetBlocks(arg0 GetBlocksArgs) (*GetBlocksResult, error) {
 // GetEncodedBlocks calls the "get_encoded_blocks" method on the "icparchive" canister.
 func (a Agent) GetEncodedBlocks(arg0 GetBlocksArgs) (*GetEncodedBlocksResult, error) {
 	var r0 GetEncodedBlocksResult
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_encoded_blocks",
 		[]any{arg0},
 		[]any{&r0},

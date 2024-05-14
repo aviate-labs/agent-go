@@ -15,8 +15,8 @@ type Account struct {
 
 // Agent is a client for the "ledger" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "ledger" canister.
@@ -26,16 +26,16 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // Archives calls the "archives" method on the "ledger" canister.
 func (a Agent) Archives() (*[]ArchiveInfo, error) {
 	var r0 []ArchiveInfo
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"archives",
 		[]any{},
 		[]any{&r0},
@@ -48,8 +48,8 @@ func (a Agent) Archives() (*[]ArchiveInfo, error) {
 // GetBlocks calls the "get_blocks" method on the "ledger" canister.
 func (a Agent) GetBlocks(arg0 GetBlocksArgs) (*GetBlocksResponse, error) {
 	var r0 GetBlocksResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_blocks",
 		[]any{arg0},
 		[]any{&r0},
@@ -62,8 +62,8 @@ func (a Agent) GetBlocks(arg0 GetBlocksArgs) (*GetBlocksResponse, error) {
 // GetDataCertificate calls the "get_data_certificate" method on the "ledger" canister.
 func (a Agent) GetDataCertificate() (*DataCertificate, error) {
 	var r0 DataCertificate
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_data_certificate",
 		[]any{},
 		[]any{&r0},
@@ -76,8 +76,8 @@ func (a Agent) GetDataCertificate() (*DataCertificate, error) {
 // GetTransactions calls the "get_transactions" method on the "ledger" canister.
 func (a Agent) GetTransactions(arg0 GetTransactionsRequest) (*GetTransactionsResponse, error) {
 	var r0 GetTransactionsResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_transactions",
 		[]any{arg0},
 		[]any{&r0},
@@ -90,8 +90,8 @@ func (a Agent) GetTransactions(arg0 GetTransactionsRequest) (*GetTransactionsRes
 // Icrc1BalanceOf calls the "icrc1_balance_of" method on the "ledger" canister.
 func (a Agent) Icrc1BalanceOf(arg0 Account) (*Tokens, error) {
 	var r0 Tokens
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_balance_of",
 		[]any{arg0},
 		[]any{&r0},
@@ -104,8 +104,8 @@ func (a Agent) Icrc1BalanceOf(arg0 Account) (*Tokens, error) {
 // Icrc1Decimals calls the "icrc1_decimals" method on the "ledger" canister.
 func (a Agent) Icrc1Decimals() (*uint8, error) {
 	var r0 uint8
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_decimals",
 		[]any{},
 		[]any{&r0},
@@ -118,8 +118,8 @@ func (a Agent) Icrc1Decimals() (*uint8, error) {
 // Icrc1Fee calls the "icrc1_fee" method on the "ledger" canister.
 func (a Agent) Icrc1Fee() (*Tokens, error) {
 	var r0 Tokens
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_fee",
 		[]any{},
 		[]any{&r0},
@@ -138,8 +138,8 @@ func (a Agent) Icrc1Metadata() (*[]struct {
 		Field0 string        `ic:"0" json:"0"`
 		Field1 MetadataValue `ic:"1" json:"1"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_metadata",
 		[]any{},
 		[]any{&r0},
@@ -152,8 +152,8 @@ func (a Agent) Icrc1Metadata() (*[]struct {
 // Icrc1MintingAccount calls the "icrc1_minting_account" method on the "ledger" canister.
 func (a Agent) Icrc1MintingAccount() (**Account, error) {
 	var r0 *Account
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_minting_account",
 		[]any{},
 		[]any{&r0},
@@ -166,8 +166,8 @@ func (a Agent) Icrc1MintingAccount() (**Account, error) {
 // Icrc1Name calls the "icrc1_name" method on the "ledger" canister.
 func (a Agent) Icrc1Name() (*string, error) {
 	var r0 string
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_name",
 		[]any{},
 		[]any{&r0},
@@ -180,8 +180,8 @@ func (a Agent) Icrc1Name() (*string, error) {
 // Icrc1SupportedStandards calls the "icrc1_supported_standards" method on the "ledger" canister.
 func (a Agent) Icrc1SupportedStandards() (*[]StandardRecord, error) {
 	var r0 []StandardRecord
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_supported_standards",
 		[]any{},
 		[]any{&r0},
@@ -194,8 +194,8 @@ func (a Agent) Icrc1SupportedStandards() (*[]StandardRecord, error) {
 // Icrc1Symbol calls the "icrc1_symbol" method on the "ledger" canister.
 func (a Agent) Icrc1Symbol() (*string, error) {
 	var r0 string
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_symbol",
 		[]any{},
 		[]any{&r0},
@@ -208,8 +208,8 @@ func (a Agent) Icrc1Symbol() (*string, error) {
 // Icrc1TotalSupply calls the "icrc1_total_supply" method on the "ledger" canister.
 func (a Agent) Icrc1TotalSupply() (*Tokens, error) {
 	var r0 Tokens
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_total_supply",
 		[]any{},
 		[]any{&r0},
@@ -222,8 +222,8 @@ func (a Agent) Icrc1TotalSupply() (*Tokens, error) {
 // Icrc1Transfer calls the "icrc1_transfer" method on the "ledger" canister.
 func (a Agent) Icrc1Transfer(arg0 TransferArg) (*TransferResult, error) {
 	var r0 TransferResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"icrc1_transfer",
 		[]any{arg0},
 		[]any{&r0},
@@ -236,8 +236,8 @@ func (a Agent) Icrc1Transfer(arg0 TransferArg) (*TransferResult, error) {
 // Icrc2Allowance calls the "icrc2_allowance" method on the "ledger" canister.
 func (a Agent) Icrc2Allowance(arg0 AllowanceArgs) (*Allowance, error) {
 	var r0 Allowance
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc2_allowance",
 		[]any{arg0},
 		[]any{&r0},
@@ -250,8 +250,8 @@ func (a Agent) Icrc2Allowance(arg0 AllowanceArgs) (*Allowance, error) {
 // Icrc2Approve calls the "icrc2_approve" method on the "ledger" canister.
 func (a Agent) Icrc2Approve(arg0 ApproveArgs) (*ApproveResult, error) {
 	var r0 ApproveResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"icrc2_approve",
 		[]any{arg0},
 		[]any{&r0},
@@ -264,8 +264,8 @@ func (a Agent) Icrc2Approve(arg0 ApproveArgs) (*ApproveResult, error) {
 // Icrc2TransferFrom calls the "icrc2_transfer_from" method on the "ledger" canister.
 func (a Agent) Icrc2TransferFrom(arg0 TransferFromArgs) (*TransferFromResult, error) {
 	var r0 TransferFromResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"icrc2_transfer_from",
 		[]any{arg0},
 		[]any{&r0},
@@ -278,8 +278,8 @@ func (a Agent) Icrc2TransferFrom(arg0 TransferFromArgs) (*TransferFromResult, er
 // Icrc3GetArchives calls the "icrc3_get_archives" method on the "ledger" canister.
 func (a Agent) Icrc3GetArchives(arg0 GetArchivesArgs) (*GetArchivesResult, error) {
 	var r0 GetArchivesResult
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc3_get_archives",
 		[]any{arg0},
 		[]any{&r0},
@@ -292,8 +292,8 @@ func (a Agent) Icrc3GetArchives(arg0 GetArchivesArgs) (*GetArchivesResult, error
 // Icrc3GetBlocks calls the "icrc3_get_blocks" method on the "ledger" canister.
 func (a Agent) Icrc3GetBlocks(arg0 []GetBlocksArgs) (*GetBlocksResult, error) {
 	var r0 GetBlocksResult
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc3_get_blocks",
 		[]any{arg0},
 		[]any{&r0},
@@ -306,8 +306,8 @@ func (a Agent) Icrc3GetBlocks(arg0 []GetBlocksArgs) (*GetBlocksResult, error) {
 // Icrc3GetTipCertificate calls the "icrc3_get_tip_certificate" method on the "ledger" canister.
 func (a Agent) Icrc3GetTipCertificate() (**ICRC3DataCertificate, error) {
 	var r0 *ICRC3DataCertificate
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc3_get_tip_certificate",
 		[]any{},
 		[]any{&r0},
@@ -326,8 +326,8 @@ func (a Agent) Icrc3SupportedBlockTypes() (*[]struct {
 		BlockType string `ic:"block_type" json:"block_type"`
 		Url       string `ic:"url" json:"url"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc3_supported_block_types",
 		[]any{},
 		[]any{&r0},

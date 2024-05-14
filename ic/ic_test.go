@@ -103,6 +103,24 @@ func TestModules(t *testing.T) {
 			t.Error(err)
 		}
 
+		{ // Do the same manually.
+			if err := a.Call(
+				a.CanisterId,
+				"update_settings",
+				[]any{map[string]any{
+					"canister_id": *canisterID,
+					"settings": map[string]any{
+						"controllers": &[]principal.Principal{
+							principal.AnonymousID,
+						},
+					},
+				}},
+				[]any{},
+			); err != nil {
+				t.Error(err)
+			}
+		}
+
 		t.Run("empty canister", func(t *testing.T) {
 			a, err := agent.New(config)
 			if err != nil {

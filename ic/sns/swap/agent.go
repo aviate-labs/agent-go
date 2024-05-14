@@ -10,8 +10,8 @@ import (
 
 // Agent is a client for the "swap" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "swap" canister.
@@ -21,16 +21,16 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // ErrorRefundIcp calls the "error_refund_icp" method on the "swap" canister.
 func (a Agent) ErrorRefundIcp(arg0 ErrorRefundIcpRequest) (*ErrorRefundIcpResponse, error) {
 	var r0 ErrorRefundIcpResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"error_refund_icp",
 		[]any{arg0},
 		[]any{&r0},
@@ -44,8 +44,8 @@ func (a Agent) ErrorRefundIcp(arg0 ErrorRefundIcpRequest) (*ErrorRefundIcpRespon
 func (a Agent) FinalizeSwap(arg0 struct {
 }) (*FinalizeSwapResponse, error) {
 	var r0 FinalizeSwapResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"finalize_swap",
 		[]any{arg0},
 		[]any{&r0},
@@ -59,8 +59,8 @@ func (a Agent) FinalizeSwap(arg0 struct {
 func (a Agent) GetAutoFinalizationStatus(arg0 struct {
 }) (*GetAutoFinalizationStatusResponse, error) {
 	var r0 GetAutoFinalizationStatusResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_auto_finalization_status",
 		[]any{arg0},
 		[]any{&r0},
@@ -73,8 +73,8 @@ func (a Agent) GetAutoFinalizationStatus(arg0 struct {
 // GetBuyerState calls the "get_buyer_state" method on the "swap" canister.
 func (a Agent) GetBuyerState(arg0 GetBuyerStateRequest) (*GetBuyerStateResponse, error) {
 	var r0 GetBuyerStateResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_buyer_state",
 		[]any{arg0},
 		[]any{&r0},
@@ -88,8 +88,8 @@ func (a Agent) GetBuyerState(arg0 GetBuyerStateRequest) (*GetBuyerStateResponse,
 func (a Agent) GetBuyersTotal(arg0 struct {
 }) (*GetBuyersTotalResponse, error) {
 	var r0 GetBuyersTotalResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"get_buyers_total",
 		[]any{arg0},
 		[]any{&r0},
@@ -103,8 +103,8 @@ func (a Agent) GetBuyersTotal(arg0 struct {
 func (a Agent) GetCanisterStatus(arg0 struct {
 }) (*CanisterStatusResultV2, error) {
 	var r0 CanisterStatusResultV2
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"get_canister_status",
 		[]any{arg0},
 		[]any{&r0},
@@ -118,8 +118,8 @@ func (a Agent) GetCanisterStatus(arg0 struct {
 func (a Agent) GetDerivedState(arg0 struct {
 }) (*GetDerivedStateResponse, error) {
 	var r0 GetDerivedStateResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_derived_state",
 		[]any{arg0},
 		[]any{&r0},
@@ -133,8 +133,8 @@ func (a Agent) GetDerivedState(arg0 struct {
 func (a Agent) GetInit(arg0 struct {
 }) (*GetInitResponse, error) {
 	var r0 GetInitResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_init",
 		[]any{arg0},
 		[]any{&r0},
@@ -148,8 +148,8 @@ func (a Agent) GetInit(arg0 struct {
 func (a Agent) GetLifecycle(arg0 struct {
 }) (*GetLifecycleResponse, error) {
 	var r0 GetLifecycleResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_lifecycle",
 		[]any{arg0},
 		[]any{&r0},
@@ -163,8 +163,8 @@ func (a Agent) GetLifecycle(arg0 struct {
 func (a Agent) GetOpenTicket(arg0 struct {
 }) (*GetOpenTicketResponse, error) {
 	var r0 GetOpenTicketResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_open_ticket",
 		[]any{arg0},
 		[]any{&r0},
@@ -178,8 +178,8 @@ func (a Agent) GetOpenTicket(arg0 struct {
 func (a Agent) GetSaleParameters(arg0 struct {
 }) (*GetSaleParametersResponse, error) {
 	var r0 GetSaleParametersResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_sale_parameters",
 		[]any{arg0},
 		[]any{&r0},
@@ -193,8 +193,8 @@ func (a Agent) GetSaleParameters(arg0 struct {
 func (a Agent) GetState(arg0 struct {
 }) (*GetStateResponse, error) {
 	var r0 GetStateResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_state",
 		[]any{arg0},
 		[]any{&r0},
@@ -207,8 +207,8 @@ func (a Agent) GetState(arg0 struct {
 // ListCommunityFundParticipants calls the "list_community_fund_participants" method on the "swap" canister.
 func (a Agent) ListCommunityFundParticipants(arg0 ListCommunityFundParticipantsRequest) (*NeuronsFundParticipants, error) {
 	var r0 NeuronsFundParticipants
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"list_community_fund_participants",
 		[]any{arg0},
 		[]any{&r0},
@@ -221,8 +221,8 @@ func (a Agent) ListCommunityFundParticipants(arg0 ListCommunityFundParticipantsR
 // ListDirectParticipants calls the "list_direct_participants" method on the "swap" canister.
 func (a Agent) ListDirectParticipants(arg0 ListDirectParticipantsRequest) (*ListDirectParticipantsResponse, error) {
 	var r0 ListDirectParticipantsResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"list_direct_participants",
 		[]any{arg0},
 		[]any{&r0},
@@ -235,8 +235,8 @@ func (a Agent) ListDirectParticipants(arg0 ListDirectParticipantsRequest) (*List
 // ListSnsNeuronRecipes calls the "list_sns_neuron_recipes" method on the "swap" canister.
 func (a Agent) ListSnsNeuronRecipes(arg0 ListSnsNeuronRecipesRequest) (*ListSnsNeuronRecipesResponse, error) {
 	var r0 ListSnsNeuronRecipesResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"list_sns_neuron_recipes",
 		[]any{arg0},
 		[]any{&r0},
@@ -249,8 +249,8 @@ func (a Agent) ListSnsNeuronRecipes(arg0 ListSnsNeuronRecipesRequest) (*ListSnsN
 // NewSaleTicket calls the "new_sale_ticket" method on the "swap" canister.
 func (a Agent) NewSaleTicket(arg0 NewSaleTicketRequest) (*NewSaleTicketResponse, error) {
 	var r0 NewSaleTicketResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"new_sale_ticket",
 		[]any{arg0},
 		[]any{&r0},
@@ -264,8 +264,8 @@ func (a Agent) NewSaleTicket(arg0 NewSaleTicketRequest) (*NewSaleTicketResponse,
 func (a Agent) NotifyPaymentFailure(arg0 struct {
 }) (*Ok2, error) {
 	var r0 Ok2
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"notify_payment_failure",
 		[]any{arg0},
 		[]any{&r0},
@@ -280,8 +280,8 @@ func (a Agent) Open(arg0 OpenRequest) (*struct {
 }, error) {
 	var r0 struct {
 	}
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"open",
 		[]any{arg0},
 		[]any{&r0},
@@ -294,8 +294,8 @@ func (a Agent) Open(arg0 OpenRequest) (*struct {
 // RefreshBuyerTokens calls the "refresh_buyer_tokens" method on the "swap" canister.
 func (a Agent) RefreshBuyerTokens(arg0 RefreshBuyerTokensRequest) (*RefreshBuyerTokensResponse, error) {
 	var r0 RefreshBuyerTokensResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"refresh_buyer_tokens",
 		[]any{arg0},
 		[]any{&r0},
@@ -309,8 +309,8 @@ func (a Agent) RefreshBuyerTokens(arg0 RefreshBuyerTokensRequest) (*RefreshBuyer
 func (a Agent) RestoreDappControllers(arg0 struct {
 }) (*SetDappControllersCallResult, error) {
 	var r0 SetDappControllersCallResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"restore_dapp_controllers",
 		[]any{arg0},
 		[]any{&r0},

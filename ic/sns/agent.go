@@ -19,8 +19,8 @@ type AddWasmResponse struct {
 
 // Agent is a client for the "sns" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "sns" canister.
@@ -30,16 +30,16 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // AddWasm calls the "add_wasm" method on the "sns" canister.
 func (a Agent) AddWasm(arg0 AddWasmRequest) (*AddWasmResponse, error) {
 	var r0 AddWasmResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"add_wasm",
 		[]any{arg0},
 		[]any{&r0},
@@ -52,8 +52,8 @@ func (a Agent) AddWasm(arg0 AddWasmRequest) (*AddWasmResponse, error) {
 // DeployNewSns calls the "deploy_new_sns" method on the "sns" canister.
 func (a Agent) DeployNewSns(arg0 DeployNewSnsRequest) (*DeployNewSnsResponse, error) {
 	var r0 DeployNewSnsResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"deploy_new_sns",
 		[]any{arg0},
 		[]any{&r0},
@@ -67,8 +67,8 @@ func (a Agent) DeployNewSns(arg0 DeployNewSnsRequest) (*DeployNewSnsResponse, er
 func (a Agent) GetAllowedPrincipals(arg0 struct {
 }) (*GetAllowedPrincipalsResponse, error) {
 	var r0 GetAllowedPrincipalsResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_allowed_principals",
 		[]any{arg0},
 		[]any{&r0},
@@ -81,8 +81,8 @@ func (a Agent) GetAllowedPrincipals(arg0 struct {
 // GetDeployedSnsByProposalId calls the "get_deployed_sns_by_proposal_id" method on the "sns" canister.
 func (a Agent) GetDeployedSnsByProposalId(arg0 GetDeployedSnsByProposalIdRequest) (*GetDeployedSnsByProposalIdResponse, error) {
 	var r0 GetDeployedSnsByProposalIdResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_deployed_sns_by_proposal_id",
 		[]any{arg0},
 		[]any{&r0},
@@ -101,8 +101,8 @@ func (a Agent) GetLatestSnsVersionPretty(arg0 idl.Null) (*[]struct {
 		Field0 string `ic:"0" json:"0"`
 		Field1 string `ic:"1" json:"1"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_latest_sns_version_pretty",
 		[]any{arg0},
 		[]any{&r0},
@@ -115,8 +115,8 @@ func (a Agent) GetLatestSnsVersionPretty(arg0 idl.Null) (*[]struct {
 // GetNextSnsVersion calls the "get_next_sns_version" method on the "sns" canister.
 func (a Agent) GetNextSnsVersion(arg0 GetNextSnsVersionRequest) (*GetNextSnsVersionResponse, error) {
 	var r0 GetNextSnsVersionResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_next_sns_version",
 		[]any{arg0},
 		[]any{&r0},
@@ -130,8 +130,8 @@ func (a Agent) GetNextSnsVersion(arg0 GetNextSnsVersionRequest) (*GetNextSnsVers
 func (a Agent) GetSnsSubnetIds(arg0 struct {
 }) (*GetSnsSubnetIdsResponse, error) {
 	var r0 GetSnsSubnetIdsResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_sns_subnet_ids",
 		[]any{arg0},
 		[]any{&r0},
@@ -144,8 +144,8 @@ func (a Agent) GetSnsSubnetIds(arg0 struct {
 // GetWasm calls the "get_wasm" method on the "sns" canister.
 func (a Agent) GetWasm(arg0 GetWasmRequest) (*GetWasmResponse, error) {
 	var r0 GetWasmResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_wasm",
 		[]any{arg0},
 		[]any{&r0},
@@ -158,8 +158,8 @@ func (a Agent) GetWasm(arg0 GetWasmRequest) (*GetWasmResponse, error) {
 // GetWasmMetadata calls the "get_wasm_metadata" method on the "sns" canister.
 func (a Agent) GetWasmMetadata(arg0 GetWasmMetadataRequest) (*GetWasmMetadataResponse, error) {
 	var r0 GetWasmMetadataResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_wasm_metadata",
 		[]any{arg0},
 		[]any{&r0},
@@ -172,8 +172,8 @@ func (a Agent) GetWasmMetadata(arg0 GetWasmMetadataRequest) (*GetWasmMetadataRes
 // InsertUpgradePathEntries calls the "insert_upgrade_path_entries" method on the "sns" canister.
 func (a Agent) InsertUpgradePathEntries(arg0 InsertUpgradePathEntriesRequest) (*InsertUpgradePathEntriesResponse, error) {
 	var r0 InsertUpgradePathEntriesResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"insert_upgrade_path_entries",
 		[]any{arg0},
 		[]any{&r0},
@@ -187,8 +187,8 @@ func (a Agent) InsertUpgradePathEntries(arg0 InsertUpgradePathEntriesRequest) (*
 func (a Agent) ListDeployedSnses(arg0 struct {
 }) (*ListDeployedSnsesResponse, error) {
 	var r0 ListDeployedSnsesResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"list_deployed_snses",
 		[]any{arg0},
 		[]any{&r0},
@@ -201,8 +201,8 @@ func (a Agent) ListDeployedSnses(arg0 struct {
 // ListUpgradeSteps calls the "list_upgrade_steps" method on the "sns" canister.
 func (a Agent) ListUpgradeSteps(arg0 ListUpgradeStepsRequest) (*ListUpgradeStepsResponse, error) {
 	var r0 ListUpgradeStepsResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"list_upgrade_steps",
 		[]any{arg0},
 		[]any{&r0},
@@ -215,8 +215,8 @@ func (a Agent) ListUpgradeSteps(arg0 ListUpgradeStepsRequest) (*ListUpgradeSteps
 // UpdateAllowedPrincipals calls the "update_allowed_principals" method on the "sns" canister.
 func (a Agent) UpdateAllowedPrincipals(arg0 UpdateAllowedPrincipalsRequest) (*UpdateAllowedPrincipalsResponse, error) {
 	var r0 UpdateAllowedPrincipalsResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"update_allowed_principals",
 		[]any{arg0},
 		[]any{&r0},
@@ -229,8 +229,8 @@ func (a Agent) UpdateAllowedPrincipals(arg0 UpdateAllowedPrincipalsRequest) (*Up
 // UpdateSnsSubnetList calls the "update_sns_subnet_list" method on the "sns" canister.
 func (a Agent) UpdateSnsSubnetList(arg0 UpdateSnsSubnetListRequest) (*UpdateSnsSubnetListResponse, error) {
 	var r0 UpdateSnsSubnetListResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"update_sns_subnet_list",
 		[]any{arg0},
 		[]any{&r0},

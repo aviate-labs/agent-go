@@ -10,8 +10,8 @@ import (
 
 // Agent is a client for the "governance" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "governance" canister.
@@ -21,16 +21,16 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // ApiVersion calls the "api_version" method on the "governance" canister.
 func (a Agent) ApiVersion() (*uint16, error) {
 	var r0 uint16
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"api_version",
 		[]any{},
 		[]any{&r0},
@@ -42,8 +42,8 @@ func (a Agent) ApiVersion() (*uint16, error) {
 
 // Authorize calls the "authorize" method on the "governance" canister.
 func (a Agent) Authorize(arg0 principal.Principal) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"authorize",
 		[]any{arg0},
 		[]any{},
@@ -63,8 +63,8 @@ func (a Agent) CertifiedTree(arg0 struct {
 		Certificate []byte `ic:"certificate" json:"certificate"`
 		Tree        []byte `ic:"tree" json:"tree"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"certified_tree",
 		[]any{arg0},
 		[]any{&r0},
@@ -76,8 +76,8 @@ func (a Agent) CertifiedTree(arg0 struct {
 
 // Clear calls the "clear" method on the "governance" canister.
 func (a Agent) Clear(arg0 ClearArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"clear",
 		[]any{arg0},
 		[]any{},
@@ -89,8 +89,8 @@ func (a Agent) Clear(arg0 ClearArguments) error {
 
 // CommitBatch calls the "commit_batch" method on the "governance" canister.
 func (a Agent) CommitBatch(arg0 CommitBatchArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"commit_batch",
 		[]any{arg0},
 		[]any{},
@@ -102,8 +102,8 @@ func (a Agent) CommitBatch(arg0 CommitBatchArguments) error {
 
 // CommitProposedBatch calls the "commit_proposed_batch" method on the "governance" canister.
 func (a Agent) CommitProposedBatch(arg0 CommitProposedBatchArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"commit_proposed_batch",
 		[]any{arg0},
 		[]any{},
@@ -116,8 +116,8 @@ func (a Agent) CommitProposedBatch(arg0 CommitProposedBatchArguments) error {
 // ComputeEvidence calls the "compute_evidence" method on the "governance" canister.
 func (a Agent) ComputeEvidence(arg0 ComputeEvidenceArguments) (**[]byte, error) {
 	var r0 *[]byte
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"compute_evidence",
 		[]any{arg0},
 		[]any{&r0},
@@ -129,8 +129,8 @@ func (a Agent) ComputeEvidence(arg0 ComputeEvidenceArguments) (**[]byte, error) 
 
 // Configure calls the "configure" method on the "governance" canister.
 func (a Agent) Configure(arg0 ConfigureArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"configure",
 		[]any{arg0},
 		[]any{},
@@ -142,8 +142,8 @@ func (a Agent) Configure(arg0 ConfigureArguments) error {
 
 // CreateAsset calls the "create_asset" method on the "governance" canister.
 func (a Agent) CreateAsset(arg0 CreateAssetArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"create_asset",
 		[]any{arg0},
 		[]any{},
@@ -161,8 +161,8 @@ func (a Agent) CreateBatch(arg0 struct {
 	var r0 struct {
 		BatchId BatchId `ic:"batch_id" json:"batch_id"`
 	}
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"create_batch",
 		[]any{arg0},
 		[]any{&r0},
@@ -182,8 +182,8 @@ func (a Agent) CreateChunk(arg0 struct {
 	var r0 struct {
 		ChunkId ChunkId `ic:"chunk_id" json:"chunk_id"`
 	}
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"create_chunk",
 		[]any{arg0},
 		[]any{&r0},
@@ -195,8 +195,8 @@ func (a Agent) CreateChunk(arg0 struct {
 
 // Deauthorize calls the "deauthorize" method on the "governance" canister.
 func (a Agent) Deauthorize(arg0 principal.Principal) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"deauthorize",
 		[]any{arg0},
 		[]any{},
@@ -208,8 +208,8 @@ func (a Agent) Deauthorize(arg0 principal.Principal) error {
 
 // DeleteAsset calls the "delete_asset" method on the "governance" canister.
 func (a Agent) DeleteAsset(arg0 DeleteAssetArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"delete_asset",
 		[]any{arg0},
 		[]any{},
@@ -221,8 +221,8 @@ func (a Agent) DeleteAsset(arg0 DeleteAssetArguments) error {
 
 // DeleteBatch calls the "delete_batch" method on the "governance" canister.
 func (a Agent) DeleteBatch(arg0 DeleteBatchArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"delete_batch",
 		[]any{arg0},
 		[]any{},
@@ -250,8 +250,8 @@ func (a Agent) Get(arg0 struct {
 		Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
 		TotalLength     idl.Nat `ic:"total_length" json:"total_length"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get",
 		[]any{arg0},
 		[]any{&r0},
@@ -274,8 +274,8 @@ func (a Agent) GetAssetProperties(key Key) (*struct {
 		AllowRawAccess *bool          `ic:"allow_raw_access,omitempty" json:"allow_raw_access,omitempty"`
 		IsAliased      *bool          `ic:"is_aliased,omitempty" json:"is_aliased,omitempty"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_asset_properties",
 		[]any{key},
 		[]any{&r0},
@@ -297,8 +297,8 @@ func (a Agent) GetChunk(arg0 struct {
 	var r0 struct {
 		Content []byte `ic:"content" json:"content"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_chunk",
 		[]any{arg0},
 		[]any{&r0},
@@ -311,8 +311,8 @@ func (a Agent) GetChunk(arg0 struct {
 // GetConfiguration calls the "get_configuration" method on the "governance" canister.
 func (a Agent) GetConfiguration() (*ConfigurationResponse, error) {
 	var r0 ConfigurationResponse
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"get_configuration",
 		[]any{},
 		[]any{&r0},
@@ -324,8 +324,8 @@ func (a Agent) GetConfiguration() (*ConfigurationResponse, error) {
 
 // GrantPermission calls the "grant_permission" method on the "governance" canister.
 func (a Agent) GrantPermission(arg0 GrantPermission) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"grant_permission",
 		[]any{arg0},
 		[]any{},
@@ -338,8 +338,8 @@ func (a Agent) GrantPermission(arg0 GrantPermission) error {
 // HttpRequest calls the "http_request" method on the "governance" canister.
 func (a Agent) HttpRequest(request HttpRequest) (*HttpResponse, error) {
 	var r0 HttpResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"http_request",
 		[]any{request},
 		[]any{&r0},
@@ -352,8 +352,8 @@ func (a Agent) HttpRequest(request HttpRequest) (*HttpResponse, error) {
 // HttpRequestStreamingCallback calls the "http_request_streaming_callback" method on the "governance" canister.
 func (a Agent) HttpRequestStreamingCallback(token StreamingCallbackToken) (**StreamingCallbackHttpResponse, error) {
 	var r0 *StreamingCallbackHttpResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"http_request_streaming_callback",
 		[]any{token},
 		[]any{&r0},
@@ -385,8 +385,8 @@ func (a Agent) List(arg0 struct {
 			Modified        Time    `ic:"modified" json:"modified"`
 		} `ic:"encodings" json:"encodings"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"list",
 		[]any{arg0},
 		[]any{&r0},
@@ -399,8 +399,8 @@ func (a Agent) List(arg0 struct {
 // ListAuthorized calls the "list_authorized" method on the "governance" canister.
 func (a Agent) ListAuthorized() (*[]principal.Principal, error) {
 	var r0 []principal.Principal
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"list_authorized",
 		[]any{},
 		[]any{&r0},
@@ -413,8 +413,8 @@ func (a Agent) ListAuthorized() (*[]principal.Principal, error) {
 // ListPermitted calls the "list_permitted" method on the "governance" canister.
 func (a Agent) ListPermitted(arg0 ListPermitted) (*[]principal.Principal, error) {
 	var r0 []principal.Principal
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"list_permitted",
 		[]any{arg0},
 		[]any{&r0},
@@ -426,8 +426,8 @@ func (a Agent) ListPermitted(arg0 ListPermitted) (*[]principal.Principal, error)
 
 // ProposeCommitBatch calls the "propose_commit_batch" method on the "governance" canister.
 func (a Agent) ProposeCommitBatch(arg0 CommitBatchArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"propose_commit_batch",
 		[]any{arg0},
 		[]any{},
@@ -439,8 +439,8 @@ func (a Agent) ProposeCommitBatch(arg0 CommitBatchArguments) error {
 
 // RevokePermission calls the "revoke_permission" method on the "governance" canister.
 func (a Agent) RevokePermission(arg0 RevokePermission) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"revoke_permission",
 		[]any{arg0},
 		[]any{},
@@ -452,8 +452,8 @@ func (a Agent) RevokePermission(arg0 RevokePermission) error {
 
 // SetAssetContent calls the "set_asset_content" method on the "governance" canister.
 func (a Agent) SetAssetContent(arg0 SetAssetContentArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"set_asset_content",
 		[]any{arg0},
 		[]any{},
@@ -465,8 +465,8 @@ func (a Agent) SetAssetContent(arg0 SetAssetContentArguments) error {
 
 // SetAssetProperties calls the "set_asset_properties" method on the "governance" canister.
 func (a Agent) SetAssetProperties(arg0 SetAssetPropertiesArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"set_asset_properties",
 		[]any{arg0},
 		[]any{},
@@ -484,8 +484,8 @@ func (a Agent) Store(arg0 struct {
 	Content         []byte  `ic:"content" json:"content"`
 	Sha256          *[]byte `ic:"sha256,omitempty" json:"sha256,omitempty"`
 }) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"store",
 		[]any{arg0},
 		[]any{},
@@ -497,8 +497,8 @@ func (a Agent) Store(arg0 struct {
 
 // TakeOwnership calls the "take_ownership" method on the "governance" canister.
 func (a Agent) TakeOwnership() error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"take_ownership",
 		[]any{},
 		[]any{},
@@ -510,8 +510,8 @@ func (a Agent) TakeOwnership() error {
 
 // UnsetAssetContent calls the "unset_asset_content" method on the "governance" canister.
 func (a Agent) UnsetAssetContent(arg0 UnsetAssetContentArguments) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"unset_asset_content",
 		[]any{arg0},
 		[]any{},
@@ -524,8 +524,8 @@ func (a Agent) UnsetAssetContent(arg0 UnsetAssetContentArguments) error {
 // ValidateCommitProposedBatch calls the "validate_commit_proposed_batch" method on the "governance" canister.
 func (a Agent) ValidateCommitProposedBatch(arg0 CommitProposedBatchArguments) (*ValidationResult, error) {
 	var r0 ValidationResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"validate_commit_proposed_batch",
 		[]any{arg0},
 		[]any{&r0},
@@ -538,8 +538,8 @@ func (a Agent) ValidateCommitProposedBatch(arg0 CommitProposedBatchArguments) (*
 // ValidateConfigure calls the "validate_configure" method on the "governance" canister.
 func (a Agent) ValidateConfigure(arg0 ConfigureArguments) (*ValidationResult, error) {
 	var r0 ValidationResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"validate_configure",
 		[]any{arg0},
 		[]any{&r0},
@@ -552,8 +552,8 @@ func (a Agent) ValidateConfigure(arg0 ConfigureArguments) (*ValidationResult, er
 // ValidateGrantPermission calls the "validate_grant_permission" method on the "governance" canister.
 func (a Agent) ValidateGrantPermission(arg0 GrantPermission) (*ValidationResult, error) {
 	var r0 ValidationResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"validate_grant_permission",
 		[]any{arg0},
 		[]any{&r0},
@@ -566,8 +566,8 @@ func (a Agent) ValidateGrantPermission(arg0 GrantPermission) (*ValidationResult,
 // ValidateRevokePermission calls the "validate_revoke_permission" method on the "governance" canister.
 func (a Agent) ValidateRevokePermission(arg0 RevokePermission) (*ValidationResult, error) {
 	var r0 ValidationResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"validate_revoke_permission",
 		[]any{arg0},
 		[]any{&r0},
@@ -580,8 +580,8 @@ func (a Agent) ValidateRevokePermission(arg0 RevokePermission) (*ValidationResul
 // ValidateTakeOwnership calls the "validate_take_ownership" method on the "governance" canister.
 func (a Agent) ValidateTakeOwnership() (*ValidationResult, error) {
 	var r0 ValidationResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"validate_take_ownership",
 		[]any{},
 		[]any{&r0},

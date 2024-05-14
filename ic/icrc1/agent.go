@@ -15,8 +15,8 @@ type Account struct {
 
 // Agent is a client for the "icrc1" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "icrc1" canister.
@@ -26,16 +26,16 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // Icrc1BalanceOf calls the "icrc1_balance_of" method on the "icrc1" canister.
 func (a Agent) Icrc1BalanceOf(arg0 Account) (*idl.Nat, error) {
 	var r0 idl.Nat
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_balance_of",
 		[]any{arg0},
 		[]any{&r0},
@@ -48,8 +48,8 @@ func (a Agent) Icrc1BalanceOf(arg0 Account) (*idl.Nat, error) {
 // Icrc1Decimals calls the "icrc1_decimals" method on the "icrc1" canister.
 func (a Agent) Icrc1Decimals() (*uint8, error) {
 	var r0 uint8
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_decimals",
 		[]any{},
 		[]any{&r0},
@@ -62,8 +62,8 @@ func (a Agent) Icrc1Decimals() (*uint8, error) {
 // Icrc1Fee calls the "icrc1_fee" method on the "icrc1" canister.
 func (a Agent) Icrc1Fee() (*idl.Nat, error) {
 	var r0 idl.Nat
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_fee",
 		[]any{},
 		[]any{&r0},
@@ -82,8 +82,8 @@ func (a Agent) Icrc1Metadata() (*[]struct {
 		Field0 string `ic:"0" json:"0"`
 		Field1 Value  `ic:"1" json:"1"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_metadata",
 		[]any{},
 		[]any{&r0},
@@ -96,8 +96,8 @@ func (a Agent) Icrc1Metadata() (*[]struct {
 // Icrc1MintingAccount calls the "icrc1_minting_account" method on the "icrc1" canister.
 func (a Agent) Icrc1MintingAccount() (**Account, error) {
 	var r0 *Account
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_minting_account",
 		[]any{},
 		[]any{&r0},
@@ -110,8 +110,8 @@ func (a Agent) Icrc1MintingAccount() (**Account, error) {
 // Icrc1Name calls the "icrc1_name" method on the "icrc1" canister.
 func (a Agent) Icrc1Name() (*string, error) {
 	var r0 string
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_name",
 		[]any{},
 		[]any{&r0},
@@ -130,8 +130,8 @@ func (a Agent) Icrc1SupportedStandards() (*[]struct {
 		Name string `ic:"name" json:"name"`
 		Url  string `ic:"url" json:"url"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_supported_standards",
 		[]any{},
 		[]any{&r0},
@@ -144,8 +144,8 @@ func (a Agent) Icrc1SupportedStandards() (*[]struct {
 // Icrc1Symbol calls the "icrc1_symbol" method on the "icrc1" canister.
 func (a Agent) Icrc1Symbol() (*string, error) {
 	var r0 string
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_symbol",
 		[]any{},
 		[]any{&r0},
@@ -158,8 +158,8 @@ func (a Agent) Icrc1Symbol() (*string, error) {
 // Icrc1TotalSupply calls the "icrc1_total_supply" method on the "icrc1" canister.
 func (a Agent) Icrc1TotalSupply() (*idl.Nat, error) {
 	var r0 idl.Nat
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_total_supply",
 		[]any{},
 		[]any{&r0},
@@ -178,8 +178,8 @@ func (a Agent) Icrc1Transfer(arg0 TransferArgs) (*struct {
 		Ok  *idl.Nat       `ic:"Ok,variant"`
 		Err *TransferError `ic:"Err,variant"`
 	}
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"icrc1_transfer",
 		[]any{arg0},
 		[]any{&r0},

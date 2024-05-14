@@ -25,8 +25,8 @@ type AccountIdentifier = []byte
 
 // Agent is a client for the "icpledger" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "icpledger" canister.
@@ -36,16 +36,16 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // AccountBalance calls the "account_balance" method on the "icpledger" canister.
 func (a Agent) AccountBalance(arg0 AccountBalanceArgs) (*Tokens, error) {
 	var r0 Tokens
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"account_balance",
 		[]any{arg0},
 		[]any{&r0},
@@ -58,8 +58,8 @@ func (a Agent) AccountBalance(arg0 AccountBalanceArgs) (*Tokens, error) {
 // AccountBalanceDfx calls the "account_balance_dfx" method on the "icpledger" canister.
 func (a Agent) AccountBalanceDfx(arg0 AccountBalanceArgsDfx) (*Tokens, error) {
 	var r0 Tokens
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"account_balance_dfx",
 		[]any{arg0},
 		[]any{&r0},
@@ -72,8 +72,8 @@ func (a Agent) AccountBalanceDfx(arg0 AccountBalanceArgsDfx) (*Tokens, error) {
 // AccountIdentifier calls the "account_identifier" method on the "icpledger" canister.
 func (a Agent) AccountIdentifier(arg0 Account) (*AccountIdentifier, error) {
 	var r0 AccountIdentifier
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"account_identifier",
 		[]any{arg0},
 		[]any{&r0},
@@ -86,8 +86,8 @@ func (a Agent) AccountIdentifier(arg0 Account) (*AccountIdentifier, error) {
 // Archives calls the "archives" method on the "icpledger" canister.
 func (a Agent) Archives() (*Archives, error) {
 	var r0 Archives
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"archives",
 		[]any{},
 		[]any{&r0},
@@ -104,8 +104,8 @@ func (a Agent) Decimals() (*struct {
 	var r0 struct {
 		Decimals uint32 `ic:"decimals" json:"decimals"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"decimals",
 		[]any{},
 		[]any{&r0},
@@ -118,8 +118,8 @@ func (a Agent) Decimals() (*struct {
 // Icrc1BalanceOf calls the "icrc1_balance_of" method on the "icpledger" canister.
 func (a Agent) Icrc1BalanceOf(arg0 Account) (*Icrc1Tokens, error) {
 	var r0 Icrc1Tokens
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_balance_of",
 		[]any{arg0},
 		[]any{&r0},
@@ -132,8 +132,8 @@ func (a Agent) Icrc1BalanceOf(arg0 Account) (*Icrc1Tokens, error) {
 // Icrc1Decimals calls the "icrc1_decimals" method on the "icpledger" canister.
 func (a Agent) Icrc1Decimals() (*uint8, error) {
 	var r0 uint8
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_decimals",
 		[]any{},
 		[]any{&r0},
@@ -146,8 +146,8 @@ func (a Agent) Icrc1Decimals() (*uint8, error) {
 // Icrc1Fee calls the "icrc1_fee" method on the "icpledger" canister.
 func (a Agent) Icrc1Fee() (*Icrc1Tokens, error) {
 	var r0 Icrc1Tokens
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_fee",
 		[]any{},
 		[]any{&r0},
@@ -166,8 +166,8 @@ func (a Agent) Icrc1Metadata() (*[]struct {
 		Field0 string `ic:"0" json:"0"`
 		Field1 Value  `ic:"1" json:"1"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_metadata",
 		[]any{},
 		[]any{&r0},
@@ -180,8 +180,8 @@ func (a Agent) Icrc1Metadata() (*[]struct {
 // Icrc1MintingAccount calls the "icrc1_minting_account" method on the "icpledger" canister.
 func (a Agent) Icrc1MintingAccount() (**Account, error) {
 	var r0 *Account
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_minting_account",
 		[]any{},
 		[]any{&r0},
@@ -194,8 +194,8 @@ func (a Agent) Icrc1MintingAccount() (**Account, error) {
 // Icrc1Name calls the "icrc1_name" method on the "icpledger" canister.
 func (a Agent) Icrc1Name() (*string, error) {
 	var r0 string
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_name",
 		[]any{},
 		[]any{&r0},
@@ -214,8 +214,8 @@ func (a Agent) Icrc1SupportedStandards() (*[]struct {
 		Name string `ic:"name" json:"name"`
 		Url  string `ic:"url" json:"url"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_supported_standards",
 		[]any{},
 		[]any{&r0},
@@ -228,8 +228,8 @@ func (a Agent) Icrc1SupportedStandards() (*[]struct {
 // Icrc1Symbol calls the "icrc1_symbol" method on the "icpledger" canister.
 func (a Agent) Icrc1Symbol() (*string, error) {
 	var r0 string
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_symbol",
 		[]any{},
 		[]any{&r0},
@@ -242,8 +242,8 @@ func (a Agent) Icrc1Symbol() (*string, error) {
 // Icrc1TotalSupply calls the "icrc1_total_supply" method on the "icpledger" canister.
 func (a Agent) Icrc1TotalSupply() (*Icrc1Tokens, error) {
 	var r0 Icrc1Tokens
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc1_total_supply",
 		[]any{},
 		[]any{&r0},
@@ -256,8 +256,8 @@ func (a Agent) Icrc1TotalSupply() (*Icrc1Tokens, error) {
 // Icrc1Transfer calls the "icrc1_transfer" method on the "icpledger" canister.
 func (a Agent) Icrc1Transfer(arg0 TransferArg) (*Icrc1TransferResult, error) {
 	var r0 Icrc1TransferResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"icrc1_transfer",
 		[]any{arg0},
 		[]any{&r0},
@@ -270,8 +270,8 @@ func (a Agent) Icrc1Transfer(arg0 TransferArg) (*Icrc1TransferResult, error) {
 // Icrc2Allowance calls the "icrc2_allowance" method on the "icpledger" canister.
 func (a Agent) Icrc2Allowance(arg0 AllowanceArgs) (*Allowance, error) {
 	var r0 Allowance
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"icrc2_allowance",
 		[]any{arg0},
 		[]any{&r0},
@@ -284,8 +284,8 @@ func (a Agent) Icrc2Allowance(arg0 AllowanceArgs) (*Allowance, error) {
 // Icrc2Approve calls the "icrc2_approve" method on the "icpledger" canister.
 func (a Agent) Icrc2Approve(arg0 ApproveArgs) (*ApproveResult, error) {
 	var r0 ApproveResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"icrc2_approve",
 		[]any{arg0},
 		[]any{&r0},
@@ -298,8 +298,8 @@ func (a Agent) Icrc2Approve(arg0 ApproveArgs) (*ApproveResult, error) {
 // Icrc2TransferFrom calls the "icrc2_transfer_from" method on the "icpledger" canister.
 func (a Agent) Icrc2TransferFrom(arg0 TransferFromArgs) (*TransferFromResult, error) {
 	var r0 TransferFromResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"icrc2_transfer_from",
 		[]any{arg0},
 		[]any{&r0},
@@ -316,8 +316,8 @@ func (a Agent) Name() (*struct {
 	var r0 struct {
 		Name string `ic:"name" json:"name"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"name",
 		[]any{},
 		[]any{&r0},
@@ -330,8 +330,8 @@ func (a Agent) Name() (*struct {
 // QueryBlocks calls the "query_blocks" method on the "icpledger" canister.
 func (a Agent) QueryBlocks(arg0 GetBlocksArgs) (*QueryBlocksResponse, error) {
 	var r0 QueryBlocksResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"query_blocks",
 		[]any{arg0},
 		[]any{&r0},
@@ -344,8 +344,8 @@ func (a Agent) QueryBlocks(arg0 GetBlocksArgs) (*QueryBlocksResponse, error) {
 // QueryEncodedBlocks calls the "query_encoded_blocks" method on the "icpledger" canister.
 func (a Agent) QueryEncodedBlocks(arg0 GetBlocksArgs) (*QueryEncodedBlocksResponse, error) {
 	var r0 QueryEncodedBlocksResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"query_encoded_blocks",
 		[]any{arg0},
 		[]any{&r0},
@@ -358,8 +358,8 @@ func (a Agent) QueryEncodedBlocks(arg0 GetBlocksArgs) (*QueryEncodedBlocksRespon
 // SendDfx calls the "send_dfx" method on the "icpledger" canister.
 func (a Agent) SendDfx(arg0 SendArgs) (*BlockIndex, error) {
 	var r0 BlockIndex
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"send_dfx",
 		[]any{arg0},
 		[]any{&r0},
@@ -376,8 +376,8 @@ func (a Agent) Symbol() (*struct {
 	var r0 struct {
 		Symbol string `ic:"symbol" json:"symbol"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"symbol",
 		[]any{},
 		[]any{&r0},
@@ -390,8 +390,8 @@ func (a Agent) Symbol() (*struct {
 // Transfer calls the "transfer" method on the "icpledger" canister.
 func (a Agent) Transfer(arg0 TransferArgs) (*TransferResult, error) {
 	var r0 TransferResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"transfer",
 		[]any{arg0},
 		[]any{&r0},
@@ -404,8 +404,8 @@ func (a Agent) Transfer(arg0 TransferArgs) (*TransferResult, error) {
 // TransferFee calls the "transfer_fee" method on the "icpledger" canister.
 func (a Agent) TransferFee(arg0 TransferFeeArg) (*TransferFee, error) {
 	var r0 TransferFee
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"transfer_fee",
 		[]any{arg0},
 		[]any{&r0},

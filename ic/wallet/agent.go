@@ -17,8 +17,8 @@ type AddressEntry struct {
 
 // Agent is a client for the "wallet" canister.
 type Agent struct {
-	a          *agent.Agent
-	canisterId principal.Principal
+	*agent.Agent
+	CanisterId principal.Principal
 }
 
 // NewAgent creates a new agent for the "wallet" canister.
@@ -28,15 +28,15 @@ func NewAgent(canisterId principal.Principal, config agent.Config) (*Agent, erro
 		return nil, err
 	}
 	return &Agent{
-		a:          a,
-		canisterId: canisterId,
+		Agent:      a,
+		CanisterId: canisterId,
 	}, nil
 }
 
 // AddAddress calls the "add_address" method on the "wallet" canister.
 func (a Agent) AddAddress(address AddressEntry) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"add_address",
 		[]any{address},
 		[]any{},
@@ -48,8 +48,8 @@ func (a Agent) AddAddress(address AddressEntry) error {
 
 // AddController calls the "add_controller" method on the "wallet" canister.
 func (a Agent) AddController(arg0 principal.Principal) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"add_controller",
 		[]any{arg0},
 		[]any{},
@@ -61,8 +61,8 @@ func (a Agent) AddController(arg0 principal.Principal) error {
 
 // Authorize calls the "authorize" method on the "wallet" canister.
 func (a Agent) Authorize(arg0 principal.Principal) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"authorize",
 		[]any{arg0},
 		[]any{},
@@ -75,8 +75,8 @@ func (a Agent) Authorize(arg0 principal.Principal) error {
 // Deauthorize calls the "deauthorize" method on the "wallet" canister.
 func (a Agent) Deauthorize(arg0 principal.Principal) (*WalletResult, error) {
 	var r0 WalletResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"deauthorize",
 		[]any{arg0},
 		[]any{&r0},
@@ -98,8 +98,8 @@ func (a Agent) GetChart(arg0 *struct {
 		Field0 uint64 `ic:"0" json:"0"`
 		Field1 uint64 `ic:"1" json:"1"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_chart",
 		[]any{arg0},
 		[]any{&r0},
@@ -112,8 +112,8 @@ func (a Agent) GetChart(arg0 *struct {
 // GetControllers calls the "get_controllers" method on the "wallet" canister.
 func (a Agent) GetControllers() (*[]principal.Principal, error) {
 	var r0 []principal.Principal
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_controllers",
 		[]any{},
 		[]any{&r0},
@@ -126,8 +126,8 @@ func (a Agent) GetControllers() (*[]principal.Principal, error) {
 // GetCustodians calls the "get_custodians" method on the "wallet" canister.
 func (a Agent) GetCustodians() (*[]principal.Principal, error) {
 	var r0 []principal.Principal
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_custodians",
 		[]any{},
 		[]any{&r0},
@@ -143,8 +143,8 @@ func (a Agent) GetEvents(arg0 *struct {
 	To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
 }) (*[]Event, error) {
 	var r0 []Event
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_events",
 		[]any{arg0},
 		[]any{&r0},
@@ -160,8 +160,8 @@ func (a Agent) GetEvents128(arg0 *struct {
 	To   *uint32 `ic:"to,omitempty" json:"to,omitempty"`
 }) (*[]Event128, error) {
 	var r0 []Event128
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_events128",
 		[]any{arg0},
 		[]any{&r0},
@@ -178,8 +178,8 @@ func (a Agent) GetManagedCanisterEvents(arg0 struct {
 	To       *uint32             `ic:"to,omitempty" json:"to,omitempty"`
 }) (**[]ManagedCanisterEvent, error) {
 	var r0 *[]ManagedCanisterEvent
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_managed_canister_events",
 		[]any{arg0},
 		[]any{&r0},
@@ -196,8 +196,8 @@ func (a Agent) GetManagedCanisterEvents128(arg0 struct {
 	To       *uint32             `ic:"to,omitempty" json:"to,omitempty"`
 }) (**[]ManagedCanisterEvent128, error) {
 	var r0 *[]ManagedCanisterEvent128
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"get_managed_canister_events128",
 		[]any{arg0},
 		[]any{&r0},
@@ -210,8 +210,8 @@ func (a Agent) GetManagedCanisterEvents128(arg0 struct {
 // HttpRequest calls the "http_request" method on the "wallet" canister.
 func (a Agent) HttpRequest(request HttpRequest) (*HttpResponse, error) {
 	var r0 HttpResponse
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"http_request",
 		[]any{request},
 		[]any{&r0},
@@ -224,8 +224,8 @@ func (a Agent) HttpRequest(request HttpRequest) (*HttpResponse, error) {
 // ListAddresses calls the "list_addresses" method on the "wallet" canister.
 func (a Agent) ListAddresses() (*[]AddressEntry, error) {
 	var r0 []AddressEntry
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"list_addresses",
 		[]any{},
 		[]any{&r0},
@@ -242,8 +242,8 @@ func (a Agent) ListManagedCanisters(arg0 struct {
 }) (*[]ManagedCanisterInfo, *uint32, error) {
 	var r0 []ManagedCanisterInfo
 	var r1 uint32
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"list_managed_canisters",
 		[]any{arg0},
 		[]any{&r0, &r1},
@@ -256,8 +256,8 @@ func (a Agent) ListManagedCanisters(arg0 struct {
 // Name calls the "name" method on the "wallet" canister.
 func (a Agent) Name() (**string, error) {
 	var r0 *string
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"name",
 		[]any{},
 		[]any{&r0},
@@ -270,8 +270,8 @@ func (a Agent) Name() (**string, error) {
 // RemoveAddress calls the "remove_address" method on the "wallet" canister.
 func (a Agent) RemoveAddress(address principal.Principal) (*WalletResult, error) {
 	var r0 WalletResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"remove_address",
 		[]any{address},
 		[]any{&r0},
@@ -284,8 +284,8 @@ func (a Agent) RemoveAddress(address principal.Principal) (*WalletResult, error)
 // RemoveController calls the "remove_controller" method on the "wallet" canister.
 func (a Agent) RemoveController(arg0 principal.Principal) (*WalletResult, error) {
 	var r0 WalletResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"remove_controller",
 		[]any{arg0},
 		[]any{&r0},
@@ -297,8 +297,8 @@ func (a Agent) RemoveController(arg0 principal.Principal) (*WalletResult, error)
 
 // SetName calls the "set_name" method on the "wallet" canister.
 func (a Agent) SetName(arg0 string) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"set_name",
 		[]any{arg0},
 		[]any{},
@@ -311,8 +311,8 @@ func (a Agent) SetName(arg0 string) error {
 // SetShortName calls the "set_short_name" method on the "wallet" canister.
 func (a Agent) SetShortName(arg0 principal.Principal, arg1 *string) (**ManagedCanisterInfo, error) {
 	var r0 *ManagedCanisterInfo
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"set_short_name",
 		[]any{arg0, arg1},
 		[]any{&r0},
@@ -325,8 +325,8 @@ func (a Agent) SetShortName(arg0 principal.Principal, arg1 *string) (**ManagedCa
 // WalletApiVersion calls the "wallet_api_version" method on the "wallet" canister.
 func (a Agent) WalletApiVersion() (*string, error) {
 	var r0 string
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"wallet_api_version",
 		[]any{},
 		[]any{&r0},
@@ -343,8 +343,8 @@ func (a Agent) WalletBalance() (*struct {
 	var r0 struct {
 		Amount uint64 `ic:"amount" json:"amount"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"wallet_balance",
 		[]any{},
 		[]any{&r0},
@@ -361,8 +361,8 @@ func (a Agent) WalletBalance128() (*struct {
 	var r0 struct {
 		Amount idl.Nat `ic:"amount" json:"amount"`
 	}
-	if err := a.a.Query(
-		a.canisterId,
+	if err := a.Agent.Query(
+		a.CanisterId,
 		"wallet_balance128",
 		[]any{},
 		[]any{&r0},
@@ -380,8 +380,8 @@ func (a Agent) WalletCall(arg0 struct {
 	Cycles     uint64              `ic:"cycles" json:"cycles"`
 }) (*WalletResultCall, error) {
 	var r0 WalletResultCall
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_call",
 		[]any{arg0},
 		[]any{&r0},
@@ -399,8 +399,8 @@ func (a Agent) WalletCall128(arg0 struct {
 	Cycles     idl.Nat             `ic:"cycles" json:"cycles"`
 }) (*WalletResultCall, error) {
 	var r0 WalletResultCall
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_call128",
 		[]any{arg0},
 		[]any{&r0},
@@ -417,8 +417,8 @@ func (a Agent) WalletCallWithMaxCycles(arg0 struct {
 	Args       []byte              `ic:"args" json:"args"`
 }) (*WalletResultCallWithMaxCycles, error) {
 	var r0 WalletResultCallWithMaxCycles
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_call_with_max_cycles",
 		[]any{arg0},
 		[]any{&r0},
@@ -431,8 +431,8 @@ func (a Agent) WalletCallWithMaxCycles(arg0 struct {
 // WalletCreateCanister calls the "wallet_create_canister" method on the "wallet" canister.
 func (a Agent) WalletCreateCanister(arg0 CreateCanisterArgs) (*WalletResultCreate, error) {
 	var r0 WalletResultCreate
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_create_canister",
 		[]any{arg0},
 		[]any{&r0},
@@ -445,8 +445,8 @@ func (a Agent) WalletCreateCanister(arg0 CreateCanisterArgs) (*WalletResultCreat
 // WalletCreateCanister128 calls the "wallet_create_canister128" method on the "wallet" canister.
 func (a Agent) WalletCreateCanister128(arg0 CreateCanisterArgs128) (*WalletResultCreate, error) {
 	var r0 WalletResultCreate
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_create_canister128",
 		[]any{arg0},
 		[]any{&r0},
@@ -459,8 +459,8 @@ func (a Agent) WalletCreateCanister128(arg0 CreateCanisterArgs128) (*WalletResul
 // WalletCreateWallet calls the "wallet_create_wallet" method on the "wallet" canister.
 func (a Agent) WalletCreateWallet(arg0 CreateCanisterArgs) (*WalletResultCreate, error) {
 	var r0 WalletResultCreate
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_create_wallet",
 		[]any{arg0},
 		[]any{&r0},
@@ -473,8 +473,8 @@ func (a Agent) WalletCreateWallet(arg0 CreateCanisterArgs) (*WalletResultCreate,
 // WalletCreateWallet128 calls the "wallet_create_wallet128" method on the "wallet" canister.
 func (a Agent) WalletCreateWallet128(arg0 CreateCanisterArgs128) (*WalletResultCreate, error) {
 	var r0 WalletResultCreate
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_create_wallet128",
 		[]any{arg0},
 		[]any{&r0},
@@ -486,8 +486,8 @@ func (a Agent) WalletCreateWallet128(arg0 CreateCanisterArgs128) (*WalletResultC
 
 // WalletReceive calls the "wallet_receive" method on the "wallet" canister.
 func (a Agent) WalletReceive(arg0 *ReceiveOptions) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_receive",
 		[]any{arg0},
 		[]any{},
@@ -503,8 +503,8 @@ func (a Agent) WalletSend(arg0 struct {
 	Amount   uint64              `ic:"amount" json:"amount"`
 }) (*WalletResult, error) {
 	var r0 WalletResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_send",
 		[]any{arg0},
 		[]any{&r0},
@@ -520,8 +520,8 @@ func (a Agent) WalletSend128(arg0 struct {
 	Amount   idl.Nat             `ic:"amount" json:"amount"`
 }) (*WalletResult, error) {
 	var r0 WalletResult
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_send128",
 		[]any{arg0},
 		[]any{&r0},
@@ -535,8 +535,8 @@ func (a Agent) WalletSend128(arg0 struct {
 func (a Agent) WalletStoreWalletWasm(arg0 struct {
 	WasmModule []byte `ic:"wasm_module" json:"wasm_module"`
 }) error {
-	if err := a.a.Call(
-		a.canisterId,
+	if err := a.Agent.Call(
+		a.CanisterId,
 		"wallet_store_wallet_wasm",
 		[]any{arg0},
 		[]any{},
