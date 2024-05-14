@@ -38,57 +38,6 @@ func (b *Base64EncodedBlob) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
-type createResponse[T any] struct {
-	Created *T            `json:"Created"`
-	Error   *ErrorMessage `json:"Error"`
-}
-
-type rawAddCycles struct {
-	Amount     int               `json:"amount"`
-	CanisterID Base64EncodedBlob `json:"canister_id"`
-}
-
-type rawCanisterCall struct {
-	CanisterID         Base64EncodedBlob  `json:"canister_id"`
-	EffectivePrincipal EffectivePrincipal `json:"effective_principal"`
-	Method             string             `json:"method"`
-	Payload            Base64EncodedBlob  `json:"payload"`
-	Sender             Base64EncodedBlob  `json:"sender"`
-}
-
-func (r *rawCanisterCall) UnmarshalJSON(bytes []byte) error {
-	var raw struct {
-		CanisterID         Base64EncodedBlob `json:"canister_id"`
-		EffectivePrincipal json.RawMessage   `json:"effective_principal"`
-		Method             string            `json:"method"`
-		Payload            Base64EncodedBlob `json:"payload"`
-		Sender             Base64EncodedBlob `json:"sender"`
-	}
-	if err := json.Unmarshal(bytes, &raw); err != nil {
-		return err
-	}
-	ep, err := unmarshalRawEffectivePrincipal(raw.EffectivePrincipal)
-	if err != nil {
-		return err
-	}
-	r.CanisterID = raw.CanisterID
-	r.EffectivePrincipal = ep
-	r.Method = raw.Method
-	r.Payload = raw.Payload
-	r.Sender = raw.Sender
-	return nil
-}
-
-type RawCanisterID struct {
-	CanisterID Base64EncodedBlob `json:"canister_id"`
-}
-
-type rawCanisterResult result[rawWasmResult]
-
-type rawCycles struct {
-	Cycles int `json:"cycles"`
-}
-
 type EffectivePrincipal interface {
 	rawEffectivePrincipal()
 }
@@ -158,6 +107,83 @@ func (r *MessageID) UnmarshalJSON(bytes []byte) error {
 	return nil
 }
 
+type RawCanisterID struct {
+	CanisterID Base64EncodedBlob `json:"canister_id"`
+}
+
+type Reject string
+
+func (r Reject) Error() string {
+	return string(r)
+}
+
+type SubnetID struct {
+	SubnetID Base64EncodedBlob `json:"subnet_id"`
+}
+
+type UserError struct {
+	Code        string `json:"code"`
+	Description string `json:"description"`
+}
+
+func (e UserError) Error() string {
+	return fmt.Sprintf("(%s) %s", e.Code, e.Description)
+}
+
+type VerifyCanisterSigArg struct {
+	Message    Base64EncodedBlob `json:"msg"`
+	PublicKey  Base64EncodedBlob `json:"pubkey"`
+	RootPubKey Base64EncodedBlob `json:"root_pubkey"`
+	Signature  Base64EncodedBlob `json:"sig"`
+}
+
+type createResponse[T any] struct {
+	Created *T            `json:"Created"`
+	Error   *ErrorMessage `json:"Error"`
+}
+
+type rawAddCycles struct {
+	Amount     int               `json:"amount"`
+	CanisterID Base64EncodedBlob `json:"canister_id"`
+}
+
+type rawCanisterCall struct {
+	CanisterID         Base64EncodedBlob  `json:"canister_id"`
+	EffectivePrincipal EffectivePrincipal `json:"effective_principal"`
+	Method             string             `json:"method"`
+	Payload            Base64EncodedBlob  `json:"payload"`
+	Sender             Base64EncodedBlob  `json:"sender"`
+}
+
+func (r *rawCanisterCall) UnmarshalJSON(bytes []byte) error {
+	var raw struct {
+		CanisterID         Base64EncodedBlob `json:"canister_id"`
+		EffectivePrincipal json.RawMessage   `json:"effective_principal"`
+		Method             string            `json:"method"`
+		Payload            Base64EncodedBlob `json:"payload"`
+		Sender             Base64EncodedBlob `json:"sender"`
+	}
+	if err := json.Unmarshal(bytes, &raw); err != nil {
+		return err
+	}
+	ep, err := unmarshalRawEffectivePrincipal(raw.EffectivePrincipal)
+	if err != nil {
+		return err
+	}
+	r.CanisterID = raw.CanisterID
+	r.EffectivePrincipal = ep
+	r.Method = raw.Method
+	r.Payload = raw.Payload
+	r.Sender = raw.Sender
+	return nil
+}
+
+type rawCanisterResult result[rawWasmResult]
+
+type rawCycles struct {
+	Cycles int `json:"cycles"`
+}
+
 type rawSetStableMemory struct {
 	BlobID     Base64EncodedBlob `json:"blob_id"`
 	CanisterID Base64EncodedBlob `json:"canister_id"`
@@ -169,41 +195,15 @@ type rawStableMemory struct {
 
 type rawSubmitIngressResult result[MessageID]
 
-type SubnetID struct {
-	SubnetID Base64EncodedBlob `json:"subnet_id"`
-}
-
 type rawTime struct {
 	NanosSinceEpoch int64 `json:"nanos_since_epoch"`
 }
 
-type VerifyCanisterSigArg struct {
-	Message    Base64EncodedBlob `json:"msg"`
-	PublicKey  Base64EncodedBlob `json:"pubkey"`
-	RootPubKey Base64EncodedBlob `json:"root_pubkey"`
-	Signature  Base64EncodedBlob `json:"sig"`
-}
-
 type rawWasmResult wasmResult[Base64EncodedBlob]
-
-type Reject string
-
-func (r Reject) Error() string {
-	return string(r)
-}
 
 type result[R any] struct {
 	Ok  *R         `json:"Ok,omitempty"`
 	Err *UserError `json:"Err,omitempty"`
-}
-
-type UserError struct {
-	Code        string `json:"code"`
-	Description string `json:"description"`
-}
-
-func (e UserError) Error() string {
-	return fmt.Sprintf("(%s) %s", e.Code, e.Description)
 }
 
 // wasmResult describes the different types that executing a WASM function in a canister can produce.

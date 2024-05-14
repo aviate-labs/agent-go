@@ -485,7 +485,7 @@ type GetBlocksResult struct {
 	} `ic:"blocks" json:"blocks"`
 	ArchivedBlocks []struct {
 		Args     []GetBlocksArgs `ic:"args" json:"args"`
-		Callback struct { /* NOT SUPPORTED */
+		Callback struct {        /* NOT SUPPORTED */
 		} `ic:"callback" json:"callback"`
 	} `ic:"archived_blocks" json:"archived_blocks"`
 }

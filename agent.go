@@ -233,15 +233,7 @@ func (a Agent) GetCanisterControllers(canisterID principal.Principal) ([]princip
 // GetCanisterInfo returns the raw certificate for the given canister based on the given sub-path.
 func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) ([]byte, error) {
 	path := []hashtree.Label{hashtree.Label("canister"), canisterID.Raw, hashtree.Label(subPath)}
-	c, err := a.readStateCertificate(canisterID, [][]hashtree.Label{path})
-	if err != nil {
-		return nil, err
-	}
-	var state map[string]any
-	if err := cbor.Unmarshal(c, &state); err != nil {
-		return nil, err
-	}
-	node, err := hashtree.DeserializeNode(state["tree"].([]any))
+	node, err := a.ReadState(canisterID, [][]hashtree.Label{path})
 	if err != nil {
 		return nil, err
 	}
@@ -296,6 +288,19 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, args []a
 		return err
 	}
 	return query.Query(values...)
+}
+
+// ReadState reads the state of the given canister at the given path.
+func (a Agent) ReadState(canisterID principal.Principal, path [][]hashtree.Label) (hashtree.Node, error) {
+	c, err := a.readStateCertificate(canisterID, path)
+	if err != nil {
+		return nil, err
+	}
+	var state map[string]any
+	if err := cbor.Unmarshal(c, &state); err != nil {
+		return nil, err
+	}
+	return hashtree.DeserializeNode(state["tree"].([]any))
 }
 
 // RequestStatus returns the status of the request with the given ID.

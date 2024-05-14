@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/ic"
 	mgmt "github.com/aviate-labs/agent-go/ic/ic"
 	"github.com/aviate-labs/agent-go/ic/icpledger"
@@ -96,6 +97,23 @@ func Example_query_secp256k1() {
 	fmt.Println(balance.E8S)
 	// Output:
 	// 0
+}
+
+func TestAgent_Call(t *testing.T) {
+	a, err := agent.New(agent.DefaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	n, err := a.ReadState(ic.REGISTRY_PRINCIPAL, [][]hashtree.Label{{hashtree.Label("subnet")}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, path := range hashtree.ListPaths(n, nil) {
+		if len(path) == 3 && string(path[0]) == "subnet" && string(path[2]) == "public_key" {
+			subnetID := principal.Principal{Raw: []byte(path[1])}
+			_ = subnetID
+		}
+	}
 }
 
 func TestAgent_Call_bitcoinGetBalanceQuery(t *testing.T) {

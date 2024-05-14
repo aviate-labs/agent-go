@@ -15,6 +15,22 @@ func DomainSeparator(t string) []byte {
 	)
 }
 
+// ListPaths returns all paths from the root to a leaf node.
+func ListPaths(n Node, path []Label) [][]Label {
+	switch n := n.(type) {
+	case Fork:
+		l := ListPaths(n.LeftTree, path)
+		r := ListPaths(n.RightTree, path)
+		return append(l, r...)
+	case Labeled:
+		return ListPaths(n.Tree, append(path, n.Label))
+	case Leaf:
+		return [][]Label{path}
+	default: // Empty, Pruned
+		return nil
+	}
+}
+
 func Serialize(node Node) ([]byte, error) {
 	return cbor.Marshal(serialize(node))
 }
