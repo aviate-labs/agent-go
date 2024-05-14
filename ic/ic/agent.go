@@ -721,7 +721,11 @@ type CanisterInstallMode struct {
 	Install   *idl.Null `ic:"install,variant"`
 	Reinstall *idl.Null `ic:"reinstall,variant"`
 	Upgrade   **struct {
-		SkipPreUpgrade *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
+		SkipPreUpgrade        *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
+		WasmMemoryPersistence *struct {
+			Keep    *idl.Null `ic:"keep,variant"`
+			Replace *idl.Null `ic:"replace,variant"`
+		} `ic:"wasm_memory_persistence,omitempty" json:"wasm_memory_persistence,omitempty"`
 	} `ic:"upgrade,variant"`
 }
 
@@ -749,6 +753,12 @@ type CanisterStatusResult struct {
 	Cycles                 idl.Nat                  `ic:"cycles" json:"cycles"`
 	ReservedCycles         idl.Nat                  `ic:"reserved_cycles" json:"reserved_cycles"`
 	IdleCyclesBurnedPerDay idl.Nat                  `ic:"idle_cycles_burned_per_day" json:"idle_cycles_burned_per_day"`
+	QueryStats             struct {
+		NumCallsTotal             idl.Nat `ic:"num_calls_total" json:"num_calls_total"`
+		NumInstructionsTotal      idl.Nat `ic:"num_instructions_total" json:"num_instructions_total"`
+		RequestPayloadBytesTotal  idl.Nat `ic:"request_payload_bytes_total" json:"request_payload_bytes_total"`
+		ResponsePayloadBytesTotal idl.Nat `ic:"response_payload_bytes_total" json:"response_payload_bytes_total"`
+	} `ic:"query_stats" json:"query_stats"`
 }
 
 type Change struct {

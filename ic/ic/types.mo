@@ -33,14 +33,14 @@ module T {
     public type UploadChunkArgs = { canister_id : Principal; chunk : Blob };
     public type ClearChunkStoreArgs = { canister_id : T.CanisterId };
     public type StoredChunksArgs = { canister_id : T.CanisterId };
-    public type CanisterInstallMode = { #install; #reinstall; #upgrade : ?{ skip_pre_upgrade : ?Bool } };
+    public type CanisterInstallMode = { #install; #reinstall; #upgrade : ?{ skip_pre_upgrade : ?Bool; wasm_memory_persistence : ?{ #keep; #replace } } };
     public type InstallCodeArgs = { mode : T.CanisterInstallMode; canister_id : T.CanisterId; wasm_module : T.WasmModule; arg : Blob; sender_canister_version : ?Nat64 };
     public type InstallChunkedCodeArgs = { mode : T.CanisterInstallMode; target_canister : T.CanisterId; store_canister : ?T.CanisterId; chunk_hashes_list : [T.ChunkHash]; wasm_module_hash : Blob; arg : Blob; sender_canister_version : ?Nat64 };
     public type UninstallCodeArgs = { canister_id : T.CanisterId; sender_canister_version : ?Nat64 };
     public type StartCanisterArgs = { canister_id : T.CanisterId };
     public type StopCanisterArgs = { canister_id : T.CanisterId };
     public type CanisterStatusArgs = { canister_id : T.CanisterId };
-    public type CanisterStatusResult = { status : { #running; #stopping; #stopped }; settings : T.DefiniteCanisterSettings; module_hash : ?Blob; memory_size : Nat; cycles : Nat; reserved_cycles : Nat; idle_cycles_burned_per_day : Nat };
+    public type CanisterStatusResult = { status : { #running; #stopping; #stopped }; settings : T.DefiniteCanisterSettings; module_hash : ?Blob; memory_size : Nat; cycles : Nat; reserved_cycles : Nat; idle_cycles_burned_per_day : Nat; query_stats : { num_calls_total : Nat; num_instructions_total : Nat; request_payload_bytes_total : Nat; response_payload_bytes_total : Nat } };
     public type CanisterInfoArgs = { canister_id : T.CanisterId; num_requested_changes : ?Nat64 };
     public type CanisterInfoResult = { total_num_changes : Nat64; recent_changes : [T.Change]; module_hash : ?Blob; controllers : [Principal] };
     public type DeleteCanisterArgs = { canister_id : T.CanisterId };
