@@ -419,11 +419,11 @@ type Topology struct {
 	CanisterRanges []CanisterIDRange `json:"canister_ranges"`
 }
 
-type rawCanisterID struct {
-	CanisterID string `json:"canister_id"`
-}
-
 type canisterIDRange struct {
 	Start rawCanisterID `json:"start"`
 	End   rawCanisterID `json:"end"`
+}
+
+type rawCanisterID struct {
+	CanisterID string `json:"canister_id"`
 }
