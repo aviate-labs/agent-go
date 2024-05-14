@@ -2,18 +2,19 @@ package ic_test
 
 import (
 	"fmt"
-	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/ic"
-	"github.com/aviate-labs/agent-go/ic/assetstorage"
-	ic0 "github.com/aviate-labs/agent-go/ic/ic"
-	"github.com/aviate-labs/agent-go/pocketic"
-	"github.com/aviate-labs/agent-go/principal"
 	"net/url"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 	"testing"
+
+	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/ic"
+	"github.com/aviate-labs/agent-go/ic/assetstorage"
+	ic0 "github.com/aviate-labs/agent-go/ic/ic"
+	"github.com/aviate-labs/agent-go/pocketic"
+	"github.com/aviate-labs/agent-go/principal"
 )
 
 func TestModules(t *testing.T) {

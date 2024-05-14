@@ -511,8 +511,9 @@ type SnsVersion struct {
 }
 
 type SnsWasm struct {
-	Wasm         []byte `ic:"wasm" json:"wasm"`
-	CanisterType int32  `ic:"canister_type" json:"canister_type"`
+	Wasm         []byte  `ic:"wasm" json:"wasm"`
+	ProposalId   *uint64 `ic:"proposal_id,omitempty" json:"proposal_id,omitempty"`
+	CanisterType int32   `ic:"canister_type" json:"canister_type"`
 }
 
 type SnsWasmCanisterInitPayload struct {
