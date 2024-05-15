@@ -1,6 +1,7 @@
 package principal_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/aviate-labs/agent-go/principal"
 	"testing"
@@ -22,5 +23,20 @@ func TestAccountIdentifier(t *testing.T) {
 		if accountID != a {
 			t.Errorf("expected %v, got %v", a, accountID)
 		}
+	}
+}
+
+func TestAccountIdentifier_MarshalJSON(t *testing.T) {
+	original := principal.NewAccountID(principal.AnonymousID, principal.DefaultSubAccount)
+	raw, err := json.Marshal(original)
+	if err != nil {
+		t.Error(err)
+	}
+	var decoded principal.AccountIdentifier
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		t.Error(err)
+	}
+	if original != decoded {
+		t.Errorf("expected %v, got %v", original, decoded)
 	}
 }
