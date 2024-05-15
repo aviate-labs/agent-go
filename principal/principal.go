@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base32"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"github.com/fxamacker/cbor/v2"
 	"hash/crc32"
@@ -130,6 +131,11 @@ func (p Principal) MarshalCBOR() ([]byte, error) {
 	return cbor.Marshal(p.Raw)
 }
 
+// MarshalJSON converts the principal to its JSON representation as a string.
+func (p Principal) MarshalJSON() ([]byte, error) {
+	return json.Marshal(p.String())
+}
+
 // String implements the Stringer interface.
 func (p Principal) String() string {
 	return p.Encode()
@@ -138,4 +144,18 @@ func (p Principal) String() string {
 // UnmarshalCBOR converts a CBOR representation into a principal.
 func (p *Principal) UnmarshalCBOR(bytes []byte) error {
 	return cbor.Unmarshal(bytes, &p.Raw)
+}
+
+// UnmarshalJSON converts the JSON bytes into a principal from a string.
+func (p *Principal) UnmarshalJSON(bytes []byte) error {
+	var principal string
+	if err := json.Unmarshal(bytes, &principal); err != nil {
+		return err
+	}
+	decoded, err := Decode(principal)
+	if err != nil {
+		return err
+	}
+	*p = decoded
+	return nil
 }

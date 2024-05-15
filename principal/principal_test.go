@@ -1,7 +1,9 @@
 package principal_test
 
 import (
+	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"github.com/aviate-labs/agent-go/ic"
 	"testing"
@@ -36,5 +38,20 @@ func TestPrincipal(t *testing.T) {
 	}
 	if !(principal.Principal{Raw: append([]byte("random"), 0x7f)}).IsReserved() {
 		t.Fatal("expected reserved principal")
+	}
+}
+
+func TestPrincipal_MarshalJSON(t *testing.T) {
+	original := principal.MustDecode("em77e-bvlzu-aq")
+	raw, err := original.MarshalJSON()
+	if err != nil {
+		t.Error(err)
+	}
+	var decoded principal.Principal
+	if err := json.Unmarshal(raw, &decoded); err != nil {
+		t.Error(err)
+	}
+	if !bytes.Equal(original.Raw, decoded.Raw) {
+		t.Errorf("expected %v, got %v", original, decoded)
 	}
 }

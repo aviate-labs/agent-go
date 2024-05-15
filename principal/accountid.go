@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"hash/crc32"
 )
@@ -63,7 +64,26 @@ func (id AccountIdentifier) Encode() string {
 	return hex.EncodeToString(id.Bytes())
 }
 
+// MarshalJSON encodes the account identifier into JSON bytes as a string.
+func (id AccountIdentifier) MarshalJSON() ([]byte, error) {
+	return json.Marshal(id.String())
+}
+
 // String returns the hexadecimal representation of the account identifier.
 func (id AccountIdentifier) String() string {
 	return id.Encode()
+}
+
+// UnmarshalJSON decodes the given JSON bytes into an account identifier from a string.
+func (id *AccountIdentifier) UnmarshalJSON(bytes []byte) error {
+	var accountID string
+	if err := json.Unmarshal(bytes, &accountID); err != nil {
+		return err
+	}
+	decoded, err := DecodeAccountID(accountID)
+	if err != nil {
+		return err
+	}
+	*id = decoded
+	return nil
 }
