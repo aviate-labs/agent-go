@@ -36,6 +36,14 @@ func checkLatest() error {
 			remote:   "https://raw.githubusercontent.com/dfinity/interface-spec/master/spec/_attachments/ic.did",
 		},
 		{
+			filepath: "ic/testdata/did/registry.did",
+			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/registry/canister/canister/registry.did",
+		},
+		{
+			filepath: "ic/testdata/did/governance.did",
+			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/nns/governance/canister/governance.did",
+		},
+		{
 			filepath: "ic/testdata/did/icparchive.did",
 			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/rosetta-api/icp_ledger/ledger_archive.did",
 		},
