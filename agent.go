@@ -158,7 +158,12 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 	return call.CallAndWait(values...)
 }
 
-// CreateCall creates a new call to the given canister and method.
+// Client returns the underlying Client of the Agent.
+func (a Agent) Client() *Client {
+	return &a.client
+}
+
+// CreateCall creates a new Call to the given canister and method.
 func (a *Agent) CreateCall(canisterID principal.Principal, methodName string, args ...any) (*Call, error) {
 	rawArgs, err := idl.Marshal(args)
 	if err != nil {
@@ -193,7 +198,7 @@ func (a *Agent) CreateCall(canisterID principal.Principal, methodName string, ar
 	}, nil
 }
 
-// CreateQuery creates a new query to the given canister and method.
+// CreateQuery creates a new Query to the given canister and method.
 func (a *Agent) CreateQuery(canisterID principal.Principal, methodName string, args ...any) (*Query, error) {
 	rawArgs, err := idl.Marshal(args)
 	if err != nil {
@@ -358,7 +363,7 @@ func (a Agent) Sender() principal.Principal {
 }
 
 func (a Agent) call(ecID principal.Principal, data []byte) ([]byte, error) {
-	return a.client.call(ecID, data)
+	return a.client.Call(ecID, data)
 }
 
 func (a Agent) expiryDate() uint64 {
@@ -405,7 +410,7 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, erro
 }
 
 func (a Agent) query(canisterID principal.Principal, data []byte) (*Response, error) {
-	resp, err := a.client.query(canisterID, data)
+	resp, err := a.client.Query(canisterID, data)
 	if err != nil {
 		return nil, err
 	}
@@ -414,7 +419,7 @@ func (a Agent) query(canisterID principal.Principal, data []byte) (*Response, er
 }
 
 func (a Agent) readState(ecID principal.Principal, data []byte) (map[string][]byte, error) {
-	resp, err := a.client.readState(ecID, data)
+	resp, err := a.client.ReadState(ecID, data)
 	if err != nil {
 		return nil, err
 	}
@@ -453,7 +458,7 @@ func (a Agent) sign(request Request) (*RequestID, []byte, error) {
 	return &requestID, data, nil
 }
 
-// Call is an intermediate representation of a call to a canister.
+// Call is an intermediate representation of a Call to a canister.
 type Call struct {
 	a                   *Agent
 	methodName          string
@@ -477,7 +482,7 @@ func (c Call) CallAndWait(values ...any) error {
 	return c.Wait(values...)
 }
 
-// Wait waits for the result of the call and unmarshals it into the given values.
+// Wait waits for the result of the Call and unmarshals it into the given values.
 func (c Call) Wait(values ...any) error {
 	raw, err := c.a.poll(c.effectiveCanisterID, c.requestID)
 	if err != nil {
@@ -486,7 +491,7 @@ func (c Call) Wait(values ...any) error {
 	return idl.Unmarshal(raw, values)
 }
 
-// WithEffectiveCanisterID sets the effective canister ID for the call.
+// WithEffectiveCanisterID sets the effective canister ID for the Call.
 func (c *Call) WithEffectiveCanisterID(canisterID principal.Principal) *Call {
 	c.effectiveCanisterID = canisterID
 	return c
@@ -510,7 +515,7 @@ type Config struct {
 	PollTimeout time.Duration
 }
 
-// Query is an intermediate representation of a query to a canister.
+// Query is an intermediate representation of a Query to a canister.
 type Query struct {
 	a                   *Agent
 	methodName          string

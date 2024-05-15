@@ -40,17 +40,7 @@ func NewClientWithLogger(cfg ClientConfig, logger Logger) Client {
 	}
 }
 
-// Status returns the status of the IC.
-func (c Client) Status() (*Status, error) {
-	raw, err := c.get("/api/v2/status")
-	if err != nil {
-		return nil, err
-	}
-	var status Status
-	return &status, cbor.Unmarshal(raw, &status)
-}
-
-func (c Client) call(canisterID principal.Principal, data []byte) ([]byte, error) {
+func (c Client) Call(canisterID principal.Principal, data []byte) ([]byte, error) {
 	u := c.url(fmt.Sprintf("/api/v2/canister/%s/call", canisterID.Encode()))
 	c.logger.Printf("[CLIENT] CALL %s", u)
 	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
@@ -71,6 +61,24 @@ func (c Client) call(canisterID principal.Principal, data []byte) ([]byte, error
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("(%d) %s: %s", resp.StatusCode, resp.Status, body)
 	}
+}
+
+func (c Client) Query(canisterID principal.Principal, data []byte) ([]byte, error) {
+	return c.post("query", canisterID, data)
+}
+
+func (c Client) ReadState(canisterID principal.Principal, data []byte) ([]byte, error) {
+	return c.post("read_state", canisterID, data)
+}
+
+// Status returns the status of the IC.
+func (c Client) Status() (*Status, error) {
+	raw, err := c.get("/api/v2/status")
+	if err != nil {
+		return nil, err
+	}
+	var status Status
+	return &status, cbor.Unmarshal(raw, &status)
 }
 
 func (c Client) get(path string) ([]byte, error) {
@@ -96,14 +104,6 @@ func (c Client) post(path string, canisterID principal.Principal, data []byte) (
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("(%d) %s: %s", resp.StatusCode, resp.Status, body)
 	}
-}
-
-func (c Client) query(canisterID principal.Principal, data []byte) ([]byte, error) {
-	return c.post("query", canisterID, data)
-}
-
-func (c Client) readState(canisterID principal.Principal, data []byte) ([]byte, error) {
-	return c.post("read_state", canisterID, data)
 }
 
 func (c Client) url(p string) string {
