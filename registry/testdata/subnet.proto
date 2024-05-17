@@ -1,0 +1,458 @@
+syntax = "proto3";
+
+import "google/protobuf/wrappers.proto";
+
+package registry.subnet.v1;
+option go_package = "proto/v1";
+
+// A subnet: A logical group of nodes that run consensus
+message SubnetRecord {
+  // The the list of node_ids that represent the set of nodes
+  // that are part of this subnet.
+  reserved 1; // this is from membership consisting of uint64
+  reserved 6;
+  reserved "ic_version_id";
+  repeated bytes membership = 3;
+
+  reserved 2;
+  reserved "initial_dkg_transcript";
+
+  reserved 4;
+  reserved "ingress_bytes_per_block_soft_cap";
+
+  // Maximum amount of bytes per message. This is a hard cap, which means
+  // ingress messages greater than the limit will be dropped.
+  uint64 max_ingress_bytes_per_message = 5;
+
+  // Unit delay for blockmaker (in milliseconds).
+  uint64 unit_delay_millis = 7;
+
+  // Initial delay for notary (in milliseconds), to give time to rank-0 block
+  // propagation.
+  uint64 initial_notary_delay_millis = 8;
+
+  // ID of the Replica version to run
+  string replica_version_id = 9;
+
+  // The length of all DKG intervals. The DKG interval length is the number of rounds following the DKG summary.
+  uint64 dkg_interval_length = 10;
+
+  // Gossip Config
+  GossipConfig gossip_config = 13;
+
+  // If set to yes, the subnet starts as a (new) NNS
+  bool start_as_nns = 14;
+
+  // The type of subnet.
+  SubnetType subnet_type = 15;
+
+  // The upper bound for the number of dealings we allow in a block.
+  uint64 dkg_dealings_per_block = 16;
+
+  // If `true`, the subnet will be halted: it will no longer create or execute blocks.
+  bool is_halted = 17;
+
+  // Max number of ingress messages per block.
+  uint64 max_ingress_messages_per_block = 18;
+
+  // The maximum combined size of the ingress and xnet messages that fit into a block.
+  uint64 max_block_payload_size = 19;
+
+  // The maximum number of instructions a message can execute.
+  // See the comments in `subnet_config.rs` for more details.
+  uint64 max_instructions_per_message = 20;
+
+  // The maximum number of instructions a round can execute.
+  // See the comments in `subnet_config.rs` for more details.
+  uint64 max_instructions_per_round = 21;
+
+  // The maximum number of instructions an `install_code` message can execute.
+  // See the comments in `subnet_config.rs` for more details.
+  uint64 max_instructions_per_install_code = 22;
+
+  // Information on whether a feature is supported by this subnet.
+  SubnetFeatures features = 23;
+
+  // The maximum number of canisters that may be present on the subnet at any given time.
+  //
+  // A value of 0 is equivalent to setting no limit. This also provides an easy way
+  // to maintain compatibility of different versions of replica and registry.
+  uint64 max_number_of_canisters = 24;
+
+  // The list of public keys whose owners have "readonly" SSH access to all replicas on this subnet,
+  // in case it is necessary to perform subnet recovery.
+  repeated string ssh_readonly_access = 25;
+
+  // The list of public keys whose owners have "backup" SSH access to nodes on the NNS subnet
+  // to make sure the NNS can be backed up.
+  repeated string ssh_backup_access = 26;
+
+  // ECDSA Config. This field cannot be set back to `None` once it has been set
+  // to `Some`. To remove a key, the list of `key_ids` can be set to not include a particular key.
+  // If a removed key is not held by another subnet, it will be lost.
+  //
+  // Deprecated; please use chain_key_config instead.
+  EcdsaConfig ecdsa_config = 27;
+
+  // If `true`, the subnet will be halted after reaching the next cup height: it will no longer
+  // create or execute blocks.
+  //
+  // Note: this flag is reset automatically when a new CUP proposal is approved. When that
+  // happens, the `is_halted` flag is set to `true`, so the Subnet remains halted until an
+  // appropriate proposal which sets `is_halted` to `false` is approved.
+  bool halt_at_cup_height = 28;
+
+  // Cryptographic key configuration. This field cannot be set back to `None` once it has been set
+  // to `Some`. To remove a key, the list of `key_configs` can be set to not include a particular
+  // key. If the removed key is not held by another subnet, it will be lost.
+  optional ChainKeyConfig chain_key_config = 29;
+}
+
+// Types of curves that can be used for ECDSA signatures.
+enum EcdsaCurve {
+  ECDSA_CURVE_UNSPECIFIED = 0;
+  ECDSA_CURVE_SECP256K1 = 1;
+}
+
+message EcdsaKeyId {
+  EcdsaCurve curve = 1;
+  string name = 2;
+}
+
+message EcdsaInitialization {
+  EcdsaKeyId key_id = 1;
+  InitialIDkgDealings dealings = 2;
+}
+
+// Contains the initial DKG transcripts for the subnet and materials to construct a base CUP (i.e.
+// a CUP with no dependencies on previous CUPs or blocks). Such CUP materials can be used to
+// construct the genesis CUP or a recovery CUP in the event of a subnet stall.
+message CatchUpPackageContents {
+  // Initial non-interactive low-threshold DKG transcript
+  InitialNiDkgTranscriptRecord initial_ni_dkg_transcript_low_threshold = 1;
+
+  // Initial non-interactive high-threshold DKG transcript
+  InitialNiDkgTranscriptRecord initial_ni_dkg_transcript_high_threshold = 2;
+
+  // The blockchain height that the CUP should have
+  uint64 height = 3;
+
+  // Block time for the CUP's block
+  uint64 time = 4;
+
+  // The hash of the state that the subnet should use
+  bytes state_hash = 5;
+
+  // A uri from which data to replace the registry local store should be downloaded
+  RegistryStoreUri registry_store_uri = 6;
+
+  /// The initial ECDSA dealings for boot strapping target subnets.
+  repeated EcdsaInitialization ecdsa_initializations = 7;
+}
+
+message RegistryStoreUri {
+  /// The uri at which the registry store data should be retrieved. The data
+  /// must be provided as gzipped tar archive
+  string uri = 1;
+  /// A SHA-256, hex encoded hash of the contents of the data stored at the
+  /// provided URI
+  string hash = 2;
+  /// The registry version that should be used for the catch up package contents
+  uint64 registry_version = 3;
+}
+
+// Contains information pertaining to all subnets in the IC and their params.
+message SubnetListRecord {
+  reserved 1; // this is from subnet id being a uint64
+  // A list of subnet ids of all subnets present in this instance of the IC.
+  repeated bytes subnets = 2;
+}
+
+// A non-interactive distributed key generation (NI-DKG) ID.
+message NiDkgId {
+  reserved "receiver_subnet";
+  reserved 3; // this is from receiver_subnet consisting of bytes
+  uint64 start_block_height = 1;
+  bytes dealer_subnet = 2;
+  NiDkgTag dkg_tag = 4;
+  google.protobuf.BytesValue remote_target_id = 5;
+}
+
+// A non-interactive distributed key generation (NI-DKG) tag.
+enum NiDkgTag {
+  NI_DKG_TAG_UNSPECIFIED = 0;
+  NI_DKG_TAG_LOW_THRESHOLD = 1;
+  NI_DKG_TAG_HIGH_THRESHOLD = 2;
+}
+
+// Initial non-interactive DKG transcript record
+message InitialNiDkgTranscriptRecord {
+  NiDkgId id = 1;
+  uint32 threshold = 2;
+  repeated bytes committee = 3;
+  uint64 registry_version = 4;
+  bytes internal_csp_transcript = 5;
+}
+
+message PrincipalId {
+  bytes raw = 1;
+}
+
+message SubnetId {
+  PrincipalId principal_id = 1;
+}
+
+message IDkgTranscriptId {
+  uint64 id = 1;
+  SubnetId subnet_id = 2;
+  uint64 source_height = 3;
+}
+
+message VerifiedIDkgDealing {
+  reserved 4;
+  reserved "requested_height";
+  reserved 5;
+  reserved "dealing_tuple";
+  reserved 2;
+  reserved "signature";
+  reserved 3;
+  reserved "signers";
+
+  uint32 dealer_index = 1;
+  IDkgSignedDealingTuple signed_dealing_tuple = 6;
+  repeated SignatureTuple support_tuples = 7;
+}
+
+message NodeId {
+  PrincipalId principal_id = 1;
+}
+
+// An algorithm ID. This is used to specify the signature algorithm associated with a public key.
+enum AlgorithmId {
+  ALGORITHM_ID_UNSPECIFIED = 0;
+  ALGORITHM_ID_MULTI_BLS12_381 = 1;
+  ALGORITHM_ID_THRES_BLS12_381 = 2;
+  ALGORITHM_ID_SCHNORR_SECP256K1 = 3;
+  ALGORITHM_ID_STATIC_DH_SECP256K1 = 4;
+  ALGORITHM_ID_HASH_SHA256 = 5;
+  ALGORITHM_ID_TLS = 6;
+  ALGORITHM_ID_ED25519 = 7;
+  ALGORITHM_ID_SECP256K1 = 8;
+  ALGORITHM_ID_GROTH20_BLS12_381 = 9;
+  ALGORITHM_ID_NIDKG_GROTH20_BLS12_381 = 10;
+  ALGORITHM_ID_ECDSA_P256 = 11;
+  ALGORITHM_ID_ECDSA_SECP_256K1 = 12;
+  ALGORITHM_ID_IC_CANISTER_SIGNATURE = 13;
+  ALGORITHM_ID_RSA_SHA256 = 14;
+  ALGORITHM_ID_THRESHOLD_ECDSA_SECP_256K1 = 15;
+  ALGORITHM_ID_MEGA_SECP_256K1 = 16;
+  ALGORITHM_ID_THRESHOLD_ECDSA_SECP_256R1 = 17;
+  ALGORITHM_ID_THRESHOLD_SCHNORR_BIP340 = 18;
+  ALGORITHM_ID_THRESHOLD_ED25519 = 19;
+}
+
+message IDkgTranscript {
+  IDkgTranscriptId transcript_id = 1;
+  repeated NodeId dealers = 2;
+  repeated NodeId receivers = 3;
+  uint64 registry_version = 4;
+  repeated VerifiedIDkgDealing verified_dealings = 5;
+  bytes transcript_type = 6; // CBOR serialized IDkgTranscriptType
+  AlgorithmId algorithm_id = 7;
+  bytes raw_transcript = 8; // serialised InternalRawTranscript
+}
+
+message DealerTuple {
+  NodeId dealer_id = 1;
+  uint32 dealer_index = 2;
+}
+
+message SignatureTuple {
+  NodeId signer = 1;
+  bytes signature = 2;
+}
+
+enum IDkgTranscriptOperation {
+  I_DKG_TRANSCRIPT_OPERATION_UNSPECIFIED = 0;
+  I_DKG_TRANSCRIPT_OPERATION_RANDOM = 1;
+  I_DKG_TRANSCRIPT_OPERATION_RESHARE_OF_MASKED = 2;
+  I_DKG_TRANSCRIPT_OPERATION_RESHARE_OF_UNMASKED = 3;
+  I_DKG_TRANSCRIPT_OPERATION_UNMASKED_TIMES_MASKED = 4;
+  I_DKG_TRANSCRIPT_OPERATION_RANDOM_UNMASKED = 5;
+}
+
+message IDkgTranscriptParams {
+  IDkgTranscriptId transcript_id = 1;
+  repeated DealerTuple dealers = 2;
+  repeated NodeId receivers = 3;
+  uint64 registry_version = 4;
+  AlgorithmId algorithm_id = 5;
+  IDkgTranscriptOperation idkg_transcript_operation = 6;
+  repeated IDkgTranscript idkg_transcript_operation_args = 7; // 0, 1, or 2 IDkgTranscripts
+}
+
+message IDkgDealing {
+  IDkgTranscriptId transcript_id = 1;
+  bytes raw_dealing = 2; // serialised InternalRawDealing
+}
+
+message IDkgSignedDealingTuple {
+  NodeId dealer = 1;
+  IDkgDealing dealing = 2;
+  bytes signature = 3;
+}
+
+message InitialIDkgDealings {
+  reserved 3;
+  reserved "dealings";
+
+  uint32 version = 1;
+  IDkgTranscriptParams params = 2;
+  repeated IDkgSignedDealingTuple signed_dealings = 4;
+}
+
+message IDkgComplaint {
+  IDkgTranscriptId transcript_id = 1;
+  NodeId dealer = 2;
+  bytes raw_complaint = 3;
+}
+
+message IDkgOpening {
+  IDkgTranscriptId transcript_id = 1;
+  NodeId dealer = 2;
+  bytes raw_opening = 3;
+}
+
+message ExtendedDerivationPath {
+  PrincipalId caller = 1;
+  repeated bytes derivation_path = 2;
+}
+
+// Per subnet P2P configuration
+// Note: protoc is mangling the name P2PConfig to P2pConfig
+message GossipConfig {
+  reserved 9;
+  reserved "relay_config";
+  reserved 10;
+  reserved "advert_config";
+
+  // max outstanding request per peer MIN/DEFAULT/MAX 1/20/200
+  uint32 max_artifact_streams_per_peer = 1;
+  // timeout for a outstanding request 3_000/15_000/180_000
+  uint32 max_chunk_wait_ms = 2;
+  // max duplicate requests in underutilized networks 1/28/6000
+  uint32 max_duplicity = 3;
+  // maximum chunk size supported on this subnet 1024/4096/131_072
+  uint32 max_chunk_size = 4;
+  // history size for receive check 1_000/5_000/30_000
+  uint32 receive_check_cache_size = 5;
+  // period for re evaluating the priority function. 1_000/3_000/30_000
+  uint32 pfn_evaluation_period_ms = 6;
+  // period for polling the registry for updates 1_000/3_000/30_000
+  uint32 registry_poll_period_ms = 7;
+  // period for sending a retransmission request
+  uint32 retransmission_request_ms = 8;
+  // config for advert distribution.
+}
+
+// Represents the type of subnet. Subnets of different type might exhibit different
+// behavior, e.g. being more restrictive in what operations are allowed or privileged
+// compared to other subnet types.
+enum SubnetType {
+  SUBNET_TYPE_UNSPECIFIED = 0;
+  // A normal subnet where no restrictions are applied.
+  SUBNET_TYPE_APPLICATION = 1;
+  // A more privileged subnet where certain restrictions are applied,
+  // like not charging for cycles or restricting who can create and
+  // install canisters on it.
+  SUBNET_TYPE_SYSTEM = 2;
+  reserved 3;
+  reserved "SUBNET_TYPE_PREMIUM_APPLICATION";
+  // A subnet type that is like application subnets but can have some
+  // additional features.
+  SUBNET_TYPE_VERIFIED_APPLICATION = 4;
+}
+
+message SubnetFeatures {
+  reserved 1;
+  // This feature flag controls whether canister execution happens
+  // in sandboxed process or not. It is disabled by default.
+  bool canister_sandboxing = 2;
+  // This feature flag controls whether canisters of this subnet are capable of
+  // performing http(s) requests to the web2.
+  bool http_requests = 3;
+
+  reserved 4;
+
+  reserved "bitcoin_testnet_feature";
+  reserved 5;
+
+  reserved "bitcoin";
+  reserved 6;
+
+  reserved "sev_status";
+  reserved 7;
+
+  reserved "onchain_observability";
+  reserved 8;
+
+  // Status of the SEV-SNP feature.
+  optional bool sev_enabled = 9;
+}
+
+// Per subnet ECDSA configuration
+//
+// Deprecated; please use ChainKeyConfig instead.
+message EcdsaConfig {
+  // Number of quadruples to create in advance.
+  uint32 quadruples_to_create_in_advance = 1;
+  reserved 2;
+  // Identifiers for threshold ECDSA keys held by the subnet.
+  repeated EcdsaKeyId key_ids = 3;
+  // The maximum number of signature requests that can be enqueued at once.
+  uint32 max_queue_size = 4;
+  // Signature requests will timeout after the given number of nano seconds.
+  optional uint64 signature_request_timeout_ns = 5;
+  // Key rotation period of a single node in milliseconds.
+  // If none is specified key rotation is disabled.
+  optional uint64 idkg_key_rotation_period_ms = 6;
+}
+
+// Types of curves that can be used for Schnorr signatures.
+enum SchnorrAlgorithm {
+  SCHNORR_ALGORITHM_UNSPECIFIED = 0;
+  SCHNORR_ALGORITHM_BIP340SECP256K1 = 1;
+  SCHNORR_ALGORITHM_ED25519 = 2;
+}
+
+message SchnorrKeyId {
+  SchnorrAlgorithm algorithm = 1;
+  string name = 2;
+}
+
+message MasterPublicKeyId {
+  oneof key_id {
+    EcdsaKeyId ecdsa = 1;
+    SchnorrKeyId schnorr = 2;
+  }
+}
+
+message KeyConfig {
+  // The key's identifier.
+  optional MasterPublicKeyId key_id = 1;
+  // Number of pre-signatures to create in advance.
+  optional uint32 pre_signatures_to_create_in_advance = 3;
+  // The maximum number of signature requests that can be enqueued at once.
+  optional uint32 max_queue_size = 4;
+}
+
+// Per-subnet chain key configuration
+message ChainKeyConfig {
+  // Configurations for keys held by the subnet.
+  repeated KeyConfig key_configs = 1;
+  // Signature requests will timeout after the given number of nano seconds.
+  optional uint64 signature_request_timeout_ns = 2;
+  // Key rotation period of a single node in milliseconds.
+  // If none is specified key rotation is disabled.
+  optional uint64 idkg_key_rotation_period_ms = 3;
+}
