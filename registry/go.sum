@@ -1,9 +1,11 @@
+github.com/aviate-labs/agent-go v0.4.3 h1:XvUv23dw/77I5Rt6S89fHOuI9ci9ARiyLw8Lh4C2FTU=
+github.com/aviate-labs/agent-go v0.4.3/go.mod h1:uodw1LlLrP5A5XxXaNOE39iHYb6IGDqnVXEvwiG+YiM=
+github.com/aviate-labs/agent-go v0.4.4-0.20240515111542-ef8ce13f44f2 h1:4WA9qGa4z22TSJ6LApbRXtb/ZpeLkxgaKBOvu72srno=
+github.com/aviate-labs/agent-go v0.4.4-0.20240515111542-ef8ce13f44f2/go.mod h1:uodw1LlLrP5A5XxXaNOE39iHYb6IGDqnVXEvwiG+YiM=
 github.com/aviate-labs/leb128 v0.3.0 h1:s9htRv3OYk8nuHqJu9PiVFJxv1jIUTIcpEeiURa91uQ=
 github.com/aviate-labs/leb128 v0.3.0/go.mod h1:GclhBOjhIKmcDlgHKhj0AEZollzERfZUbcRUKiQVqgY=
 github.com/aviate-labs/secp256k1 v0.0.0-5e6736a h1:aQkG/D+l8Y7tr809l8pN+KebH2jzacWReSFQmeEKFgM=
 github.com/aviate-labs/secp256k1 v0.0.0-5e6736a/go.mod h1:C/lr3F9TimrVkdZckG5mz+VU0TrmpeyVKUjzv2YyGwA=
-github.com/di-wu/parser v0.3.0 h1:NMOvy5ifswgt4gsdhySVcKOQtvjC43cHZIfViWctqQY=
-github.com/di-wu/parser v0.3.0/go.mod h1:SLp58pW6WamdmznrVRrw2NTyn4wAvT9rrEFynKX7nYo=
 github.com/fxamacker/cbor/v2 v2.6.0 h1:sU6J2usfADwWlYDAFhZBQ6TnLFBHxgesMrQfQgk1tWA=
 github.com/fxamacker/cbor/v2 v2.6.0/go.mod h1:pxXPTn3joSm21Gbwsv0w9OSA2y1HFR9qXEeXQVeNoDQ=
 github.com/google/go-cmp v0.5.5 h1:Khx7svrCpmxxtHBq5j2mp/xVjsi8hQMfNLvJFAlrGgU=
