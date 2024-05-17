@@ -69,33 +69,32 @@ type Request struct {
 
 // MarshalCBOR implements the CBOR marshaler interface.
 func (r *Request) MarshalCBOR() ([]byte, error) {
-	return cbor.Marshal(requestRaw{
-		Type:          r.Type,
-		Sender:        r.Sender.Raw,
-		Nonce:         r.Nonce,
-		IngressExpiry: r.IngressExpiry,
-		CanisterID:    r.CanisterID.Raw,
-		MethodName:    r.MethodName,
-		Arguments:     r.Arguments,
-		Paths:         r.Paths,
-	})
-}
-
-// UnmarshalCBOR implements the CBOR unmarshaler interface.
-func (r *Request) UnmarshalCBOR(data []byte) error {
-	var raw requestRaw
-	if err := cbor.Unmarshal(data, &raw); err != nil {
-		return err
+	m := make(map[string]any)
+	if len(r.Type) != 0 {
+		m["request_type"] = r.Type
 	}
-	r.Type = raw.Type
-	r.Sender = principal.Principal{Raw: raw.Sender}
-	r.Nonce = raw.Nonce
-	r.IngressExpiry = raw.IngressExpiry
-	r.CanisterID = principal.Principal{Raw: raw.CanisterID}
-	r.MethodName = raw.MethodName
-	r.Arguments = raw.Arguments
-	r.Paths = raw.Paths
-	return nil
+	if r.CanisterID.Raw != nil {
+		m["canister_id"] = r.CanisterID.Raw
+	}
+	if len(r.MethodName) != 0 {
+		m["method_name"] = r.MethodName
+	}
+	if len(r.Arguments) != 0 {
+		m["arg"] = r.Arguments
+	}
+	if len(r.Sender.Raw) != 0 {
+		m["sender"] = r.Sender.Raw
+	}
+	if r.IngressExpiry != 0 {
+		m["ingress_expiry"] = r.IngressExpiry
+	}
+	if len(r.Nonce) != 0 {
+		m["nonce"] = r.Nonce
+	}
+	if r.Paths != nil {
+		m["paths"] = r.Paths
+	}
+	return cbor.Marshal(m)
 }
 
 // RequestID is the request ID.
@@ -167,14 +166,3 @@ const (
 	// RequestTypeReadState is a read state request.
 	RequestTypeReadState RequestType = "read_state"
 )
-
-type requestRaw struct {
-	Type          RequestType        `cbor:"request_type,omitempty"`
-	Sender        []byte             `cbor:"sender,omitempty"`
-	Nonce         []byte             `cbor:"nonce,omitempty"`
-	IngressExpiry uint64             `cbor:"ingress_expiry,omitempty"`
-	CanisterID    []byte             `cbor:"canister_id,omitempty"`
-	MethodName    string             `cbor:"method_name,omitempty"`
-	Arguments     []byte             `cbor:"arg,omitempty"`
-	Paths         [][]hashtree.Label `cbor:"paths,omitempty"`
-}
