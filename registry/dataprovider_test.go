@@ -5,7 +5,11 @@ import (
 )
 
 func TestDataProvider_GetChangesSince(t *testing.T) {
-	if _, _, err := new(DataProvider).GetChangesSince(0); err != nil {
+	dp, err := NewDataProvider()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := dp.GetChangesSince(0); err != nil {
 		t.Fatal(err)
 	}
 }

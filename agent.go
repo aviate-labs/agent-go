@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"google.golang.org/protobuf/proto"
 	"net/url"
 	"reflect"
 	"time"
@@ -158,6 +159,33 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, args []an
 	return call.CallAndWait(values...)
 }
 
+// CallProto calls a method on a canister and unmarshals the result into the given proto message.
+func (a Agent) CallProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
+	payload, err := proto.Marshal(in)
+	if err != nil {
+		return err
+	}
+	requestID, data, err := a.sign(Request{
+		Type:          RequestTypeCall,
+		Sender:        a.Sender(),
+		IngressExpiry: a.expiryDate(),
+		CanisterID:    canisterID,
+		MethodName:    methodName,
+		Arguments:     payload,
+	})
+	if err != nil {
+		return err
+	}
+	if _, err := a.call(canisterID, data); err != nil {
+		return err
+	}
+	raw, err := a.poll(canisterID, *requestID)
+	if err != nil {
+		return err
+	}
+	return proto.Unmarshal(raw, out)
+}
+
 // Client returns the underlying Client of the Agent.
 func (a Agent) Client() *Client {
 	return &a.client
@@ -301,12 +329,43 @@ func (a Agent) GetRootKey() []byte {
 }
 
 // Query calls a method on a canister and unmarshals the result into the given values.
-func (a Agent) Query(canisterID principal.Principal, methodName string, args []any, values []any) error {
+func (a Agent) Query(canisterID principal.Principal, methodName string, args, values []any) error {
 	query, err := a.CreateQuery(canisterID, methodName, args...)
 	if err != nil {
 		return err
 	}
 	return query.Query(values...)
+}
+
+// QueryProto calls a method on a canister and unmarshals the result into the given proto message.
+func (a Agent) QueryProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
+	payload, err := proto.Marshal(in)
+	if err != nil {
+		return err
+	}
+	_, data, err := a.sign(Request{
+		Type:          RequestTypeQuery,
+		Sender:        a.Sender(),
+		IngressExpiry: a.expiryDate(),
+		CanisterID:    canisterID,
+		MethodName:    methodName,
+		Arguments:     payload,
+	})
+	if err != nil {
+		return err
+	}
+	resp, err := a.client.Query(canisterID, data)
+	if err != nil {
+		return err
+	}
+	var response Response
+	if err := cbor.Unmarshal(resp, &response); err != nil {
+		return err
+	}
+	if response.Status != "replied" {
+		return fmt.Errorf("status: %s", response.Status)
+	}
+	return proto.Unmarshal(response.Reply["arg"], out)
 }
 
 // ReadStateCertificate reads the certificate state of the given canister at the given path.
