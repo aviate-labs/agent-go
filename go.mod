@@ -8,6 +8,7 @@ require (
 	github.com/di-wu/parser v0.3.0
 	github.com/fxamacker/cbor/v2 v2.6.0
 	github.com/herumi/bls-go-binary v1.33.0
+	google.golang.org/protobuf v1.34.1
 )
 
 require github.com/x448/float16 v0.8.4 // indirect
