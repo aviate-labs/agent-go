@@ -31,3 +31,20 @@ func TestEncode_issue7(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestVariantType_default(t *testing.T) {
+	type V = struct {
+		A *Null `ic:"A,variant"`
+		B *Null `ic:"B,variant"`
+	}
+	raw, err := Marshal([]any{
+		V{},
+	})
+	if err == nil {
+		t.Error("expected error")
+	}
+	var v V
+	if err := Unmarshal(raw, []any{&v}); err == nil {
+		t.Error("expected error")
+	}
+}
