@@ -136,7 +136,7 @@ func (variant VariantType) EncodeValue(value any) ([]byte, error) {
 			return concat(id, v_), nil
 		}
 	}
-	return nil, fmt.Errorf("unknown variant: %variant", value)
+	return nil, fmt.Errorf("unknown variant: %v", value)
 }
 
 func (variant VariantType) String() string {
@@ -220,10 +220,7 @@ func (variant VariantType) structToVariant(value any) (*Variant, error) {
 				}, nil
 			}
 			if i == v.NumField()-1 {
-				return &Variant{
-					Name:  tag.Name,
-					Value: nil,
-				}, nil
+				return nil, fmt.Errorf("invalid variant: no variant selected")
 			}
 		}
 		return nil, fmt.Errorf("invalid variant: %s", v.Type())
