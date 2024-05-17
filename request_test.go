@@ -2,7 +2,9 @@ package agent_test
 
 import (
 	"fmt"
+	"github.com/fxamacker/cbor/v2"
 	"testing"
+	"time"
 
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
@@ -80,5 +82,25 @@ func TestRequestID_Sign(t *testing.T) {
 		Arguments:     []byte("DIDL\x00\xFD*"),
 	})); h != "1d1091364d6bb8a6c16b203ee75467d59ead468f523eb058880ae8ec80e2b101" {
 		t.Error(h)
+	}
+}
+
+func TestRequest_MarshalCBOR(t *testing.T) {
+	request := agent.Request{
+		Type:          agent.RequestTypeReadState,
+		Sender:        principal.AnonymousID,
+		Paths:         [][]hashtree.Label{{hashtree.Label("subnet")}},
+		IngressExpiry: uint64(time.Now().Add(time.Minute).UnixNano()),
+	}
+	encoded, err := cbor.Marshal(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var r map[string]any
+	if err := cbor.Unmarshal(encoded, &r); err != nil {
+		t.Fatal(err)
+	}
+	if len(r) != 4 {
+		t.Error(len(r))
 	}
 }

@@ -169,12 +169,12 @@ const (
 )
 
 type requestRaw struct {
-	Type          RequestType        `cbor:"request_type"`
-	Sender        []byte             `cbor:"sender"`
-	Nonce         []byte             `cbor:"nonce"`
-	IngressExpiry uint64             `cbor:"ingress_expiry"`
-	CanisterID    []byte             `cbor:"canister_id"`
-	MethodName    string             `cbor:"method_name"`
-	Arguments     []byte             `cbor:"arg"`
+	Type          RequestType        `cbor:"request_type,omitempty"`
+	Sender        []byte             `cbor:"sender,omitempty"`
+	Nonce         []byte             `cbor:"nonce,omitempty"`
+	IngressExpiry uint64             `cbor:"ingress_expiry,omitempty"`
+	CanisterID    []byte             `cbor:"canister_id,omitempty"`
+	MethodName    string             `cbor:"method_name,omitempty"`
+	Arguments     []byte             `cbor:"arg,omitempty"`
 	Paths         [][]hashtree.Label `cbor:"paths,omitempty"`
 }
