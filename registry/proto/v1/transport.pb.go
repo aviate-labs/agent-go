@@ -300,12 +300,240 @@ var file_transport_proto_rawDesc = []byte{
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
+func file_transport_proto_init() {
+	if File_transport_proto != nil {
+		return
+	}
+	if !protoimpl.UnsafeEnabled {
+		file_transport_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryError); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryValue); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryDelta); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryGetChangesSinceRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryGetChangesSinceResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryGetValueRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryGetValueResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryGetLatestVersionResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryMutation); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Precondition); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryAtomicMutateRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*RegistryAtomicMutateResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MixedHashTree); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*CertifiedResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MixedHashTree_Fork); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_transport_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*MixedHashTree_Labeled); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+	}
+	file_transport_proto_msgTypes[12].OneofWrappers = []interface{}{
+		(*MixedHashTree_Empty)(nil),
+		(*MixedHashTree_Fork_)(nil),
+		(*MixedHashTree_Labeled_)(nil),
+		(*MixedHashTree_LeafData)(nil),
+		(*MixedHashTree_PrunedDigest)(nil),
+	}
+	type x struct{}
+	out := protoimpl.TypeBuilder{
+		File: protoimpl.DescBuilder{
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: file_transport_proto_rawDesc,
+			NumEnums:      2,
+			NumMessages:   16,
+			NumExtensions: 0,
+			NumServices:   0,
+		},
+		GoTypes:           file_transport_proto_goTypes,
+		DependencyIndexes: file_transport_proto_depIdxs,
+		EnumInfos:         file_transport_proto_enumTypes,
+		MessageInfos:      file_transport_proto_msgTypes,
+	}.Build()
+	File_transport_proto = out.File
+	file_transport_proto_rawDesc = nil
+	file_transport_proto_goTypes = nil
+	file_transport_proto_depIdxs = nil
+}
+
 func file_transport_proto_rawDescGZIP() []byte {
 	file_transport_proto_rawDescOnce.Do(func() {
 		file_transport_proto_rawDescData = protoimpl.X.CompressGZIP(file_transport_proto_rawDescData)
 	})
 	return file_transport_proto_rawDescData
 }
+
+func init() { file_transport_proto_init() }
 
 // Message encoding a response to any *_certified method call.
 type CertifiedResponse struct {
@@ -1418,9 +1646,7 @@ func (x *RegistryValue) GetVersion() uint64 {
 	}
 	return 0
 }
-
 func (*RegistryValue) ProtoMessage() {}
-
 func (x *RegistryValue) ProtoReflect() protoreflect.Message {
 	mi := &file_transport_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
@@ -1440,236 +1666,11 @@ func (x *RegistryValue) Reset() {
 		ms.StoreMessageInfo(mi)
 	}
 }
+
 func (x *RegistryValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
-func init() { file_transport_proto_init() }
 
-func file_transport_proto_init() {
-	if File_transport_proto != nil {
-		return
-	}
-	if !protoimpl.UnsafeEnabled {
-		file_transport_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryError); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryValue); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryDelta); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryGetChangesSinceRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryGetChangesSinceResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryGetValueRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryGetValueResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryGetLatestVersionResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryMutation); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*Precondition); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryAtomicMutateRequest); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RegistryAtomicMutateResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MixedHashTree); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*CertifiedResponse); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MixedHashTree_Fork); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_transport_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*MixedHashTree_Labeled); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-	}
-	file_transport_proto_msgTypes[12].OneofWrappers = []interface{}{
-		(*MixedHashTree_Empty)(nil),
-		(*MixedHashTree_Fork_)(nil),
-		(*MixedHashTree_Labeled_)(nil),
-		(*MixedHashTree_LeafData)(nil),
-		(*MixedHashTree_PrunedDigest)(nil),
-	}
-	type x struct{}
-	out := protoimpl.TypeBuilder{
-		File: protoimpl.DescBuilder{
-			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_transport_proto_rawDesc,
-			NumEnums:      2,
-			NumMessages:   16,
-			NumExtensions: 0,
-			NumServices:   0,
-		},
-		GoTypes:           file_transport_proto_goTypes,
-		DependencyIndexes: file_transport_proto_depIdxs,
-		EnumInfos:         file_transport_proto_enumTypes,
-		MessageInfos:      file_transport_proto_msgTypes,
-	}.Build()
-	File_transport_proto = out.File
-	file_transport_proto_rawDesc = nil
-	file_transport_proto_goTypes = nil
-	file_transport_proto_depIdxs = nil
-}
 type isMixedHashTree_TreeEnum interface {
 	isMixedHashTree_TreeEnum()
 }

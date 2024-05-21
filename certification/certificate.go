@@ -1,6 +1,8 @@
 package certification
 
 import (
+	"bytes"
+	"encoding/asn1"
 	"fmt"
 	"slices"
 
@@ -11,103 +13,170 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-// Cert is a certificate gets returned by the IC.
-type Cert struct {
+func PublicKeyFromDER(der []byte) (*bls.PublicKey, error) {
+	var seq asn1.RawValue
+	if _, err := asn1.Unmarshal(der, &seq); err != nil {
+		return nil, err
+	}
+	if seq.Tag != asn1.TagSequence {
+		return nil, fmt.Errorf("invalid tag: %d", seq.Tag)
+	}
+	var idSeq asn1.RawValue
+	rest, err := asn1.Unmarshal(seq.Bytes, &idSeq)
+	if err != nil {
+		return nil, err
+	}
+	var bs asn1.BitString
+	if _, err := asn1.Unmarshal(rest, &bs); err != nil {
+		return nil, err
+	}
+	if bs.BitLength != 96*8 {
+		return nil, fmt.Errorf("invalid bit string length: %d", bs.BitLength)
+	}
+	var algoId asn1.ObjectIdentifier
+	seqRest, err := asn1.Unmarshal(idSeq.Bytes, &algoId)
+	if err != nil {
+		return nil, err
+	}
+	if !algoId.Equal(asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 44668, 5, 3, 1, 2, 1}) {
+		return nil, fmt.Errorf("invalid algorithm identifier: %v", algoId)
+	}
+	var curveID asn1.ObjectIdentifier
+	if _, err := asn1.Unmarshal(seqRest, &curveID); err != nil {
+		return nil, err
+	}
+	if !curveID.Equal(asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 44668, 5, 3, 2, 1}) {
+		return nil, fmt.Errorf("invalid curve identifier: %v", curveID)
+	}
+	return bls.PublicKeyFromBytes(bs.Bytes)
+}
+
+func PublicKeyToDER(publicKey []byte) ([]byte, error) {
+	if len(publicKey) != 96 {
+		return nil, fmt.Errorf("invalid public key length: %d", len(publicKey))
+	}
+	return asn1.Marshal([]any{
+		[]any{
+			asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 44668, 5, 3, 1, 2, 1}, // algorithm identifier
+			asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 44668, 5, 3, 2, 1},    // curve identifier
+		},
+		asn1.BitString{
+			Bytes:     publicKey,
+			BitLength: len(publicKey) * 8,
+		},
+	})
+}
+
+func VerifyCertificate(
+	certificate Certificate,
+	canisterID principal.Principal,
+	rootPublicKey []byte,
+) error {
+	publicKey, err := PublicKeyFromDER(rootPublicKey)
+	if err != nil {
+		return err
+	}
+	key := publicKey
+	if certificate.Delegation != nil {
+		delegation := certificate.Delegation
+		k, err := verifyDelegationCertificate(
+			delegation.Certificate,
+			delegation.SubnetId,
+			publicKey,
+			canisterID,
+		)
+		if err != nil {
+			return err
+		}
+		key = k
+	}
+	return verifyCertificateSignature(certificate, key)
+}
+
+func VerifyCertifiedData(
+	certificate Certificate,
+	canisterID principal.Principal,
+	rootPublicKey []byte,
+	certifiedData []byte,
+) error {
+	if err := VerifyCertificate(certificate, canisterID, rootPublicKey); err != nil {
+		return err
+	}
+	certificateCertifiedData, err := certificate.Tree.Lookup(
+		hashtree.Label("canister"),
+		canisterID.Raw,
+		hashtree.Label("certified_data"),
+	)
+	if err != nil {
+		return err
+	}
+	if !bytes.Equal(certificateCertifiedData, certifiedData) {
+		return fmt.Errorf("certified data does not match")
+	}
+	return nil
+}
+
+func verifyCertificateSignature(certificate Certificate, publicKey *bls.PublicKey) error {
+	rootHash := certificate.Tree.Digest()
+	message := append(hashtree.DomainSeparator("ic-state-root"), rootHash[:]...)
+	signature, err := bls.SignatureFromBytes(certificate.Signature)
+	if err != nil {
+		return err
+	}
+	if !signature.VerifyByte(publicKey, message) {
+		return fmt.Errorf("signature verification failed")
+	}
+	return nil
+}
+
+func verifyDelegationCertificate(
+	certificate Certificate,
+	subnetID principal.Principal,
+	rootPublicKey *bls.PublicKey,
+	canisterID principal.Principal,
+) (*bls.PublicKey, error) {
+	if certificate.Delegation != nil {
+		return nil, fmt.Errorf("multiple delegations are not supported")
+	}
+	if err := verifyCertificateSignature(certificate, rootPublicKey); err != nil {
+		return nil, err
+	}
+
+	rawRanges, err := certificate.Tree.Lookup(
+		hashtree.Label("subnet"),
+		subnetID.Raw,
+		hashtree.Label("canister_ranges"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	var canisterRanges canisterRanges
+	if err := cbor.Unmarshal(rawRanges, &canisterRanges); err != nil {
+		return nil, err
+	}
+	if !canisterRanges.InRange(canisterID) {
+		return nil, fmt.Errorf("canister %s is not in range", canisterID)
+	}
+
+	rawPublicKey, err := certificate.Tree.Lookup(
+		hashtree.Label("subnet"),
+		subnetID.Raw,
+		hashtree.Label("public_key"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return PublicKeyFromDER(rawPublicKey)
+}
+
+// Certificate is a certificate gets returned by the IC.
+type Certificate struct {
 	// Tree is the certificate tree.
 	Tree hashtree.HashTree `cbor:"tree"`
 	// Signature is the signature of the certificate tree.
 	Signature []byte `cbor:"signature"`
 	// Delegation is the delegation of the certificate.
 	Delegation *Delegation `cbor:"delegation"`
-}
-
-// Certificate is a certificate that gets returned by the IC and can be used to verify the state root based on the root
-// key and canister ID.
-type Certificate struct {
-	Cert       Cert
-	RootKey    []byte
-	CanisterID principal.Principal
-}
-
-// New creates a new certificate.
-func New(canisterID principal.Principal, rootKey []byte, certificate []byte) (*Certificate, error) {
-	var cert Cert
-	if err := cbor.Unmarshal(certificate, &cert); err != nil {
-		return nil, err
-	}
-	return &Certificate{
-		Cert:       cert,
-		RootKey:    rootKey,
-		CanisterID: canisterID,
-	}, nil
-}
-
-// Verify verifies the certificate.
-func (c Certificate) Verify() error {
-	signature, err := bls.SignatureFromBytes(c.Cert.Signature)
-	if err != nil {
-		return err
-	}
-	publicKey, err := c.getPublicKey()
-	if err != nil {
-		return err
-	}
-	rootHash := c.Cert.Tree.Digest()
-	message := append(hashtree.DomainSeparator("ic-state-root"), rootHash[:]...)
-	if !signature.Verify(publicKey, string(message)) {
-		return fmt.Errorf("signature verification failed")
-	}
-	return nil
-}
-
-// getPublicKey checks the delegation and returns the public key.
-func (c Certificate) getPublicKey() (*bls.PublicKey, error) {
-	if c.Cert.Delegation == nil {
-		return bls.PublicKeyFromBytes(c.RootKey)
-	}
-
-	cert := c.Cert.Delegation
-	canisterRanges, err := cert.Certificate.Cert.Tree.Lookup(
-		hashtree.Label("subnet"), cert.SubnetId.Raw, hashtree.Label("canister_ranges"),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("no canister ranges found for subnet %s: %w", cert.SubnetId, err)
-	}
-	var rawRanges [][][]byte
-	if err := cbor.Unmarshal(canisterRanges, &rawRanges); err != nil {
-		return nil, err
-	}
-
-	var inRange bool
-	for _, pair := range rawRanges {
-		if len(pair) != 2 {
-			return nil, fmt.Errorf("invalid range: %v", pair)
-		}
-		if slices.Compare(pair[0], c.CanisterID.Raw) <= 0 && slices.Compare(c.CanisterID.Raw, pair[1]) <= 0 {
-			inRange = true
-			break
-		}
-	}
-	if !inRange {
-		return nil, fmt.Errorf("canister %s is not in range", c.CanisterID)
-	}
-
-	publicKey, err := cert.Certificate.Cert.Tree.Lookup(
-		hashtree.Label("subnet"), cert.SubnetId.Raw, hashtree.Label("public_key"),
-	)
-	if err != nil {
-		return nil, fmt.Errorf("no public key found for subnet %s: %w", cert.SubnetId, err)
-	}
-
-	if len(publicKey) != len(derPrefix)+96 {
-		return nil, fmt.Errorf("invalid public key length: %d", len(publicKey))
-	}
-
-	if slices.Compare(publicKey[:len(derPrefix)], derPrefix) != 0 {
-		return nil, fmt.Errorf("invalid public key prefix: %s", publicKey[:len(derPrefix)])
-	}
-
-	return bls.PublicKeyFromBytes(publicKey[len(derPrefix):])
 }
 
 // Delegation is a delegation of a certificate.
@@ -122,7 +191,7 @@ type Delegation struct {
 
 // UnmarshalCBOR unmarshals a delegation.
 func (d *Delegation) UnmarshalCBOR(bytes []byte) error {
-	var m map[string]any
+	var m map[string][]byte
 	if err := cbor.Unmarshal(bytes, &m); err != nil {
 		return err
 	}
@@ -130,10 +199,10 @@ func (d *Delegation) UnmarshalCBOR(bytes []byte) error {
 		switch k {
 		case "subnet_id":
 			d.SubnetId = principal.Principal{
-				Raw: v.([]byte),
+				Raw: v,
 			}
 		case "certificate":
-			if err := cbor.Unmarshal(v.([]byte), &d.Certificate.Cert); err != nil {
+			if err := cbor.Unmarshal(v, &d.Certificate); err != nil {
 				return err
 			}
 		default:
@@ -141,4 +210,15 @@ func (d *Delegation) UnmarshalCBOR(bytes []byte) error {
 		}
 	}
 	return nil
+}
+
+type canisterRanges [][][]byte
+
+func (c canisterRanges) InRange(canisterID principal.Principal) bool {
+	for _, pair := range c {
+		if slices.Compare(pair[0], canisterID.Raw) <= 0 && slices.Compare(canisterID.Raw, pair[1]) <= 0 {
+			return true
+		}
+	}
+	return false
 }

@@ -170,11 +170,11 @@ func (a Agent) VerifyResponse(path string, req *Request, resp *Response) error {
 	}
 
 	// Validate the certificate.
-	if err := (certification.Certificate{
-		Cert:       certificateHeader.Certificate,
-		RootKey:    a.GetRootKey(),
-		CanisterID: a.canisterId,
-	}).Verify(); err != nil {
+	if err := certification.VerifyCertificate(
+		certificateHeader.Certificate,
+		a.canisterId,
+		a.GetRootKey(),
+	); err != nil {
 		return err
 	}
 
@@ -316,7 +316,7 @@ func (a *Agent) verifyLegacy(path string, hash [32]byte, certificateHeader *Cert
 }
 
 type CertificateHeader struct {
-	Certificate certification.Cert
+	Certificate certification.Certificate
 	Tree        hashtree.HashTree
 	Version     int
 	ExprPath    []hashtree.Label
@@ -335,7 +335,7 @@ func ParseCertificateHeader(header string) (*CertificateHeader, error) {
 			if err != nil {
 				return nil, err
 			}
-			var cert certification.Cert
+			var cert certification.Certificate
 			if err := cbor.Unmarshal(raw, &cert); err != nil {
 				return nil, err
 			}

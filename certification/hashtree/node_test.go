@@ -3,6 +3,7 @@ package hashtree_test
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/aviate-labs/agent-go/certification/hashtree"
@@ -67,6 +68,26 @@ var tree = hashtree.Fork{
 			Tree:  hashtree.Leaf("morning"),
 		},
 	},
+}
+
+func ExampleAllPaths() {
+	paths, _ := hashtree.AllPaths(tree)
+	for _, path := range paths {
+		var p []string
+		for _, l := range path.Path {
+			p = append(p, string(l))
+		}
+		fmt.Printf(
+			"%s: %s\n",
+			strings.Join(p, "/"),
+			string(path.Value),
+		)
+	}
+	// Output:
+	// a/x: hello
+	// a/y: world
+	// b: good
+	// d: morning
 }
 
 func ExampleDeserialize() {

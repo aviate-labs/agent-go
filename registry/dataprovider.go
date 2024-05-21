@@ -1,10 +1,17 @@
 package registry
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/certification"
+	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/ic"
 	"github.com/aviate-labs/agent-go/registry/proto/v1"
+	"github.com/aviate-labs/leb128"
+	"github.com/fxamacker/cbor/v2"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -18,6 +25,84 @@ func NewDataProvider() (*DataProvider, error) {
 		return nil, err
 	}
 	return &DataProvider{a: a}, nil
+}
+
+func (d DataProvider) GetCertifiedChangesSince(version uint64, publicKey []byte) ([]VersionedRecord, uint64, error) {
+	var resp v1.CertifiedResponse
+	if err := d.a.QueryProto(
+		ic.REGISTRY_PRINCIPAL,
+		"get_certified_changes_since",
+		&v1.RegistryGetChangesSinceRequest{
+			Version: version,
+		},
+		&resp,
+	); err != nil {
+		return nil, 0, err
+	}
+	ht, err := NewHashTree(resp.HashTree)
+	if err != nil {
+		return nil, 0, err
+	}
+	rawCurrentVersion, err := ht.Lookup(hashtree.Label("current_version"))
+	if err != nil {
+		return nil, 0, err
+	}
+	currentVersion, err := leb128.DecodeUnsigned(bytes.NewReader(rawCurrentVersion))
+	if err != nil {
+		return nil, 0, err
+	}
+
+	deltaNodes, err := ht.LookupSubTree(hashtree.Label("delta"))
+	if err != nil {
+		return nil, 0, err
+	}
+	rawDeltas, err := hashtree.AllChildren(deltaNodes)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	var deltas []VersionedRecord
+	lastVersion := version
+	for _, delta := range rawDeltas {
+		req := new(v1.RegistryAtomicMutateRequest)
+		if err := proto.Unmarshal(delta.Value, req); err != nil {
+			return nil, 0, err
+		}
+
+		v := binary.BigEndian.Uint64(delta.Path[0])
+		if v != lastVersion+1 {
+			return nil, 0, fmt.Errorf("unexpected version: %d", v)
+		}
+		lastVersion = v
+
+		for _, m := range req.Mutations {
+			var value []byte
+			if m.MutationType != v1.RegistryMutation_DELETE {
+				value = m.Value
+			}
+			deltas = append(deltas, VersionedRecord{
+				Key:     string(m.Key),
+				Version: v,
+				Value:   value,
+			})
+		}
+	}
+
+	var certificate certification.Certificate
+	if err := cbor.Unmarshal(resp.Certificate, &certificate); err != nil {
+		return nil, 0, err
+	}
+	digest := ht.Digest()
+	if err := certification.VerifyCertifiedData(
+		certificate,
+		ic.REGISTRY_PRINCIPAL,
+		publicKey,
+		digest[:],
+	); err != nil {
+		return nil, 0, err
+	}
+
+	return deltas, currentVersion.Uint64(), nil
 }
 
 // GetChangesSince returns the changes since the given version.
@@ -37,6 +122,19 @@ func (d DataProvider) GetChangesSince(version uint64) ([]*v1.RegistryDelta, uint
 		return nil, 0, fmt.Errorf("error: %s", resp.Error.String())
 	}
 	return resp.Deltas, resp.Version, nil
+}
+
+func (d DataProvider) GetLatestVersion() (uint64, error) {
+	var resp v1.RegistryGetLatestVersionResponse
+	if err := d.a.QueryProto(
+		ic.REGISTRY_PRINCIPAL,
+		"get_latest_version",
+		nil,
+		&resp,
+	); err != nil {
+		return 0, err
+	}
+	return resp.Version, nil
 }
 
 // GetValue returns the value of the given key and its version.
@@ -86,4 +184,10 @@ func (d DataProvider) GetValueUpdate(key []byte, version *uint64) ([]byte, uint6
 		return nil, 0, fmt.Errorf("error: %s", resp.Error.String())
 	}
 	return resp.Value, resp.Version, nil
+}
+
+type VersionedRecord struct {
+	Key     string
+	Version uint64
+	Value   []byte
 }
