@@ -1,19 +1,16 @@
 package registry
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/aviate-labs/agent-go/certification"
 	"github.com/aviate-labs/agent-go/principal"
 	v1 "github.com/aviate-labs/agent-go/registry/proto/v1"
 	"google.golang.org/protobuf/proto"
-	"sort"
 	"strings"
 )
 
 type Client struct {
-	dp     *DataProvider
-	deltas []*v1.RegistryDelta
+	dp *DataProvider
 }
 
 func New() (*Client, error) {
@@ -21,16 +18,8 @@ func New() (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	deltas, _, err := dp.GetChangesSince(0)
-	if err != nil {
-		return nil, err
-	}
-	sort.Slice(deltas, func(i, j int) bool {
-		return 0 < bytes.Compare(deltas[i].Key, deltas[j].Key)
-	})
 	return &Client{
-		dp:     dp,
-		deltas: deltas,
+		dp: dp,
 	}, nil
 }
 
@@ -44,23 +33,6 @@ func (c *Client) GetNNSSubnetID() (*principal.Principal, error) {
 		return nil, err
 	}
 	return &principal.Principal{Raw: nnsSubnetID.PrincipalId.Raw}, nil
-}
-
-func (c *Client) GetNodeList() ([]*v1.NodeRecord, error) {
-	var nodes []*v1.NodeRecord
-	for _, delta := range c.deltas {
-		key := string(delta.Key)
-		if strings.HasPrefix(key, "node_record_") {
-			for _, value := range delta.Values {
-				record := new(v1.NodeRecord)
-				if err := proto.Unmarshal(value.Value, record); err != nil {
-					return nil, err
-				}
-				nodes = append(nodes, record)
-			}
-		}
-	}
-	return nodes, nil
 }
 
 func (c *Client) GetNodeListSince(version uint64) (map[string]NodeDetails, error) {
@@ -89,17 +61,25 @@ func (c *Client) GetNodeListSince(version uint64) (map[string]NodeDetails, error
 		currentVersion = records[len(records)-1].Version
 		for _, record := range records {
 			if strings.HasPrefix(record.Key, "node_record_") {
-				var nodeRecord v1.NodeRecord
-				if err := proto.Unmarshal(record.Value, &nodeRecord); err != nil {
-					return nil, err
+				if record.Value == nil {
+					delete(nodeMap, strings.TrimPrefix(record.Key, "node_record_"))
+				} else {
+					var nodeRecord v1.NodeRecord
+					if err := proto.Unmarshal(record.Value, &nodeRecord); err != nil {
+						return nil, err
+					}
+					nodeMap[strings.TrimPrefix(record.Key, "node_record_")] = &nodeRecord
 				}
-				nodeMap[strings.TrimPrefix(record.Key, "node_record_")] = &nodeRecord
 			} else if strings.HasPrefix(record.Key, "node_operator_record_") {
-				var nodeOperatorRecord v1.NodeOperatorRecord
-				if err := proto.Unmarshal(record.Value, &nodeOperatorRecord); err != nil {
-					return nil, err
+				if record.Value == nil {
+					delete(nodeOperatorMap, strings.TrimPrefix(record.Key, "node_operator_record_"))
+				} else {
+					var nodeOperatorRecord v1.NodeOperatorRecord
+					if err := proto.Unmarshal(record.Value, &nodeOperatorRecord); err != nil {
+						return nil, err
+					}
+					nodeOperatorMap[strings.TrimPrefix(record.Key, "node_operator_record_")] = &nodeOperatorRecord
 				}
-				nodeOperatorMap[strings.TrimPrefix(record.Key, "node_operator_record_")] = &nodeOperatorRecord
 			}
 		}
 		if currentVersion >= latestVersion {
