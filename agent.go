@@ -343,6 +343,9 @@ func (a Agent) QueryProto(canisterID principal.Principal, methodName string, in,
 	if err != nil {
 		return err
 	}
+	if len(payload) == 0 {
+		payload = []byte{}
+	}
 	_, data, err := a.sign(Request{
 		Type:          RequestTypeQuery,
 		Sender:        a.Sender(),
@@ -393,11 +396,11 @@ func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]b
 	if err := cbor.Unmarshal(c, &state); err != nil {
 		return nil, nil, err
 	}
-	cert, err := certification.New(ecID, a.rootKey[len(a.rootKey)-96:], c)
-	if err != nil {
+	var certificate certification.Certificate
+	if err := cbor.Unmarshal(c, &certificate); err != nil {
 		return nil, nil, err
 	}
-	if err := cert.Verify(); err != nil {
+	if err := certification.VerifyCertificate(certificate, ecID, a.rootKey); err != nil {
 		return nil, nil, err
 	}
 	node, err := hashtree.DeserializeNode(state["tree"].([]any))

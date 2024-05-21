@@ -1,5 +1,7 @@
 package hashtree
 
+import "fmt"
+
 // HashTree is a hash tree.
 type HashTree struct {
 	Root Node
@@ -38,4 +40,67 @@ func (t *HashTree) UnmarshalCBOR(bytes []byte) error {
 	}
 	t.Root = root
 	return nil
+}
+
+type PathValuePair struct {
+	Path  []Label
+	Value []byte
+}
+
+func AllChildren(n Node) ([]PathValuePair, error) {
+	return allChildren(n)
+}
+
+// AllPaths returns all non-empty labeled paths in the hash tree, does not include pruned nodes.
+func AllPaths(n Node) ([]PathValuePair, error) {
+	return allLabeled(n, nil)
+}
+
+func allChildren(n Node) ([]PathValuePair, error) {
+	switch n := n.(type) {
+	case Empty, Pruned, Leaf:
+		return nil, nil
+	case Labeled:
+		switch c := n.Tree.(type) {
+		case Leaf:
+			return []PathValuePair{{Path: []Label{n.Label}, Value: c}}, nil
+		default:
+			return nil, nil
+		}
+	case Fork:
+		left, err := allChildren(n.LeftTree)
+		if err != nil {
+			return nil, err
+		}
+		right, err := allChildren(n.RightTree)
+		if err != nil {
+			return nil, err
+		}
+		return append(left, right...), nil
+	default:
+		return nil, fmt.Errorf("unsupported node type: %T", n)
+	}
+}
+
+func allLabeled(n Node, path []Label) ([]PathValuePair, error) {
+	switch n := n.(type) {
+	case Empty, Pruned:
+		return nil, nil
+	case Leaf:
+		return []PathValuePair{{Path: path, Value: n}}, nil
+	case Labeled:
+		return allLabeled(n.Tree, append(path, n.Label))
+	case Fork:
+		left, err := allLabeled(n.LeftTree, path)
+		if err != nil {
+			return nil, err
+		}
+		right, err := allLabeled(n.RightTree, path)
+		if err != nil {
+			return nil, err
+		}
+		return append(left, right...), nil
+	default:
+		return nil, fmt.Errorf("unsupported node type: %T", n)
+	}
 }
