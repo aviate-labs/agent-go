@@ -430,6 +430,7 @@ func (x MutationType) Enum() *MutationType {
 	*p = x
 	return p
 }
+
 // Deprecated: Use MutationType.Descriptor instead.
 func (MutationType) EnumDescriptor() ([]byte, []int) {
 	return file_local_proto_rawDescGZIP(), []int{0}
