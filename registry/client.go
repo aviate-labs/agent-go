@@ -35,7 +35,7 @@ func (c *Client) GetNNSSubnetID() (*principal.Principal, error) {
 	return &principal.Principal{Raw: nnsSubnetID.PrincipalId.Raw}, nil
 }
 
-func (c *Client) GetNodeListSince(version uint64) (map[string]NodeDetails, error) {
+func (c *Client) GetNodeListSince(version uint64) (NodeMap, error) {
 	nnsSubnetID, err := c.GetNNSSubnetID()
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func (c *Client) GetNodeListSince(version uint64) (map[string]NodeDetails, error
 		var nodeProviderID principal.Principal
 		var dcID string
 		if no, ok := nodeOperatorMap[nodeOperatorID.String()]; ok {
-			nodeProviderID = principal.Principal{Raw: no.NodeOperatorPrincipalId}
+			nodeProviderID = principal.Principal{Raw: no.NodeProviderPrincipalId}
 			dcID = no.DcId
 		}
 		var ipv6 string
@@ -164,6 +164,8 @@ func (c *Client) GetSubnetPublicKey(subnetID principal.Principal) ([]byte, error
 	return certification.PublicKeyToDER(publicKey.KeyValue)
 }
 
+type DataCenterMap map[string][]NodeDetails
+
 type IPv4Interface struct {
 	Address      string
 	Gateways     []string
@@ -179,3 +181,45 @@ type NodeDetails struct {
 	HostOSVersionID *string
 	Domain          *string
 }
+
+type NodeMap map[string]NodeDetails
+
+func (n NodeMap) ByDataCenter() DataCenterMap {
+	dcMap := make(map[string][]NodeDetails)
+	for _, node := range n {
+		if v, ok := dcMap[node.DCID]; ok {
+			dcMap[node.DCID] = append(v, node)
+		} else {
+			dcMap[node.DCID] = []NodeDetails{node}
+		}
+	}
+	return dcMap
+}
+
+func (n NodeMap) ByNodeOperator() NodeOperatorMap {
+	noMap := make(map[string][]NodeDetails)
+	for _, node := range n {
+		if v, ok := noMap[node.NodeOperatorID.String()]; ok {
+			noMap[node.NodeOperatorID.String()] = append(v, node)
+		} else {
+			noMap[node.NodeOperatorID.String()] = []NodeDetails{node}
+		}
+	}
+	return noMap
+}
+
+func (n NodeMap) ByNodeProvider() NodeProviderMap {
+	npMap := make(map[string][]NodeDetails)
+	for _, node := range n {
+		if v, ok := npMap[node.NodeProviderID.String()]; ok {
+			npMap[node.NodeProviderID.String()] = append(v, node)
+		} else {
+			npMap[node.NodeProviderID.String()] = []NodeDetails{node}
+		}
+	}
+	return npMap
+}
+
+type NodeOperatorMap map[string][]NodeDetails
+
+type NodeProviderMap map[string][]NodeDetails
