@@ -3,6 +3,9 @@
 test:
 	go test -v -cover ./...
 
+test-registry:
+	REGISTRY_TEST_ENABLE=true go test -v -cover ./registry/...
+
 check-moc:
 	find ic -type f -name '*.mo' -print0 | xargs -0 $(shell dfx cache show)/moc --check
 
