@@ -1,17 +1,25 @@
-package registry
+package registry_test
 
 import (
+	"github.com/aviate-labs/agent-go/registry"
 	"os"
 	"testing"
 )
 
 func TestClient_GetNodeListSince(t *testing.T) {
 	checkEnabled(t)
-	c, err := New()
+
+	c, err := registry.New()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := c.GetNodeListSince(0); err != nil {
+
+	latestVersion, err := c.GetLatestVersion()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := c.GetNodeListSince(latestVersion - 100); err != nil {
 		t.Fatal(err)
 	}
 }
