@@ -79,7 +79,9 @@ func (r *Request) MarshalCBOR() ([]byte, error) {
 	if len(r.MethodName) != 0 {
 		m["method_name"] = r.MethodName
 	}
-	if len(r.Arguments) != 0 {
+	if r.Arguments != nil {
+		// Some endpoints require the argument to be an empty array, not null.
+		// This is the case with the protobuf endpoints on the registry.
 		m["arg"] = r.Arguments
 	}
 	if len(r.Sender.Raw) != 0 {

@@ -16,7 +16,7 @@ type Client struct {
 func New() (*Client, error) {
 	dp, err := NewDataProvider()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create data provider: %w", err)
 	}
 	return &Client{
 		dp: dp,
@@ -26,13 +26,17 @@ func New() (*Client, error) {
 func (c *Client) GetNNSSubnetID() (*principal.Principal, error) {
 	v, _, err := c.dp.GetValueUpdate([]byte("nns_subnet_id"), nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get NNS subnet ID: %w", err)
 	}
 	var nnsSubnetID v1.SubnetId
 	if err := proto.Unmarshal(v, &nnsSubnetID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal NNS subnet ID: %w", err)
 	}
 	return &principal.Principal{Raw: nnsSubnetID.PrincipalId.Raw}, nil
+}
+
+func (c *Client) GetLatestVersion() (uint64, error) {
+	return c.dp.GetLatestVersion()
 }
 
 func (c *Client) GetNodeListSince(version uint64) (NodeMap, error) {
@@ -56,7 +60,7 @@ func (c *Client) GetNodeListSince(version uint64) (NodeMap, error) {
 	for {
 		records, _, err := c.dp.GetCertifiedChangesSince(currentVersion, nnsPublicKey)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to get certified changes: %w", err)
 		}
 		currentVersion = records[len(records)-1].Version
 		for _, record := range records {
@@ -66,7 +70,7 @@ func (c *Client) GetNodeListSince(version uint64) (NodeMap, error) {
 				} else {
 					var nodeRecord v1.NodeRecord
 					if err := proto.Unmarshal(record.Value, &nodeRecord); err != nil {
-						return nil, err
+						return nil, fmt.Errorf("failed to unmarshal node record: %w", err)
 					}
 					nodeMap[strings.TrimPrefix(record.Key, "node_record_")] = &nodeRecord
 				}
@@ -76,7 +80,7 @@ func (c *Client) GetNodeListSince(version uint64) (NodeMap, error) {
 				} else {
 					var nodeOperatorRecord v1.NodeOperatorRecord
 					if err := proto.Unmarshal(record.Value, &nodeOperatorRecord); err != nil {
-						return nil, err
+						return nil, fmt.Errorf("failed to unmarshal node operator record: %w", err)
 					}
 					nodeOperatorMap[strings.TrimPrefix(record.Key, "node_operator_record_")] = &nodeOperatorRecord
 				}
@@ -124,11 +128,11 @@ func (c *Client) GetNodeListSince(version uint64) (NodeMap, error) {
 func (c *Client) GetSubnetDetails(subnetID principal.Principal) (*v1.SubnetRecord, error) {
 	v, _, err := c.dp.GetValueUpdate([]byte(fmt.Sprintf("subnet_record_%s", subnetID)), nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get subnet details: %w", err)
 	}
 	var record v1.SubnetRecord
 	if err := proto.Unmarshal(v, &record); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal subnet details: %w", err)
 	}
 	return &record, nil
 }
@@ -136,11 +140,11 @@ func (c *Client) GetSubnetDetails(subnetID principal.Principal) (*v1.SubnetRecor
 func (c *Client) GetSubnetIDs() ([]principal.Principal, error) {
 	v, _, err := c.dp.GetValueUpdate([]byte("subnet_list"), nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get subnet IDs: %w", err)
 	}
 	var list v1.SubnetListRecord
 	if err := proto.Unmarshal(v, &list); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal subnet IDs: %w", err)
 	}
 	var subnets []principal.Principal
 	for _, subnet := range list.Subnets {
@@ -152,11 +156,11 @@ func (c *Client) GetSubnetIDs() ([]principal.Principal, error) {
 func (c *Client) GetSubnetPublicKey(subnetID principal.Principal) ([]byte, error) {
 	v, _, err := c.dp.GetValueUpdate([]byte(fmt.Sprintf("crypto_threshold_signing_public_key_%s", subnetID)), nil)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get subnet public key: %w", err)
 	}
 	var publicKey v1.PublicKey
 	if err := proto.Unmarshal(v, &publicKey); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to unmarshal subnet public key: %w", err)
 	}
 	if publicKey.Algorithm != v1.AlgorithmId_ALGORITHM_ID_THRES_BLS12_381 {
 		return nil, fmt.Errorf("unsupported public key algorithm")

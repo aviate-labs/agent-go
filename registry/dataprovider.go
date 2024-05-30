@@ -22,7 +22,7 @@ type DataProvider struct {
 func NewDataProvider() (*DataProvider, error) {
 	a, err := agent.New(agent.DefaultConfig)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create agent: %w", err)
 	}
 	return &DataProvider{a: a}, nil
 }
@@ -37,28 +37,28 @@ func (d DataProvider) GetCertifiedChangesSince(version uint64, publicKey []byte)
 		},
 		&resp,
 	); err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to get certified changes: %w", err)
 	}
 	ht, err := NewHashTree(resp.HashTree)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to create hash tree: %w", err)
 	}
 	rawCurrentVersion, err := ht.Lookup(hashtree.Label("current_version"))
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to lookup current version: %w", err)
 	}
 	currentVersion, err := leb128.DecodeUnsigned(bytes.NewReader(rawCurrentVersion))
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to decode current version: %w", err)
 	}
 
 	deltaNodes, err := ht.LookupSubTree(hashtree.Label("delta"))
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to lookup delta nodes: %w", err)
 	}
 	rawDeltas, err := hashtree.AllChildren(deltaNodes)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to get all children: %w", err)
 	}
 
 	var deltas []VersionedRecord
@@ -66,7 +66,7 @@ func (d DataProvider) GetCertifiedChangesSince(version uint64, publicKey []byte)
 	for _, delta := range rawDeltas {
 		req := new(v1.RegistryAtomicMutateRequest)
 		if err := proto.Unmarshal(delta.Value, req); err != nil {
-			return nil, 0, err
+			return nil, 0, fmt.Errorf("failed to unmarshal atomic mutate request: %w", err)
 		}
 
 		v := binary.BigEndian.Uint64(delta.Path[0])
@@ -99,7 +99,7 @@ func (d DataProvider) GetCertifiedChangesSince(version uint64, publicKey []byte)
 		publicKey,
 		digest[:],
 	); err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to verify certified data: %w", err)
 	}
 
 	return deltas, currentVersion.Uint64(), nil
@@ -116,7 +116,7 @@ func (d DataProvider) GetChangesSince(version uint64) ([]*v1.RegistryDelta, uint
 		},
 		&resp,
 	); err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to get changes since: %w", err)
 	}
 	if resp.Error != nil {
 		return nil, 0, fmt.Errorf("error: %s", resp.Error.String())
@@ -132,7 +132,7 @@ func (d DataProvider) GetLatestVersion() (uint64, error) {
 		nil,
 		&resp,
 	); err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to get latest version: %w", err)
 	}
 	return resp.Version, nil
 }
@@ -154,7 +154,7 @@ func (d DataProvider) GetValue(key []byte, version *uint64) ([]byte, uint64, err
 		},
 		&resp,
 	); err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to get value: %w", err)
 	}
 	if resp.Error != nil {
 		return nil, 0, fmt.Errorf("error: %s", resp.Error.String())
@@ -178,7 +178,7 @@ func (d DataProvider) GetValueUpdate(key []byte, version *uint64) ([]byte, uint6
 		},
 		&resp,
 	); err != nil {
-		return nil, 0, err
+		return nil, 0, fmt.Errorf("failed to get value: %w", err)
 	}
 	if resp.Error != nil {
 		return nil, 0, fmt.Errorf("error: %s", resp.Error.String())
