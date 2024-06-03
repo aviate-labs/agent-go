@@ -102,8 +102,8 @@ func (a Agent) AddFirewallRules(arg0 AddFirewallRulesPayload) error {
 }
 
 // AddNode calls the "add_node" method on the "registry" canister.
-func (a Agent) AddNode(arg0 AddNodePayload) (*Result, error) {
-	var r0 Result
+func (a Agent) AddNode(arg0 AddNodePayload) (*principal.Principal, error) {
+	var r0 principal.Principal
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"add_node",
@@ -194,17 +194,16 @@ func (a Agent) ClearProvisionalWhitelist() error {
 }
 
 // CompleteCanisterMigration calls the "complete_canister_migration" method on the "registry" canister.
-func (a Agent) CompleteCanisterMigration(arg0 CompleteCanisterMigrationPayload) (*Result1, error) {
-	var r0 Result1
+func (a Agent) CompleteCanisterMigration(arg0 CompleteCanisterMigrationPayload) error {
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"complete_canister_migration",
 		[]any{arg0},
-		[]any{&r0},
+		[]any{},
 	); err != nil {
-		return nil, err
+		return err
 	}
-	return &r0, nil
+	return nil
 }
 
 // CreateSubnet calls the "create_subnet" method on the "registry" canister.
@@ -274,8 +273,8 @@ func (a Agent) GetBuildMetadata() (*string, error) {
 }
 
 // GetNodeOperatorsAndDcsOfNodeProvider calls the "get_node_operators_and_dcs_of_node_provider" method on the "registry" canister.
-func (a Agent) GetNodeOperatorsAndDcsOfNodeProvider(arg0 principal.Principal) (*Result2, error) {
-	var r0 Result2
+func (a Agent) GetNodeOperatorsAndDcsOfNodeProvider(arg0 principal.Principal) (*GetNodeOperatorsAndDcsOfNodeProviderResponse, error) {
+	var r0 GetNodeOperatorsAndDcsOfNodeProviderResponse
 	if err := a.Agent.Query(
 		a.CanisterId,
 		"get_node_operators_and_dcs_of_node_provider",
@@ -288,8 +287,8 @@ func (a Agent) GetNodeOperatorsAndDcsOfNodeProvider(arg0 principal.Principal) (*
 }
 
 // GetNodeProvidersMonthlyXdrRewards calls the "get_node_providers_monthly_xdr_rewards" method on the "registry" canister.
-func (a Agent) GetNodeProvidersMonthlyXdrRewards() (*Result3, error) {
-	var r0 Result3
+func (a Agent) GetNodeProvidersMonthlyXdrRewards() (*GetNodeProvidersMonthlyXdrRewardsResponse, error) {
+	var r0 GetNodeProvidersMonthlyXdrRewardsResponse
 	if err := a.Agent.Query(
 		a.CanisterId,
 		"get_node_providers_monthly_xdr_rewards",
@@ -302,8 +301,8 @@ func (a Agent) GetNodeProvidersMonthlyXdrRewards() (*Result3, error) {
 }
 
 // GetSubnetForCanister calls the "get_subnet_for_canister" method on the "registry" canister.
-func (a Agent) GetSubnetForCanister(arg0 GetSubnetForCanisterRequest) (*Result4, error) {
-	var r0 Result4
+func (a Agent) GetSubnetForCanister(arg0 GetSubnetForCanisterRequest) (*GetSubnetForCanisterResponse, error) {
+	var r0 GetSubnetForCanisterResponse
 	if err := a.Agent.Query(
 		a.CanisterId,
 		"get_subnet_for_canister",
@@ -316,17 +315,16 @@ func (a Agent) GetSubnetForCanister(arg0 GetSubnetForCanisterRequest) (*Result4,
 }
 
 // PrepareCanisterMigration calls the "prepare_canister_migration" method on the "registry" canister.
-func (a Agent) PrepareCanisterMigration(arg0 PrepareCanisterMigrationPayload) (*Result1, error) {
-	var r0 Result1
+func (a Agent) PrepareCanisterMigration(arg0 PrepareCanisterMigrationPayload) error {
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"prepare_canister_migration",
 		[]any{arg0},
-		[]any{&r0},
+		[]any{},
 	); err != nil {
-		return nil, err
+		return err
 	}
-	return &r0, nil
+	return nil
 }
 
 // RecoverSubnet calls the "recover_subnet" method on the "registry" canister.
@@ -421,17 +419,16 @@ func (a Agent) RemoveNodesFromSubnet(arg0 RemoveNodesPayload) error {
 }
 
 // RerouteCanisterRanges calls the "reroute_canister_ranges" method on the "registry" canister.
-func (a Agent) RerouteCanisterRanges(arg0 RerouteCanisterRangesPayload) (*Result1, error) {
-	var r0 Result1
+func (a Agent) RerouteCanisterRanges(arg0 RerouteCanisterRangesPayload) error {
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"reroute_canister_ranges",
 		[]any{arg0},
-		[]any{&r0},
+		[]any{},
 	); err != nil {
-		return nil, err
+		return err
 	}
-	return &r0, nil
+	return nil
 }
 
 // RetireReplicaVersion calls the "retire_replica_version" method on the "registry" canister.
@@ -474,7 +471,7 @@ func (a Agent) SetFirewallConfig(arg0 SetFirewallConfigPayload) error {
 }
 
 // UpdateApiBoundaryNodesVersion calls the "update_api_boundary_nodes_version" method on the "registry" canister.
-func (a Agent) UpdateApiBoundaryNodesVersion(arg0 AddApiBoundaryNodesPayload) error {
+func (a Agent) UpdateApiBoundaryNodesVersion(arg0 UpdateApiBoundaryNodesVersionPayload) error {
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"update_api_boundary_nodes_version",
@@ -513,7 +510,7 @@ func (a Agent) UpdateElectedReplicaVersions(arg0 ReviseElectedGuestosVersionsPay
 }
 
 // UpdateFirewallRules calls the "update_firewall_rules" method on the "registry" canister.
-func (a Agent) UpdateFirewallRules(arg0 AddFirewallRulesPayload) error {
+func (a Agent) UpdateFirewallRules(arg0 UpdateFirewallRulesPayload) error {
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"update_firewall_rules",
@@ -526,22 +523,21 @@ func (a Agent) UpdateFirewallRules(arg0 AddFirewallRulesPayload) error {
 }
 
 // UpdateNodeDirectly calls the "update_node_directly" method on the "registry" canister.
-func (a Agent) UpdateNodeDirectly(arg0 UpdateNodeDirectlyPayload) (*Result1, error) {
-	var r0 Result1
+func (a Agent) UpdateNodeDirectly(arg0 UpdateNodeDirectlyPayload) error {
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"update_node_directly",
 		[]any{arg0},
-		[]any{&r0},
+		[]any{},
 	); err != nil {
-		return nil, err
+		return err
 	}
-	return &r0, nil
+	return nil
 }
 
 // UpdateNodeDomainDirectly calls the "update_node_domain_directly" method on the "registry" canister.
-func (a Agent) UpdateNodeDomainDirectly(arg0 UpdateNodeDomainDirectlyPayload) (*Result1, error) {
-	var r0 Result1
+func (a Agent) UpdateNodeDomainDirectly(arg0 UpdateNodeDomainDirectlyPayload) (*UpdateNodeDomainDirectlyResponse, error) {
+	var r0 UpdateNodeDomainDirectlyResponse
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"update_node_domain_directly",
@@ -554,8 +550,8 @@ func (a Agent) UpdateNodeDomainDirectly(arg0 UpdateNodeDomainDirectlyPayload) (*
 }
 
 // UpdateNodeIpv4ConfigDirectly calls the "update_node_ipv4_config_directly" method on the "registry" canister.
-func (a Agent) UpdateNodeIpv4ConfigDirectly(arg0 UpdateNodeIPv4ConfigDirectlyPayload) (*Result1, error) {
-	var r0 Result1
+func (a Agent) UpdateNodeIpv4ConfigDirectly(arg0 UpdateNodeIPv4ConfigDirectlyPayload) (*UpdateNodeIpv4ConfigDirectlyResponse, error) {
+	var r0 UpdateNodeIpv4ConfigDirectlyResponse
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"update_node_ipv4_config_directly",
@@ -800,12 +796,28 @@ type FirewallRulesScope struct {
 	Global           *idl.Null            `ic:"Global,variant"`
 }
 
+type GetNodeOperatorsAndDcsOfNodeProviderResponse struct {
+	Ok *[]struct {
+		Field0 DataCenterRecord   `ic:"0" json:"0"`
+		Field1 NodeOperatorRecord `ic:"1" json:"1"`
+	} `ic:"Ok,variant"`
+	Err *string `ic:"Err,variant"`
+}
+
+type GetNodeProvidersMonthlyXdrRewardsResponse struct {
+	Ok  *NodeProvidersMonthlyXdrRewards `ic:"Ok,variant"`
+	Err *string                         `ic:"Err,variant"`
+}
+
 type GetSubnetForCanisterRequest struct {
 	Principal *principal.Principal `ic:""principal",omitempty" json:""principal",omitempty"`
 }
 
 type GetSubnetForCanisterResponse struct {
-	SubnetId *principal.Principal `ic:"subnet_id,omitempty" json:"subnet_id,omitempty"`
+	Ok *struct {
+		SubnetId *principal.Principal `ic:"subnet_id,omitempty" json:"subnet_id,omitempty"`
+	} `ic:"Ok,variant"`
+	Err *string `ic:"Err,variant"`
 }
 
 type Gps struct {
@@ -888,6 +900,10 @@ type RemoveNodeOperatorsPayload struct {
 	NodeOperatorsToRemove [][]byte `ic:"node_operators_to_remove" json:"node_operators_to_remove"`
 }
 
+type RemoveNodesFromSubnetPayload struct {
+	NodeIds []principal.Principal `ic:"node_ids" json:"node_ids"`
+}
+
 type RemoveNodesPayload struct {
 	NodeIds []principal.Principal `ic:"node_ids" json:"node_ids"`
 }
@@ -896,34 +912,6 @@ type RerouteCanisterRangesPayload struct {
 	SourceSubnet             principal.Principal `ic:"source_subnet" json:"source_subnet"`
 	ReassignedCanisterRanges []CanisterIdRange   `ic:"reassigned_canister_ranges" json:"reassigned_canister_ranges"`
 	DestinationSubnet        principal.Principal `ic:"destination_subnet" json:"destination_subnet"`
-}
-
-type Result struct {
-	Ok  *principal.Principal `ic:"Ok,variant"`
-	Err *string              `ic:"Err,variant"`
-}
-
-type Result1 struct {
-	Ok  *idl.Null `ic:"Ok,variant"`
-	Err *string   `ic:"Err,variant"`
-}
-
-type Result2 struct {
-	Ok *[]struct {
-		Field0 DataCenterRecord   `ic:"0" json:"0"`
-		Field1 NodeOperatorRecord `ic:"1" json:"1"`
-	} `ic:"Ok,variant"`
-	Err *string `ic:"Err,variant"`
-}
-
-type Result3 struct {
-	Ok  *NodeProvidersMonthlyXdrRewards `ic:"Ok,variant"`
-	Err *string                         `ic:"Err,variant"`
-}
-
-type Result4 struct {
-	Ok  *GetSubnetForCanisterResponse `ic:"Ok,variant"`
-	Err *string                       `ic:"Err,variant"`
 }
 
 type RetireReplicaVersionPayload struct {
@@ -956,11 +944,23 @@ type SubnetType struct {
 	System              *idl.Null `ic:"system,variant"`
 }
 
+type UpdateApiBoundaryNodesVersionPayload struct {
+	Version string                `ic:"version" json:"version"`
+	NodeIds []principal.Principal `ic:"node_ids" json:"node_ids"`
+}
+
 type UpdateElectedHostosVersionsPayload struct {
 	ReleasePackageUrls      []string `ic:"release_package_urls" json:"release_package_urls"`
 	HostosVersionToElect    *string  `ic:"hostos_version_to_elect,omitempty" json:"hostos_version_to_elect,omitempty"`
 	HostosVersionsToUnelect []string `ic:"hostos_versions_to_unelect" json:"hostos_versions_to_unelect"`
 	ReleasePackageSha256Hex *string  `ic:"release_package_sha256_hex,omitempty" json:"release_package_sha256_hex,omitempty"`
+}
+
+type UpdateFirewallRulesPayload struct {
+	ExpectedHash string             `ic:"expected_hash" json:"expected_hash"`
+	Scope        FirewallRulesScope `ic:"scope" json:"scope"`
+	Positions    []int32            `ic:"positions" json:"positions"`
+	Rules        []FirewallRule     `ic:"rules" json:"rules"`
 }
 
 type UpdateNodeDirectlyPayload struct {
@@ -972,9 +972,19 @@ type UpdateNodeDomainDirectlyPayload struct {
 	Domain *string             `ic:"domain,omitempty" json:"domain,omitempty"`
 }
 
+type UpdateNodeDomainDirectlyResponse struct {
+	Ok  *idl.Null `ic:"Ok,variant"`
+	Err *string   `ic:"Err,variant"`
+}
+
 type UpdateNodeIPv4ConfigDirectlyPayload struct {
 	Ipv4Config *IPv4Config         `ic:"ipv4_config,omitempty" json:"ipv4_config,omitempty"`
 	NodeId     principal.Principal `ic:"node_id" json:"node_id"`
+}
+
+type UpdateNodeIpv4ConfigDirectlyResponse struct {
+	Ok  *idl.Null `ic:"Ok,variant"`
+	Err *string   `ic:"Err,variant"`
 }
 
 type UpdateNodeOperatorConfigDirectlyPayload struct {

@@ -39,13 +39,14 @@ func TestModules(t *testing.T) {
 		DisableSignedQueryVerification: true,
 	}
 
+	wasmModule := compileMotoko(t)
+
 	t.Run("assetstorage", func(t *testing.T) {
 		canisterID, err := pic.CreateCanister()
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		wasmModule := compileMotoko(t, "assetstorage/actor.mo", "assetstorage/actor.wasm")
 		if err := pic.InstallCode(*canisterID, wasmModule, nil, nil); err != nil {
 			t.Fatal(err)
 		}
@@ -83,7 +84,6 @@ func TestModules(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		wasmModule := compileMotoko(t, "ic/actor.mo", "ic/actor.wasm")
 		if err := pic.InstallCode(*canisterID, wasmModule, nil, nil); err != nil {
 			t.Fatal(err)
 		}
@@ -150,7 +150,11 @@ func TestModules(t *testing.T) {
 	})
 }
 
-func compileMotoko(t *testing.T, in, out string) []byte {
+func compileMotoko(t *testing.T) []byte {
+	var (
+		in  = "testdata/actor.mo"
+		out = "testdata/actor.wasm"
+	)
 	dfxPath, err := exec.LookPath("dfx")
 	if err != nil {
 		t.Skipf("dfx not found: %v", err)

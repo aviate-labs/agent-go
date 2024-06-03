@@ -1670,7 +1670,6 @@ func (x *RegistryValue) Reset() {
 func (x *RegistryValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
-
 type isMixedHashTree_TreeEnum interface {
 	isMixedHashTree_TreeEnum()
 }

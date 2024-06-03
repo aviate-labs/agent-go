@@ -321,6 +321,29 @@ func (a Agent) EcdsaPublicKeyCall(arg0 EcdsaPublicKeyArgs) (*agent.Call, error) 
 	)
 }
 
+// FetchCanisterLogs calls the "fetch_canister_logs" method on the "ic" canister.
+func (a Agent) FetchCanisterLogs(arg0 FetchCanisterLogsArgs) (*FetchCanisterLogsResult, error) {
+	var r0 FetchCanisterLogsResult
+	if err := a.Agent.Query(
+		a.CanisterId,
+		"fetch_canister_logs",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// FetchCanisterLogsQuery creates an indirect representation of the "fetch_canister_logs" method on the "ic" canister.
+func (a Agent) FetchCanisterLogsQuery(arg0 FetchCanisterLogsArgs) (*agent.Query, error) {
+	return a.Agent.CreateQuery(
+		a.CanisterId,
+		"fetch_canister_logs",
+		arg0,
+	)
+}
+
 // HttpRequest calls the "http_request" method on the "ic" canister.
 func (a Agent) HttpRequest(arg0 HttpRequestArgs) (*HttpRequestResult, error) {
 	var r0 HttpRequestResult
@@ -729,12 +752,19 @@ type CanisterInstallMode struct {
 	} `ic:"upgrade,variant"`
 }
 
+type CanisterLogRecord struct {
+	Idx            uint64 `ic:"idx" json:"idx"`
+	TimestampNanos uint64 `ic:"timestamp_nanos" json:"timestamp_nanos"`
+	Content        []byte `ic:"content" json:"content"`
+}
+
 type CanisterSettings struct {
 	Controllers         *[]principal.Principal `ic:"controllers,omitempty" json:"controllers,omitempty"`
 	ComputeAllocation   *idl.Nat               `ic:"compute_allocation,omitempty" json:"compute_allocation,omitempty"`
 	MemoryAllocation    *idl.Nat               `ic:"memory_allocation,omitempty" json:"memory_allocation,omitempty"`
 	FreezingThreshold   *idl.Nat               `ic:"freezing_threshold,omitempty" json:"freezing_threshold,omitempty"`
 	ReservedCyclesLimit *idl.Nat               `ic:"reserved_cycles_limit,omitempty" json:"reserved_cycles_limit,omitempty"`
+	LogVisibility       *LogVisibility         `ic:"log_visibility,omitempty" json:"log_visibility,omitempty"`
 }
 
 type CanisterStatusArgs struct {
@@ -819,6 +849,7 @@ type DefiniteCanisterSettings struct {
 	MemoryAllocation    idl.Nat               `ic:"memory_allocation" json:"memory_allocation"`
 	FreezingThreshold   idl.Nat               `ic:"freezing_threshold" json:"freezing_threshold"`
 	ReservedCyclesLimit idl.Nat               `ic:"reserved_cycles_limit" json:"reserved_cycles_limit"`
+	LogVisibility       LogVisibility         `ic:"log_visibility" json:"log_visibility"`
 }
 
 type DeleteCanisterArgs struct {
@@ -845,6 +876,14 @@ type EcdsaPublicKeyArgs struct {
 type EcdsaPublicKeyResult struct {
 	PublicKey []byte `ic:"public_key" json:"public_key"`
 	ChainCode []byte `ic:"chain_code" json:"chain_code"`
+}
+
+type FetchCanisterLogsArgs struct {
+	CanisterId CanisterId `ic:"canister_id" json:"canister_id"`
+}
+
+type FetchCanisterLogsResult struct {
+	CanisterLogRecords []CanisterLogRecord `ic:"canister_log_records" json:"canister_log_records"`
 }
 
 type HttpHeader struct {
@@ -893,12 +932,17 @@ type InstallCodeArgs struct {
 	SenderCanisterVersion *uint64             `ic:"sender_canister_version,omitempty" json:"sender_canister_version,omitempty"`
 }
 
+type LogVisibility struct {
+	Controllers *idl.Null `ic:"controllers,variant"`
+	Public      *idl.Null `ic:"public,variant"`
+}
+
 type MillisatoshiPerByte = uint64
 
 type NodeMetrics struct {
-	NodeId                principal.Principal `ic:"node_id" json:"node_id"`
-	NumBlocksTotal        uint64              `ic:"num_blocks_total" json:"num_blocks_total"`
-	NumBlockFailuresTotal uint64              `ic:"num_block_failures_total" json:"num_block_failures_total"`
+	NodeId                 principal.Principal `ic:"node_id" json:"node_id"`
+	NumBlocksProposedTotal uint64              `ic:"num_blocks_proposed_total" json:"num_blocks_proposed_total"`
+	NumBlockFailuresTotal  uint64              `ic:"num_block_failures_total" json:"num_block_failures_total"`
 }
 
 type NodeMetricsHistoryArgs struct {
