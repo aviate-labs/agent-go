@@ -84,6 +84,7 @@ You can find the documentation for each package in the links below. Examples can
 | `identity`      | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/identity)                                                                                         | A library that creates/manages identities.                                    |
 | `pocketic`      | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/pocketic)                                                                                         | A client library to talk to the PocketIC Server.                              |
 | `principal`     | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/principal)                                                                                        | Generic Identifiers for the Internet Computer                                 |
+| `registry`      | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/registry)                                                                                         | A client to interact with the registry canister.                              |
 
 More dependencies in the [go.mod](./go.mod) file.
 
@@ -97,9 +98,9 @@ Read more [here](cmd/goic/README.md)
 
 ## Testing
 
-There are two types of tests within this repository; the normal go tests and [DFX](https://github.com/dfinity/sdk)
-dependent tests. The test suite will run a local replica through DFX to run some e2e tests. If you do not have it
-installed then those tests will be ignored.
+This repository contains two types of tests: standard Go tests and [PocketIC](https://github.com/dfinity/pocketic)
+-dependent tests. The test suite runs a local PocketIC server using the installed pocket-ic-server to execute some
+end-to-end (e2e) tests. If pocket-ic-server is not installed, those specific tests will be skipped.
 
 ```shell
 go test -v ./...
