@@ -7,7 +7,7 @@ require (
 	github.com/aviate-labs/secp256k1 v0.0.0-5e6736a
 	github.com/di-wu/parser v0.3.0
 	github.com/fxamacker/cbor/v2 v2.6.0
-	github.com/herumi/bls-go-binary v1.33.0
+	github.com/herumi/bls-go-binary v1.34.0
 	google.golang.org/protobuf v1.34.1
 )
 

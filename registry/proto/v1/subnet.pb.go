@@ -3403,6 +3403,7 @@ func (x *VerifiedIDkgDealing) Reset() {
 func (x *VerifiedIDkgDealing) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
+
 type isMasterPublicKeyId_KeyId interface {
 	isMasterPublicKeyId_KeyId()
 }
