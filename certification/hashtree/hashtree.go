@@ -2,6 +2,11 @@ package hashtree
 
 import "fmt"
 
+// Lookup looks up a path in the node.
+func Lookup(n Node, path ...Label) ([]byte, error) {
+	return lookupPath(n, path, 0)
+}
+
 // HashTree is a hash tree.
 type HashTree struct {
 	Root Node
@@ -19,12 +24,12 @@ func (t HashTree) Digest() [32]byte {
 
 // Lookup looks up a path in the hash tree.
 func (t HashTree) Lookup(path ...Label) ([]byte, error) {
-	return lookupPath(t.Root, path, 0)
+	return Lookup(t.Root, path...)
 }
 
 // LookupSubTree looks up a path in the hash tree and returns the sub-tree.
 func (t HashTree) LookupSubTree(path ...Label) (Node, error) {
-	return lookupSubTree(t.Root, path, 0)
+	return LookupSubTree(t.Root, path...)
 }
 
 // MarshalCBOR marshals a hash tree.
@@ -42,31 +47,31 @@ func (t *HashTree) UnmarshalCBOR(bytes []byte) error {
 	return nil
 }
 
-type PathValuePair struct {
-	Path  []Label
-	Value []byte
+// LookupSubTree looks up a path in the node and returns the sub-tree.
+func LookupSubTree(n Node, path ...Label) (Node, error) {
+	return lookupSubTree(n, path, 0)
 }
 
-func AllChildren(n Node) ([]PathValuePair, error) {
+type PathValuePair[V any] struct {
+	Path  []Label
+	Value V
+}
+
+func AllChildren(n Node) ([]PathValuePair[Node], error) {
 	return allChildren(n)
 }
 
 // AllPaths returns all non-empty labeled paths in the hash tree, does not include pruned nodes.
-func AllPaths(n Node) ([]PathValuePair, error) {
+func AllPaths(n Node) ([]PathValuePair[[]byte], error) {
 	return allLabeled(n, nil)
 }
 
-func allChildren(n Node) ([]PathValuePair, error) {
+func allChildren(n Node) ([]PathValuePair[Node], error) {
 	switch n := n.(type) {
 	case Empty, Pruned, Leaf:
 		return nil, nil
 	case Labeled:
-		switch c := n.Tree.(type) {
-		case Leaf:
-			return []PathValuePair{{Path: []Label{n.Label}, Value: c}}, nil
-		default:
-			return nil, nil
-		}
+		return []PathValuePair[Node]{{Path: []Label{n.Label}, Value: n.Tree}}, nil
 	case Fork:
 		left, err := allChildren(n.LeftTree)
 		if err != nil {
@@ -82,12 +87,12 @@ func allChildren(n Node) ([]PathValuePair, error) {
 	}
 }
 
-func allLabeled(n Node, path []Label) ([]PathValuePair, error) {
+func allLabeled(n Node, path []Label) ([]PathValuePair[[]byte], error) {
 	switch n := n.(type) {
 	case Empty, Pruned:
 		return nil, nil
 	case Leaf:
-		return []PathValuePair{{Path: path, Value: n}}, nil
+		return []PathValuePair[[]byte]{{Path: path, Value: n}}, nil
 	case Labeled:
 		return allLabeled(n.Tree, append(path, n.Label))
 	case Fork:

@@ -33,9 +33,10 @@ func TestModules(t *testing.T) {
 	}
 
 	config := agent.Config{
-		ClientConfig: &agent.ClientConfig{Host: host},
-		FetchRootKey: true,
-		Logger:       new(localLogger),
+		ClientConfig:                   &agent.ClientConfig{Host: host},
+		FetchRootKey:                   true,
+		Logger:                         new(localLogger),
+		DisableSignedQueryVerification: true,
 	}
 
 	t.Run("assetstorage", func(t *testing.T) {

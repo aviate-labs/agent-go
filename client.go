@@ -71,6 +71,10 @@ func (c Client) ReadState(canisterID principal.Principal, data []byte) ([]byte, 
 	return c.post("read_state", canisterID, data)
 }
 
+func (c Client) ReadSubnetState(subnetID principal.Principal, data []byte) ([]byte, error) {
+	return c.postSubnet("read_state", subnetID, data)
+}
+
 // Status returns the status of the IC.
 func (c Client) Status() (*Status, error) {
 	raw, err := c.get("/api/v2/status")
@@ -92,6 +96,22 @@ func (c Client) get(path string) ([]byte, error) {
 
 func (c Client) post(path string, canisterID principal.Principal, data []byte) ([]byte, error) {
 	u := c.url(fmt.Sprintf("/api/v2/canister/%s/%s", canisterID.Encode(), path))
+	c.logger.Printf("[CLIENT] POST %s", u)
+	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+	switch resp.StatusCode {
+	case http.StatusOK:
+		return io.ReadAll(resp.Body)
+	default:
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("(%d) %s: %s", resp.StatusCode, resp.Status, body)
+	}
+}
+
+func (c Client) postSubnet(path string, subnetID principal.Principal, data []byte) ([]byte, error) {
+	u := c.url(fmt.Sprintf("/api/v2/subnet/%s/%s", subnetID.Encode(), path))
 	c.logger.Printf("[CLIENT] POST %s", u)
 	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
 	if err != nil {

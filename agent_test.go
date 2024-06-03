@@ -42,12 +42,14 @@ func Example_json() {
 	_ = json.Unmarshal([]byte(raw), &balance)
 	fmt.Println(balance.E8S)
 
-	a, _ := agent.New(agent.Config{})
-	_ = a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{struct {
+	a, _ := agent.New(agent.DefaultConfig)
+	if err := a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{struct {
 		Account string `json:"account"`
 	}{
 		Account: "9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d",
-	}}, []any{&balance}) // Repurposing the balance struct.
+	}}, []any{&balance}); err != nil {
+		fmt.Println(err)
+	}
 	rawJSON, _ := json.Marshal(balance)
 	fmt.Println(string(rawJSON))
 	// Output:

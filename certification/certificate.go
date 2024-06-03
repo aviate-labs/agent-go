@@ -2,6 +2,7 @@ package certification
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"encoding/asn1"
 	"fmt"
 	"slices"
@@ -13,7 +14,7 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
-func PublicKeyFromDER(der []byte) (*bls.PublicKey, error) {
+func PublicBLSKeyFromDER(der []byte) (*bls.PublicKey, error) {
 	var seq asn1.RawValue
 	if _, err := asn1.Unmarshal(der, &seq); err != nil {
 		return nil, err
@@ -51,7 +52,7 @@ func PublicKeyFromDER(der []byte) (*bls.PublicKey, error) {
 	return bls.PublicKeyFromBytes(bs.Bytes)
 }
 
-func PublicKeyToDER(publicKey []byte) ([]byte, error) {
+func PublicBLSKeyToDER(publicKey []byte) ([]byte, error) {
 	if len(publicKey) != 96 {
 		return nil, fmt.Errorf("invalid public key length: %d", len(publicKey))
 	}
@@ -67,12 +68,40 @@ func PublicKeyToDER(publicKey []byte) ([]byte, error) {
 	})
 }
 
+func PublicED25519KeyFromDER(der []byte) (*ed25519.PublicKey, error) {
+	var seq asn1.RawValue
+	if _, err := asn1.Unmarshal(der, &seq); err != nil {
+		return nil, err
+	}
+	if seq.Tag != asn1.TagSequence {
+		return nil, fmt.Errorf("invalid tag: %d", seq.Tag)
+	}
+	var idSeq asn1.RawValue
+	rest, err := asn1.Unmarshal(seq.Bytes, &idSeq)
+	if err != nil {
+		return nil, err
+	}
+	var bs asn1.BitString
+	if _, err := asn1.Unmarshal(rest, &bs); err != nil {
+		return nil, err
+	}
+	var algoId asn1.ObjectIdentifier
+	if _, err := asn1.Unmarshal(idSeq.Bytes, &algoId); err != nil {
+		return nil, err
+	}
+	if !algoId.Equal(asn1.ObjectIdentifier{1, 3, 101, 112}) {
+		return nil, fmt.Errorf("invalid algorithm identifier: %v", algoId)
+	}
+	publicKey := ed25519.PublicKey(bs.Bytes)
+	return &publicKey, nil
+}
+
 func VerifyCertificate(
 	certificate Certificate,
 	canisterID principal.Principal,
 	rootPublicKey []byte,
 ) error {
-	publicKey, err := PublicKeyFromDER(rootPublicKey)
+	publicKey, err := PublicBLSKeyFromDER(rootPublicKey)
 	if err != nil {
 		return err
 	}
@@ -150,7 +179,7 @@ func verifyDelegationCertificate(
 	if err != nil {
 		return nil, err
 	}
-	var canisterRanges canisterRanges
+	var canisterRanges CanisterRanges
 	if err := cbor.Unmarshal(rawRanges, &canisterRanges); err != nil {
 		return nil, err
 	}
@@ -166,7 +195,36 @@ func verifyDelegationCertificate(
 	if err != nil {
 		return nil, err
 	}
-	return PublicKeyFromDER(rawPublicKey)
+	return PublicBLSKeyFromDER(rawPublicKey)
+}
+
+type CanisterRange struct {
+	From principal.Principal
+	To   principal.Principal
+}
+
+func (c *CanisterRange) UnmarshalCBOR(bytes []byte) error {
+	var raw [][]byte
+	if err := cbor.Unmarshal(bytes, &raw); err != nil {
+		return err
+	}
+	if len(raw) != 2 {
+		return fmt.Errorf("unexpected length: %d", len(raw))
+	}
+	c.From = principal.Principal{Raw: raw[0]}
+	c.To = principal.Principal{Raw: raw[1]}
+	return nil
+}
+
+type CanisterRanges []CanisterRange
+
+func (c CanisterRanges) InRange(canisterID principal.Principal) bool {
+	for _, r := range c {
+		if slices.Compare(r.From.Raw, canisterID.Raw) <= 0 && slices.Compare(canisterID.Raw, r.To.Raw) <= 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // Certificate is a certificate gets returned by the IC.
@@ -210,15 +268,4 @@ func (d *Delegation) UnmarshalCBOR(bytes []byte) error {
 		}
 	}
 	return nil
-}
-
-type canisterRanges [][][]byte
-
-func (c canisterRanges) InRange(canisterID principal.Principal) bool {
-	for _, pair := range c {
-		if slices.Compare(pair[0], canisterID.Raw) <= 0 && slices.Compare(canisterID.Raw, pair[1]) <= 0 {
-			return true
-		}
-	}
-	return false
 }
