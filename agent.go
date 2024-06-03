@@ -103,7 +103,7 @@ type Agent struct {
 // New returns a new Agent based on the given configuration.
 func New(cfg Config) (*Agent, error) {
 	if cfg.IngressExpiry == 0 {
-		cfg.IngressExpiry = 10 * time.Second
+		cfg.IngressExpiry = time.Minute
 	}
 	// By default, use the anonymous identity.
 	var id identity.Identity = new(identity.AnonymousIdentity)
@@ -326,6 +326,12 @@ func (a Agent) readStateCertificate(ecID principal.Principal, paths [][]hashtree
 	if err := cbor.Unmarshal(resp["certificate"], &certificate); err != nil {
 		return nil, err
 	}
+	if err := certificate.VerifyTime(a.ingressExpiry); err != nil {
+		return nil, err
+	}
+	if err := certification.VerifyCertificate(certificate, ecID, a.rootKey); err != nil {
+		return nil, err
+	}
 	return &certificate, nil
 }
 
@@ -357,6 +363,12 @@ func (a Agent) readSubnetStateCertificate(subnetID principal.Principal, paths []
 	if err := cbor.Unmarshal(resp["certificate"], &certificate); err != nil {
 		return nil, err
 	}
+	if err := certificate.VerifyTime(a.ingressExpiry); err != nil {
+		return nil, err
+	}
+	if err := certification.VerifySubnetCertificate(certificate, subnetID, a.rootKey); err != nil {
+		return nil, err
+	}
 	return &certificate, nil
 }
 
@@ -378,6 +390,7 @@ type Config struct {
 	// Identity is the identity used by the Agent.
 	Identity identity.Identity
 	// IngressExpiry is the duration for which an ingress message is valid.
+	// The default is set to 1 minute.
 	IngressExpiry time.Duration
 	// ClientConfig is the configuration for the underlying Client.
 	ClientConfig *ClientConfig
