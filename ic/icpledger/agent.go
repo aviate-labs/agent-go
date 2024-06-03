@@ -115,6 +115,26 @@ func (a Agent) Decimals() (*struct {
 	return &r0, nil
 }
 
+// Icrc10SupportedStandards calls the "icrc10_supported_standards" method on the "icpledger" canister.
+func (a Agent) Icrc10SupportedStandards() (*[]struct {
+	Name string `ic:"name" json:"name"`
+	Url  string `ic:"url" json:"url"`
+}, error) {
+	var r0 []struct {
+		Name string `ic:"name" json:"name"`
+		Url  string `ic:"url" json:"url"`
+	}
+	if err := a.Agent.Query(
+		a.CanisterId,
+		"icrc10_supported_standards",
+		[]any{},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 // Icrc1BalanceOf calls the "icrc1_balance_of" method on the "icpledger" canister.
 func (a Agent) Icrc1BalanceOf(arg0 Account) (*Icrc1Tokens, error) {
 	var r0 Icrc1Tokens
@@ -259,6 +279,20 @@ func (a Agent) Icrc1Transfer(arg0 TransferArg) (*Icrc1TransferResult, error) {
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"icrc1_transfer",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// Icrc21CanisterCallConsentMessage calls the "icrc21_canister_call_consent_message" method on the "icpledger" canister.
+func (a Agent) Icrc21CanisterCallConsentMessage(arg0 Icrc21ConsentMessageRequest) (*Icrc21ConsentMessageResponse, error) {
+	var r0 Icrc21ConsentMessageResponse
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"icrc21_canister_call_consent_message",
 		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
@@ -559,6 +593,60 @@ type Icrc1TransferError struct {
 type Icrc1TransferResult struct {
 	Ok  *Icrc1BlockIndex    `ic:"Ok,variant"`
 	Err *Icrc1TransferError `ic:"Err,variant"`
+}
+
+type Icrc21ConsentInfo struct {
+	ConsentMessage Icrc21ConsentMessage         `ic:"consent_message" json:"consent_message"`
+	Metadata       Icrc21ConsentMessageMetadata `ic:"metadata" json:"metadata"`
+}
+
+type Icrc21ConsentMessage struct {
+	GenericDisplayMessage *string `ic:"GenericDisplayMessage,variant"`
+	LineDisplayMessage    *struct {
+		Pages []struct {
+			Lines []string `ic:"lines" json:"lines"`
+		} `ic:"pages" json:"pages"`
+	} `ic:"LineDisplayMessage,variant"`
+}
+
+type Icrc21ConsentMessageMetadata struct {
+	Language string `ic:"language" json:"language"`
+}
+
+type Icrc21ConsentMessageRequest struct {
+	Method          string                   `ic:"method" json:"method"`
+	Arg             []byte                   `ic:"arg" json:"arg"`
+	UserPreferences Icrc21ConsentMessageSpec `ic:"user_preferences" json:"user_preferences"`
+}
+
+type Icrc21ConsentMessageResponse struct {
+	Ok  *Icrc21ConsentInfo `ic:"Ok,variant"`
+	Err *Icrc21Error       `ic:"Err,variant"`
+}
+
+type Icrc21ConsentMessageSpec struct {
+	Metadata   Icrc21ConsentMessageMetadata `ic:"metadata" json:"metadata"`
+	DeviceSpec *struct {
+		GenericDisplay *idl.Null `ic:"GenericDisplay,variant"`
+		LineDisplay    *struct {
+			CharactersPerLine uint16 `ic:"characters_per_line" json:"characters_per_line"`
+			LinesPerPage      uint16 `ic:"lines_per_page" json:"lines_per_page"`
+		} `ic:"LineDisplay,variant"`
+	} `ic:"device_spec,omitempty" json:"device_spec,omitempty"`
+}
+
+type Icrc21Error struct {
+	UnsupportedCanisterCall   *Icrc21ErrorInfo `ic:"UnsupportedCanisterCall,variant"`
+	ConsentMessageUnavailable *Icrc21ErrorInfo `ic:"ConsentMessageUnavailable,variant"`
+	InsufficientPayment       *Icrc21ErrorInfo `ic:"InsufficientPayment,variant"`
+	GenericError              *struct {
+		ErrorCode   idl.Nat `ic:"error_code" json:"error_code"`
+		Description string  `ic:"description" json:"description"`
+	} `ic:"GenericError,variant"`
+}
+
+type Icrc21ErrorInfo struct {
+	Description string `ic:"description" json:"description"`
 }
 
 type InitArgs struct {

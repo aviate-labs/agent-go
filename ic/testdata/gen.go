@@ -123,23 +123,6 @@ func main() {
 				}
 				_ = os.WriteFile(fmt.Sprintf("%s/agent.go", dir), raw, os.ModePerm)
 			}
-			{
-				g, err := gen.NewGenerator("", name, name, did)
-				g.ModulePath = "github.com/aviate-labs/agent-go/ic"
-				if err != nil {
-					log.Panic(err)
-				}
-				rawTypes, err := g.GenerateActorTypes()
-				if err != nil {
-					log.Panic(err)
-				}
-				_ = os.WriteFile(fmt.Sprintf("%s/types.mo", dir), rawTypes, os.ModePerm)
-				rawActor, err := g.GenerateActor()
-				if err != nil {
-					log.Panic(err)
-				}
-				_ = os.WriteFile(fmt.Sprintf("%s/actor.mo", dir), rawActor, os.ModePerm)
-			}
 		}
 	}
 }

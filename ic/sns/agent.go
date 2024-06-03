@@ -126,6 +126,20 @@ func (a Agent) GetNextSnsVersion(arg0 GetNextSnsVersionRequest) (*GetNextSnsVers
 	return &r0, nil
 }
 
+// GetProposalIdThatAddedWasm calls the "get_proposal_id_that_added_wasm" method on the "sns" canister.
+func (a Agent) GetProposalIdThatAddedWasm(arg0 GetProposalIdThatAddedWasmRequest) (*GetProposalIdThatAddedWasmResponse, error) {
+	var r0 GetProposalIdThatAddedWasmResponse
+	if err := a.Agent.Query(
+		a.CanisterId,
+		"get_proposal_id_that_added_wasm",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 // GetSnsSubnetIds calls the "get_sns_subnet_ids" method on the "sns" canister.
 func (a Agent) GetSnsSubnetIds(arg0 struct {
 }) (*GetSnsSubnetIdsResponse, error) {
@@ -327,6 +341,14 @@ type GetNextSnsVersionRequest struct {
 
 type GetNextSnsVersionResponse struct {
 	NextVersion *SnsVersion `ic:"next_version,omitempty" json:"next_version,omitempty"`
+}
+
+type GetProposalIdThatAddedWasmRequest struct {
+	Hash []byte `ic:"hash" json:"hash"`
+}
+
+type GetProposalIdThatAddedWasmResponse struct {
+	ProposalId *uint64 `ic:"proposal_id,omitempty" json:"proposal_id,omitempty"`
 }
 
 type GetSnsSubnetIdsResponse struct {
