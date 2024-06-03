@@ -5,11 +5,12 @@ import (
 	"crypto/ed25519"
 	"encoding/asn1"
 	"fmt"
-	"slices"
-
 	"github.com/aviate-labs/agent-go/certification/bls"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/principal"
+	"github.com/aviate-labs/leb128"
+	"slices"
+	"time"
 
 	"github.com/fxamacker/cbor/v2"
 )
@@ -95,7 +96,6 @@ func PublicED25519KeyFromDER(der []byte) (*ed25519.PublicKey, error) {
 	publicKey := ed25519.PublicKey(bs.Bytes)
 	return &publicKey, nil
 }
-
 func VerifyCertificate(
 	certificate Certificate,
 	canisterID principal.Principal,
@@ -109,8 +109,7 @@ func VerifyCertificate(
 	if certificate.Delegation != nil {
 		delegation := certificate.Delegation
 		k, err := verifyDelegationCertificate(
-			delegation.Certificate,
-			delegation.SubnetId,
+			delegation,
 			publicKey,
 			canisterID,
 		)
@@ -145,6 +144,18 @@ func VerifyCertifiedData(
 	return nil
 }
 
+func VerifySubnetCertificate(
+	certificate Certificate,
+	subnetID principal.Principal,
+	rootPublicKey []byte,
+) error {
+	publicKey, err := PublicBLSKeyFromDER(rootPublicKey)
+	if err != nil {
+		return err
+	}
+	return verifySubnetCertificate(certificate, subnetID, publicKey)
+}
+
 func verifyCertificateSignature(certificate Certificate, publicKey *bls.PublicKey) error {
 	rootHash := certificate.Tree.Digest()
 	message := append(hashtree.DomainSeparator("ic-state-root"), rootHash[:]...)
@@ -159,21 +170,20 @@ func verifyCertificateSignature(certificate Certificate, publicKey *bls.PublicKe
 }
 
 func verifyDelegationCertificate(
-	certificate Certificate,
-	subnetID principal.Principal,
+	delegation *Delegation,
 	rootPublicKey *bls.PublicKey,
 	canisterID principal.Principal,
 ) (*bls.PublicKey, error) {
-	if certificate.Delegation != nil {
+	if delegation.Certificate.Delegation != nil {
 		return nil, fmt.Errorf("multiple delegations are not supported")
 	}
-	if err := verifyCertificateSignature(certificate, rootPublicKey); err != nil {
+	if err := verifyCertificateSignature(delegation.Certificate, rootPublicKey); err != nil {
 		return nil, err
 	}
 
-	rawRanges, err := certificate.Tree.Lookup(
+	rawRanges, err := delegation.Certificate.Tree.Lookup(
 		hashtree.Label("subnet"),
-		subnetID.Raw,
+		delegation.SubnetId.Raw,
 		hashtree.Label("canister_ranges"),
 	)
 	if err != nil {
@@ -187,7 +197,51 @@ func verifyDelegationCertificate(
 		return nil, fmt.Errorf("canister %s is not in range", canisterID)
 	}
 
-	rawPublicKey, err := certificate.Tree.Lookup(
+	rawPublicKey, err := delegation.Certificate.Tree.Lookup(
+		hashtree.Label("subnet"),
+		delegation.SubnetId.Raw,
+		hashtree.Label("public_key"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return PublicBLSKeyFromDER(rawPublicKey)
+}
+
+func verifySubnetCertificate(
+	certificate Certificate,
+	subnetID principal.Principal,
+	rootPublicKey *bls.PublicKey,
+) error {
+	key := rootPublicKey
+	if certificate.Delegation != nil {
+		delegation := certificate.Delegation
+		k, err := verifySubnetDelegationCertificate(
+			delegation,
+			subnetID,
+			rootPublicKey,
+		)
+		if err != nil {
+			return err
+		}
+		key = k
+	}
+	return verifyCertificateSignature(certificate, key)
+}
+
+func verifySubnetDelegationCertificate(
+	delegation *Delegation,
+	subnetID principal.Principal,
+	rootPublicKey *bls.PublicKey,
+) (*bls.PublicKey, error) {
+	if delegation.Certificate.Delegation != nil {
+		return nil, fmt.Errorf("multiple delegations are not supported")
+	}
+	if err := verifySubnetCertificate(delegation.Certificate, subnetID, rootPublicKey); err != nil {
+		return nil, err
+	}
+
+	rawPublicKey, err := delegation.Certificate.Tree.Lookup(
 		hashtree.Label("subnet"),
 		subnetID.Raw,
 		hashtree.Label("public_key"),
@@ -235,6 +289,22 @@ type Certificate struct {
 	Signature []byte `cbor:"signature"`
 	// Delegation is the delegation of the certificate.
 	Delegation *Delegation `cbor:"delegation"`
+}
+
+// VerifyTime verifies the time of a certificate.
+func (c Certificate) VerifyTime(ingressExpiry time.Duration) error {
+	rawTime, err := c.Tree.Lookup(hashtree.Label("time"))
+	if err != nil {
+		return err
+	}
+	t, err := leb128.DecodeUnsigned(bytes.NewReader(rawTime))
+	if err != nil {
+		return err
+	}
+	if int64(ingressExpiry) < time.Now().UnixNano()-t.Int64() {
+		return fmt.Errorf("certificate outdated, exceeds ingress expiry")
+	}
+	return nil
 }
 
 // Delegation is a delegation of a certificate.

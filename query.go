@@ -131,6 +131,9 @@ func (q Query) Query(values ...any) error {
 			if err != nil {
 				return err
 			}
+			if err := c.VerifyTime(q.a.ingressExpiry); err != nil {
+				return err
+			}
 			if err := certification.VerifyCertificate(*c, q.effectiveCanisterID, q.a.rootKey); err != nil {
 				return err
 			}
