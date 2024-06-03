@@ -6,17 +6,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"google.golang.org/protobuf/proto"
 	"net/url"
 	"reflect"
 	"time"
 
-	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/certification"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
-
 	"github.com/fxamacker/cbor/v2"
 )
 
@@ -94,12 +91,13 @@ func uint64FromBytes(raw []byte) uint64 {
 
 // Agent is a client for the Internet Computer.
 type Agent struct {
-	client         Client
-	identity       identity.Identity
-	ingressExpiry  time.Duration
-	rootKey        []byte
-	logger         Logger
-	delay, timeout time.Duration
+	client           Client
+	identity         identity.Identity
+	ingressExpiry    time.Duration
+	rootKey          []byte
+	logger           Logger
+	delay, timeout   time.Duration
+	verifySignatures bool
 }
 
 // New returns a new Agent based on the given configuration.
@@ -140,124 +138,20 @@ func New(cfg Config) (*Agent, error) {
 		timeout = cfg.PollTimeout
 	}
 	return &Agent{
-		client:        client,
-		identity:      id,
-		ingressExpiry: cfg.IngressExpiry,
-		rootKey:       rootKey,
-		logger:        logger,
-		delay:         delay,
-		timeout:       timeout,
+		client:           client,
+		identity:         id,
+		ingressExpiry:    cfg.IngressExpiry,
+		rootKey:          rootKey,
+		logger:           logger,
+		delay:            delay,
+		timeout:          timeout,
+		verifySignatures: !cfg.DisableSignedQueryVerification,
 	}, nil
-}
-
-// Call calls a method on a canister and unmarshals the result into the given values.
-func (a Agent) Call(canisterID principal.Principal, methodName string, args []any, values []any) error {
-	call, err := a.CreateCall(canisterID, methodName, args...)
-	if err != nil {
-		return err
-	}
-	return call.CallAndWait(values...)
-}
-
-// CallProto calls a method on a canister and unmarshals the result into the given proto message.
-func (a Agent) CallProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
-	payload, err := proto.Marshal(in)
-	if err != nil {
-		return err
-	}
-	requestID, data, err := a.sign(Request{
-		Type:          RequestTypeCall,
-		Sender:        a.Sender(),
-		IngressExpiry: a.expiryDate(),
-		CanisterID:    canisterID,
-		MethodName:    methodName,
-		Arguments:     payload,
-	})
-	if err != nil {
-		return err
-	}
-	if _, err := a.call(canisterID, data); err != nil {
-		return err
-	}
-	raw, err := a.poll(canisterID, *requestID)
-	if err != nil {
-		return err
-	}
-	return proto.Unmarshal(raw, out)
 }
 
 // Client returns the underlying Client of the Agent.
 func (a Agent) Client() *Client {
 	return &a.client
-}
-
-// CreateCall creates a new Call to the given canister and method.
-func (a *Agent) CreateCall(canisterID principal.Principal, methodName string, args ...any) (*Call, error) {
-	rawArgs, err := idl.Marshal(args)
-	if err != nil {
-		return nil, err
-	}
-	if len(args) == 0 {
-		// Default to the empty Candid argument list.
-		rawArgs = []byte{'D', 'I', 'D', 'L', 0, 0}
-	}
-	nonce, err := newNonce()
-	if err != nil {
-		return nil, err
-	}
-	requestID, data, err := a.sign(Request{
-		Type:          RequestTypeCall,
-		Sender:        a.Sender(),
-		CanisterID:    canisterID,
-		MethodName:    methodName,
-		Arguments:     rawArgs,
-		IngressExpiry: a.expiryDate(),
-		Nonce:         nonce,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &Call{
-		a:                   a,
-		methodName:          methodName,
-		effectiveCanisterID: effectiveCanisterID(canisterID, args),
-		requestID:           *requestID,
-		data:                data,
-	}, nil
-}
-
-// CreateQuery creates a new Query to the given canister and method.
-func (a *Agent) CreateQuery(canisterID principal.Principal, methodName string, args ...any) (*Query, error) {
-	rawArgs, err := idl.Marshal(args)
-	if err != nil {
-		return nil, err
-	}
-	if len(args) == 0 {
-		// Default to the empty Candid argument list.
-		rawArgs = []byte{'D', 'I', 'D', 'L', 0, 0}
-	}
-	nonce, err := newNonce()
-	if err != nil {
-		return nil, err
-	}
-	_, data, err := a.sign(Request{
-		Type:          RequestTypeQuery,
-		Sender:        a.Sender(),
-		CanisterID:    canisterID,
-		MethodName:    methodName,
-		Arguments:     rawArgs,
-		IngressExpiry: a.expiryDate(),
-		Nonce:         nonce,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &Query{
-		a:                   a,
-		methodName:          methodName,
-		effectiveCanisterID: effectiveCanisterID(canisterID, args),
-		data:                data,
-	}, nil
 }
 
 // GetCanisterControllers returns the list of principals that can control the given canister.
@@ -284,7 +178,7 @@ func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) (
 	if err != nil {
 		return nil, err
 	}
-	canisterInfo, err := hashtree.NewHashTree(node).Lookup(path...)
+	canisterInfo, err := hashtree.Lookup(node, path...)
 	if err != nil {
 		return nil, err
 	}
@@ -297,15 +191,7 @@ func (a Agent) GetCanisterMetadata(canisterID principal.Principal, subPath strin
 	if err != nil {
 		return nil, err
 	}
-	var state map[string]any
-	if err := cbor.Unmarshal(c, &state); err != nil {
-		return nil, err
-	}
-	node, err := hashtree.DeserializeNode(state["tree"].([]any))
-	if err != nil {
-		return nil, err
-	}
-	metadata, err := hashtree.NewHashTree(node).Lookup(path...)
+	metadata, err := c.Tree.Lookup(path...)
 	if err != nil {
 		return nil, err
 	}
@@ -328,86 +214,27 @@ func (a Agent) GetRootKey() []byte {
 	return a.rootKey
 }
 
-// Query calls a method on a canister and unmarshals the result into the given values.
-func (a Agent) Query(canisterID principal.Principal, methodName string, args, values []any) error {
-	query, err := a.CreateQuery(canisterID, methodName, args...)
-	if err != nil {
-		return err
-	}
-	return query.Query(values...)
-}
-
-// QueryProto calls a method on a canister and unmarshals the result into the given proto message.
-func (a Agent) QueryProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
-	payload, err := proto.Marshal(in)
-	if err != nil {
-		return err
-	}
-	if len(payload) == 0 {
-		payload = []byte{}
-	}
-	_, data, err := a.sign(Request{
-		Type:          RequestTypeQuery,
-		Sender:        a.Sender(),
-		IngressExpiry: a.expiryDate(),
-		CanisterID:    canisterID,
-		MethodName:    methodName,
-		Arguments:     payload,
-	})
-	if err != nil {
-		return err
-	}
-	resp, err := a.client.Query(canisterID, data)
-	if err != nil {
-		return err
-	}
-	var response Response
-	if err := cbor.Unmarshal(resp, &response); err != nil {
-		return err
-	}
-	if response.Status != "replied" {
-		return fmt.Errorf("status: %s", response.Status)
-	}
-	return proto.Unmarshal(response.Reply["arg"], out)
-}
-
 // ReadStateCertificate reads the certificate state of the given canister at the given path.
 func (a Agent) ReadStateCertificate(canisterID principal.Principal, path [][]hashtree.Label) (hashtree.Node, error) {
 	c, err := a.readStateCertificate(canisterID, path)
 	if err != nil {
 		return nil, err
 	}
-	var state map[string]any
-	if err := cbor.Unmarshal(c, &state); err != nil {
-		return nil, err
-	}
-	return hashtree.DeserializeNode(state["tree"].([]any))
+	return c.Tree.Root, nil
 }
 
 // RequestStatus returns the status of the request with the given ID.
 func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]byte, hashtree.Node, error) {
 	a.logger.Printf("[AGENT] REQUEST STATUS %s %x", ecID, requestID)
 	path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
-	c, err := a.readStateCertificate(ecID, [][]hashtree.Label{path})
+	certificate, err := a.readStateCertificate(ecID, [][]hashtree.Label{path})
 	if err != nil {
 		return nil, nil, err
 	}
-	var state map[string]any
-	if err := cbor.Unmarshal(c, &state); err != nil {
+	if err := certification.VerifyCertificate(*certificate, ecID, a.rootKey); err != nil {
 		return nil, nil, err
 	}
-	var certificate certification.Certificate
-	if err := cbor.Unmarshal(c, &certificate); err != nil {
-		return nil, nil, err
-	}
-	if err := certification.VerifyCertificate(certificate, ecID, a.rootKey); err != nil {
-		return nil, nil, err
-	}
-	node, err := hashtree.DeserializeNode(state["tree"].([]any))
-	if err != nil {
-		return nil, nil, err
-	}
-	status, err := hashtree.NewHashTree(node).Lookup(append(path, hashtree.Label("status"))...)
+	status, err := certificate.Tree.Lookup(append(path, hashtree.Label("status"))...)
 	var lookupError hashtree.LookupError
 	if errors.As(err, &lookupError) && lookupError.Type == hashtree.LookupResultAbsent {
 		// The status might not be available immediately, since the request is still being processed.
@@ -416,7 +243,7 @@ func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]b
 	if err != nil {
 		return nil, nil, err
 	}
-	return status, node, nil
+	return status, certificate.Tree.Root, nil
 }
 
 // Sender returns the principal that is sending the requests.
@@ -458,7 +285,7 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, erro
 					}
 					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(code), string(message))
 				case "replied":
-					replied, err := hashtree.NewHashTree(node).Lookup(append(path, hashtree.Label("reply"))...)
+					replied, err := hashtree.Lookup(node, append(path, hashtree.Label("reply"))...)
 					if err != nil {
 						return nil, fmt.Errorf("no reply found")
 					}
@@ -471,15 +298,6 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, erro
 	}
 }
 
-func (a Agent) query(canisterID principal.Principal, data []byte) (*Response, error) {
-	resp, err := a.client.Query(canisterID, data)
-	if err != nil {
-		return nil, err
-	}
-	queryResponse := new(Response)
-	return queryResponse, cbor.Unmarshal(resp, queryResponse)
-}
-
 func (a Agent) readState(ecID principal.Principal, data []byte) (map[string][]byte, error) {
 	resp, err := a.client.ReadState(ecID, data)
 	if err != nil {
@@ -489,7 +307,7 @@ func (a Agent) readState(ecID principal.Principal, data []byte) (map[string][]by
 	return m, cbor.Unmarshal(resp, &m)
 }
 
-func (a Agent) readStateCertificate(ecID principal.Principal, paths [][]hashtree.Label) ([]byte, error) {
+func (a Agent) readStateCertificate(ecID principal.Principal, paths [][]hashtree.Label) (*certification.Certificate, error) {
 	_, data, err := a.sign(Request{
 		Type:          RequestTypeReadState,
 		Sender:        a.Sender(),
@@ -504,7 +322,42 @@ func (a Agent) readStateCertificate(ecID principal.Principal, paths [][]hashtree
 	if err != nil {
 		return nil, err
 	}
-	return resp["certificate"], nil
+	var certificate certification.Certificate
+	if err := cbor.Unmarshal(resp["certificate"], &certificate); err != nil {
+		return nil, err
+	}
+	return &certificate, nil
+}
+
+func (a Agent) readSubnetState(subnetID principal.Principal, data []byte) (map[string][]byte, error) {
+	resp, err := a.client.ReadSubnetState(subnetID, data)
+	if err != nil {
+		return nil, err
+	}
+	var m map[string][]byte
+	return m, cbor.Unmarshal(resp, &m)
+}
+
+func (a Agent) readSubnetStateCertificate(subnetID principal.Principal, paths [][]hashtree.Label) (*certification.Certificate, error) {
+	_, data, err := a.sign(Request{
+		Type:          RequestTypeReadState,
+		Sender:        a.Sender(),
+		Paths:         paths,
+		IngressExpiry: a.expiryDate(),
+	})
+	if err != nil {
+		return nil, err
+	}
+	a.logger.Printf("[AGENT] READ SUBNET STATE %s (subnetID)", subnetID)
+	resp, err := a.readSubnetState(subnetID, data)
+	if err != nil {
+		return nil, err
+	}
+	var certificate certification.Certificate
+	if err := cbor.Unmarshal(resp["certificate"], &certificate); err != nil {
+		return nil, err
+	}
+	return &certificate, nil
 }
 
 func (a Agent) sign(request Request) (*RequestID, []byte, error) {
@@ -518,45 +371,6 @@ func (a Agent) sign(request Request) (*RequestID, []byte, error) {
 		return nil, nil, err
 	}
 	return &requestID, data, nil
-}
-
-// Call is an intermediate representation of a Call to a canister.
-type Call struct {
-	a                   *Agent
-	methodName          string
-	effectiveCanisterID principal.Principal
-	requestID           RequestID
-	data                []byte
-}
-
-// Call calls a method on a canister, it does not wait for the result.
-func (c Call) Call() error {
-	c.a.logger.Printf("[AGENT] CALL %s %s (%x)", c.effectiveCanisterID, c.methodName, c.requestID)
-	_, err := c.a.call(c.effectiveCanisterID, c.data)
-	return err
-}
-
-// CallAndWait calls a method on a canister and waits for the result.
-func (c Call) CallAndWait(values ...any) error {
-	if err := c.Call(); err != nil {
-		return err
-	}
-	return c.Wait(values...)
-}
-
-// Wait waits for the result of the Call and unmarshals it into the given values.
-func (c Call) Wait(values ...any) error {
-	raw, err := c.a.poll(c.effectiveCanisterID, c.requestID)
-	if err != nil {
-		return err
-	}
-	return idl.Unmarshal(raw, values)
-}
-
-// WithEffectiveCanisterID sets the effective canister ID for the Call.
-func (c *Call) WithEffectiveCanisterID(canisterID principal.Principal) *Call {
-	c.effectiveCanisterID = canisterID
-	return c
 }
 
 // Config is the configuration for an Agent.
@@ -575,31 +389,6 @@ type Config struct {
 	PollDelay time.Duration
 	// PollTimeout is the timeout for polling for a response.
 	PollTimeout time.Duration
-}
-
-// Query is an intermediate representation of a Query to a canister.
-type Query struct {
-	a                   *Agent
-	methodName          string
-	effectiveCanisterID principal.Principal
-	data                []byte
-}
-
-// Query calls a method on a canister and unmarshals the result into the given values.
-func (q Query) Query(values ...any) error {
-	q.a.logger.Printf("[AGENT] QUERY %s %s", q.effectiveCanisterID, q.methodName)
-	resp, err := q.a.query(q.effectiveCanisterID, q.data)
-	if err != nil {
-		return err
-	}
-	var raw []byte
-	switch resp.Status {
-	case "replied":
-		raw = resp.Reply["arg"]
-	case "rejected":
-		return fmt.Errorf("(%d) %s", resp.RejectCode, resp.RejectMsg)
-	default:
-		panic("unreachable")
-	}
-	return idl.Unmarshal(raw, values)
+	// DisableSignedQueryVerification disables the verification of signed queries.
+	DisableSignedQueryVerification bool
 }

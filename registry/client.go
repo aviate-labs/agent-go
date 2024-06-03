@@ -23,6 +23,10 @@ func New() (*Client, error) {
 	}, nil
 }
 
+func (c *Client) GetLatestVersion() (uint64, error) {
+	return c.dp.GetLatestVersion()
+}
+
 func (c *Client) GetNNSSubnetID() (*principal.Principal, error) {
 	v, _, err := c.dp.GetValueUpdate([]byte("nns_subnet_id"), nil)
 	if err != nil {
@@ -33,10 +37,6 @@ func (c *Client) GetNNSSubnetID() (*principal.Principal, error) {
 		return nil, fmt.Errorf("failed to unmarshal NNS subnet ID: %w", err)
 	}
 	return &principal.Principal{Raw: nnsSubnetID.PrincipalId.Raw}, nil
-}
-
-func (c *Client) GetLatestVersion() (uint64, error) {
-	return c.dp.GetLatestVersion()
 }
 
 func (c *Client) GetNodeListSince(version uint64) (NodeMap, error) {
@@ -165,7 +165,7 @@ func (c *Client) GetSubnetPublicKey(subnetID principal.Principal) ([]byte, error
 	if publicKey.Algorithm != v1.AlgorithmId_ALGORITHM_ID_THRES_BLS12_381 {
 		return nil, fmt.Errorf("unsupported public key algorithm")
 	}
-	return certification.PublicKeyToDER(publicKey.KeyValue)
+	return certification.PublicBLSKeyToDER(publicKey.KeyValue)
 }
 
 type DataCenterMap map[string][]NodeDetails

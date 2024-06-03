@@ -64,8 +64,15 @@ func (d DataProvider) GetCertifiedChangesSince(version uint64, publicKey []byte)
 	var deltas []VersionedRecord
 	lastVersion := version
 	for _, delta := range rawDeltas {
+		var value []byte
+		switch delta := delta.Value.(type) {
+		case hashtree.Leaf:
+			value = delta
+		default:
+			return nil, 0, fmt.Errorf("unexpected type: %T", delta)
+		}
 		req := new(v1.RegistryAtomicMutateRequest)
-		if err := proto.Unmarshal(delta.Value, req); err != nil {
+		if err := proto.Unmarshal(value, req); err != nil {
 			return nil, 0, fmt.Errorf("failed to unmarshal atomic mutate request: %w", err)
 		}
 

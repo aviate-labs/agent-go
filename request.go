@@ -3,6 +3,7 @@ package agent
 import (
 	"bytes"
 	"crypto/sha256"
+	"fmt"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
@@ -30,6 +31,26 @@ func encodeLEB128(i uint64) []byte {
 	return e
 }
 
+func hashOfMap(m map[string]any) ([32]byte, error) {
+	var hashes [][]byte
+	for k, v := range m {
+		if v == nil {
+			continue
+		}
+
+		keyHash := sha256.Sum256([]byte(k))
+		valueHash, err := hashValue(v)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		hashes = append(hashes, append(keyHash[:], valueHash[:]...))
+	}
+	sort.Slice(hashes, func(i, j int) bool {
+		return bytes.Compare(hashes[i], hashes[j]) == -1
+	})
+	return sha256.Sum256(bytes.Join(hashes, nil)), nil
+}
+
 func hashPaths(paths [][]hashtree.Label) [32]byte {
 	var hash []byte
 	for _, path := range paths {
@@ -42,6 +63,49 @@ func hashPaths(paths [][]hashtree.Label) [32]byte {
 		hash = append(hash, pathHash[:]...)
 	}
 	return sha256.Sum256(hash)
+}
+
+func hashValue(v any) ([32]byte, error) {
+	switch v := v.(type) {
+	case cbor.RawMessage:
+		var anyValue any
+		if err := cbor.Unmarshal(v, &anyValue); err != nil {
+			panic(err)
+		}
+		return hashValue(anyValue)
+	case string:
+		return sha256.Sum256([]byte(v)), nil
+	case []byte:
+		return sha256.Sum256(v), nil
+	case int64:
+		return sha256.Sum256(encodeLEB128(uint64(v))), nil
+	case uint64:
+		return sha256.Sum256(encodeLEB128(v)), nil
+	case map[any]any: // cbor maps are not guaranteed to have string keys
+		m := make(map[string]any, len(v))
+		for k, v := range v {
+			s, isString := k.(string)
+			if !isString {
+				return [32]byte{}, fmt.Errorf("unsupported type %T", k)
+			}
+			m[s] = v
+		}
+		return hashOfMap(m)
+	case map[string]any:
+		return hashOfMap(v)
+	case []any:
+		var hashes []byte
+		for _, v := range v {
+			valueHash, err := hashValue(v)
+			if err != nil {
+				return [32]byte{}, err
+			}
+			hashes = append(hashes, valueHash[:]...)
+		}
+		return sha256.Sum256(hashes), nil
+	default:
+		return [32]byte{}, fmt.Errorf("unsupported type %T", v)
+	}
 }
 
 // Request is the request to the agent.
