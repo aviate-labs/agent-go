@@ -124,8 +124,7 @@ func (q Query) Query(values ...any) error {
 
 		for _, signature := range resp.Signatures {
 			if len(q.effectiveCanisterID.Raw) == 0 {
-				// TODO: temporary fix, signed queries did not take query calls from the management canister into account...
-				return nil
+				return fmt.Errorf("can not verify signature without effective canister ID")
 			}
 			c, err := q.a.readStateCertificate(q.effectiveCanisterID, [][]hashtree.Label{{hashtree.Label("subnet")}})
 			if err != nil {

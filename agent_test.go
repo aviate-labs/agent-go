@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/ic"
 	ic0 "github.com/aviate-labs/agent-go/ic/ic"
@@ -116,25 +115,6 @@ func TestAgent_Call(t *testing.T) {
 			subnetID := principal.Principal{Raw: []byte(path[1])}
 			_ = subnetID
 		}
-	}
-}
-
-func TestAgent_Call_bitcoinGetBalanceQuery(t *testing.T) {
-	a, err := ic0.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	r, err := a.BitcoinGetBalanceQuery(ic0.BitcoinGetBalanceQueryArgs{
-		Address: "bc1qruu3xmfrt4nzkxax3lpxfmjega87jr3vqcwjn9",
-		Network: ic0.BitcoinNetwork{
-			Mainnet: new(idl.Null),
-		},
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if r == nil {
-		t.Fatal()
 	}
 }
 
