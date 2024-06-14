@@ -6,6 +6,9 @@ test:
 test-registry:
 	REGISTRY_TEST_ENABLE=true go test -v -cover ./clients/registry/...
 
+test-ledger:
+	REGISTRY_TEST_ENABLE=true go test -v -cover ./clients/ledger/...
+
 check-moc:
 	find ic -type f -name '*.mo' -print0 | xargs -0 $(shell dfx cache show)/moc --check
 

@@ -75,7 +75,7 @@ func file_registry_proto_init() {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_registry_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_registry_proto_msgTypes[0].Exporter = func(v any, i int) any {
 			switch v := v.(*ProtoRegistry); i {
 			case 0:
 				return &v.state
@@ -87,7 +87,7 @@ func file_registry_proto_init() {
 				return nil
 			}
 		}
-		file_registry_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_registry_proto_msgTypes[1].Exporter = func(v any, i int) any {
 			switch v := v.(*ProtoRegistryRecord); i {
 			case 0:
 				return &v.state
