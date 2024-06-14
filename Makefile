@@ -19,6 +19,7 @@ test-cover:
 gen:
 	cd candid && go generate
 	cd pocketic && go generate
+	cd clients/ledger && go generate
 	cd clients/registry && go generate
 
 gen-ic:
