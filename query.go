@@ -15,7 +15,7 @@ import (
 )
 
 // Query calls a method on a canister and unmarshals the result into the given values.
-func (q APIRequest[In, Out]) Query(out Out) error {
+func (q APIRequest[In, Out]) Query(out Out, skipVerification bool) error {
 	q.a.logger.Printf("[AGENT] QUERY %s %s", q.effectiveCanisterID, q.methodName)
 	ctx, cancel := context.WithTimeout(q.a.ctx, q.a.ingressExpiry)
 	defer cancel()
@@ -29,7 +29,7 @@ func (q APIRequest[In, Out]) Query(out Out) error {
 	}
 
 	// Verify query signatures.
-	if q.a.verifySignatures {
+	if !skipVerification && q.a.verifySignatures {
 		if len(resp.Signatures) == 0 {
 			return fmt.Errorf("no signatures")
 		}
@@ -78,7 +78,7 @@ func (q APIRequest[In, Out]) Query(out Out) error {
 					append([]byte("\x0Bic-response"), sig[:]...),
 					signature.Signature,
 				) {
-					return fmt.Errorf("invalid signature")
+					return fmt.Errorf("invalid replied signature")
 				}
 			case "rejected":
 				code, err := leb128.EncodeUnsigned(big.NewInt(int64(resp.RejectCode)))
@@ -103,7 +103,7 @@ func (q APIRequest[In, Out]) Query(out Out) error {
 					append([]byte("\x0Bic-response"), sig[:]...),
 					signature.Signature,
 				) {
-					return fmt.Errorf("invalid signature")
+					return fmt.Errorf("invalid rejected signature")
 				}
 			default:
 				panic("unreachable")
@@ -132,45 +132,14 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, in, out 
 	if err != nil {
 		return err
 	}
-	return query.Query(out)
+	return query.Query(out, false)
 }
 
 // QueryProto calls a method on a canister and unmarshals the result into the given proto message.
 func (a Agent) QueryProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
-	payload, err := proto.Marshal(in)
+	query, err := a.CreateProtoAPIRequest(RequestTypeQuery, canisterID, methodName, in)
 	if err != nil {
 		return err
 	}
-	if len(payload) == 0 {
-		payload = []byte{}
-	}
-	_, data, err := a.sign(Request{
-		Type:          RequestTypeQuery,
-		Sender:        a.Sender(),
-		IngressExpiry: a.expiryDate(),
-		CanisterID:    canisterID,
-		MethodName:    methodName,
-		Arguments:     payload,
-	})
-	if err != nil {
-		return err
-	}
-	ctx, cancel := context.WithTimeout(a.ctx, a.ingressExpiry)
-	defer cancel()
-	resp, err := a.client.Query(ctx, canisterID, data)
-	if err != nil {
-		return err
-	}
-	var response Response
-	if err := cbor.Unmarshal(resp, &response); err != nil {
-		return err
-	}
-	if response.Status != "replied" {
-		return fmt.Errorf("status: %s", response.Status)
-	}
-	var reply map[string][]byte
-	if err := cbor.Unmarshal(response.Reply, &reply); err != nil {
-		return err
-	}
-	return proto.Unmarshal(reply["arg"], out)
+	return query.Query(out, true)
 }

@@ -40,27 +40,9 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, in []any,
 
 // CallProto calls a method on a canister and unmarshals the result into the given proto message.
 func (a Agent) CallProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
-	payload, err := proto.Marshal(in)
+	call, err := a.CreateProtoAPIRequest(RequestTypeCall, canisterID, methodName, in)
 	if err != nil {
 		return err
 	}
-	requestID, data, err := a.sign(Request{
-		Type:          RequestTypeCall,
-		Sender:        a.Sender(),
-		IngressExpiry: a.expiryDate(),
-		CanisterID:    canisterID,
-		MethodName:    methodName,
-		Arguments:     payload,
-	})
-	if err != nil {
-		return err
-	}
-	if _, err := a.call(canisterID, data); err != nil {
-		return err
-	}
-	raw, err := a.poll(canisterID, *requestID)
-	if err != nil {
-		return err
-	}
-	return proto.Unmarshal(raw, out)
+	return call.CallAndWait(out)
 }

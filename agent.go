@@ -7,16 +7,17 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/aviate-labs/agent-go/candid/idl"
 	"net/url"
 	"reflect"
 	"time"
 
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/certification"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
 	"github.com/fxamacker/cbor/v2"
+	"google.golang.org/protobuf/proto"
 )
 
 // DefaultConfig is the default configuration for an Agent.
@@ -101,12 +102,13 @@ type APIRequest[In, Out any] struct {
 	data                []byte
 }
 
-func CreateAPIRequest[In, Out any](
+func createAPIRequest[In, Out any](
 	a *Agent,
 	marshal func(In) ([]byte, error),
 	unmarshal func([]byte, Out) error,
 	typ RequestType,
 	canisterID principal.Principal,
+	effectiveCanisterID principal.Principal,
 	methodName string,
 	in In,
 ) (*APIRequest[In, Out], error) {
@@ -135,7 +137,7 @@ func CreateAPIRequest[In, Out any](
 		unmarshal:           unmarshal,
 		typ:                 typ,
 		methodName:          methodName,
-		effectiveCanisterID: canisterID,
+		effectiveCanisterID: effectiveCanisterID,
 		requestID:           *requestID,
 		data:                data,
 	}, nil
@@ -216,14 +218,39 @@ func (a Agent) Client() *Client {
 
 // CreateCandidAPIRequest creates a new api request to the given canister and method.
 func (a *Agent) CreateCandidAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, args ...any) (*CandidAPIRequest, error) {
-	return CreateAPIRequest[[]any, []any](
+	return createAPIRequest[[]any, []any](
 		a,
 		idl.Marshal,
 		idl.Unmarshal,
 		typ,
+		canisterID,
 		effectiveCanisterID(canisterID, args),
 		methodName,
 		args,
+	)
+}
+
+// CreateProtoAPIRequest creates a new api request to the given canister and method.
+func (a *Agent) CreateProtoAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, message proto.Message) (*ProtoAPIRequest, error) {
+	return createAPIRequest[proto.Message, proto.Message](
+		a,
+		func(m proto.Message) ([]byte, error) {
+			raw, err := proto.Marshal(m)
+			if err != nil {
+				return nil, err
+			}
+			if len(raw) == 0 {
+				// Protobuf arg are not allowed to be empty.
+				return []byte{}, nil
+			}
+			return raw, nil
+		},
+		proto.Unmarshal,
+		typ,
+		canisterID,
+		canisterID,
+		methodName,
+		message,
 	)
 }
 
@@ -486,3 +513,5 @@ type Config struct {
 	// DisableSignedQueryVerification disables the verification of signed queries.
 	DisableSignedQueryVerification bool
 }
+
+type ProtoAPIRequest = APIRequest[proto.Message, proto.Message]
