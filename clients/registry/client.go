@@ -3,8 +3,8 @@ package registry
 import (
 	"fmt"
 	"github.com/aviate-labs/agent-go/certification"
+	v1 "github.com/aviate-labs/agent-go/clients/registry/proto/v1"
 	"github.com/aviate-labs/agent-go/principal"
-	v1 "github.com/aviate-labs/agent-go/registry/proto/v1"
 	"google.golang.org/protobuf/proto"
 	"strings"
 )

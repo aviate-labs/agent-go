@@ -49,8 +49,9 @@ func (a {{ $.AgentName }}Agent) {{ .Name }}({{ range $i, $e := .ArgumentTypes }}
 }
 
 // {{ .Name }}{{ .Type }} creates an indirect representation of the "{{ .RawName }}" method on the "{{ $.CanisterName }}" canister.
-func (a {{ $.AgentName }}Agent) {{ .Name }}{{ .Type }}({{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }} {{ $e.Type }}{{ end }}) (*agent.{{ .Type }},error) {
-    return a.Agent.Create{{ .Type }}(
+func (a {{ $.AgentName }}Agent) {{ .Name }}{{ .Type }}({{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }} {{ $e.Type }}{{ end }}) (*agent.CandidAPIRequest, error) {
+    return a.Agent.CreateCandidAPIRequest(
+        agent.RequestType{{ .Type }},
         a.CanisterId,
         "{{ .RawName }}",{{ range $i, $e := .ArgumentTypes }}
         {{ $e.Name }},{{ end }}
