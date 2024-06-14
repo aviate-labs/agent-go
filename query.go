@@ -1,113 +1,25 @@
 package agent
 
 import (
+	"context"
 	"crypto/ed25519"
 	"fmt"
-	"github.com/aviate-labs/agent-go/candid/idl"
+	"math/big"
+
 	"github.com/aviate-labs/agent-go/certification"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/principal"
 	"github.com/aviate-labs/leb128"
 	"github.com/fxamacker/cbor/v2"
 	"google.golang.org/protobuf/proto"
-	"math/big"
 )
 
-// CreateQuery creates a new Query to the given canister and method.
-func (a *Agent) CreateQuery(canisterID principal.Principal, methodName string, args ...any) (*Query, error) {
-	rawArgs, err := idl.Marshal(args)
-	if err != nil {
-		return nil, err
-	}
-	if len(args) == 0 {
-		// Default to the empty Candid argument list.
-		rawArgs = []byte{'D', 'I', 'D', 'L', 0, 0}
-	}
-	nonce, err := newNonce()
-	if err != nil {
-		return nil, err
-	}
-	requestID, data, err := a.sign(Request{
-		Type:          RequestTypeQuery,
-		Sender:        a.Sender(),
-		CanisterID:    canisterID,
-		MethodName:    methodName,
-		Arguments:     rawArgs,
-		IngressExpiry: a.expiryDate(),
-		Nonce:         nonce,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return &Query{
-		a:                   a,
-		methodName:          methodName,
-		effectiveCanisterID: effectiveCanisterID(canisterID, args),
-		requestID:           *requestID,
-		data:                data,
-	}, nil
-}
-
 // Query calls a method on a canister and unmarshals the result into the given values.
-func (a Agent) Query(canisterID principal.Principal, methodName string, args, values []any) error {
-	query, err := a.CreateQuery(canisterID, methodName, args...)
-	if err != nil {
-		return err
-	}
-	return query.Query(values...)
-}
-
-// QueryProto calls a method on a canister and unmarshals the result into the given proto message.
-func (a Agent) QueryProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
-	payload, err := proto.Marshal(in)
-	if err != nil {
-		return err
-	}
-	if len(payload) == 0 {
-		payload = []byte{}
-	}
-	_, data, err := a.sign(Request{
-		Type:          RequestTypeQuery,
-		Sender:        a.Sender(),
-		IngressExpiry: a.expiryDate(),
-		CanisterID:    canisterID,
-		MethodName:    methodName,
-		Arguments:     payload,
-	})
-	if err != nil {
-		return err
-	}
-	resp, err := a.client.Query(canisterID, data)
-	if err != nil {
-		return err
-	}
-	var response Response
-	if err := cbor.Unmarshal(resp, &response); err != nil {
-		return err
-	}
-	if response.Status != "replied" {
-		return fmt.Errorf("status: %s", response.Status)
-	}
-	var reply map[string][]byte
-	if err := cbor.Unmarshal(response.Reply, &reply); err != nil {
-		return err
-	}
-	return proto.Unmarshal(reply["arg"], out)
-}
-
-// Query is an intermediate representation of a Query to a canister.
-type Query struct {
-	a                   *Agent
-	methodName          string
-	effectiveCanisterID principal.Principal
-	requestID           RequestID
-	data                []byte
-}
-
-// Query calls a method on a canister and unmarshals the result into the given values.
-func (q Query) Query(values ...any) error {
+func (q APIRequest[In, Out]) Query(out Out) error {
 	q.a.logger.Printf("[AGENT] QUERY %s %s", q.effectiveCanisterID, q.methodName)
-	rawResp, err := q.a.client.Query(q.effectiveCanisterID, q.data)
+	ctx, cancel := context.WithTimeout(q.a.ctx, q.a.ingressExpiry)
+	defer cancel()
+	rawResp, err := q.a.client.Query(ctx, q.effectiveCanisterID, q.data)
 	if err != nil {
 		return err
 	}
@@ -200,14 +112,65 @@ func (q Query) Query(values ...any) error {
 	}
 	switch resp.Status {
 	case "replied":
-		var reply map[string][]byte
+		var reply struct {
+			Arg []byte `ic:"arg"`
+		}
 		if err := cbor.Unmarshal(resp.Reply, &reply); err != nil {
 			return err
 		}
-		return idl.Unmarshal(reply["arg"], values)
+		return q.unmarshal(reply.Arg, out)
 	case "rejected":
 		return fmt.Errorf("(%d) %s: %s", resp.RejectCode, resp.ErrorCode, resp.RejectMsg)
 	default:
 		panic("unreachable")
 	}
+}
+
+// Query calls a method on a canister and unmarshals the result into the given values.
+func (a Agent) Query(canisterID principal.Principal, methodName string, in, out []any) error {
+	query, err := a.CreateCandidAPIRequest(RequestTypeQuery, canisterID, methodName, in...)
+	if err != nil {
+		return err
+	}
+	return query.Query(out)
+}
+
+// QueryProto calls a method on a canister and unmarshals the result into the given proto message.
+func (a Agent) QueryProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
+	payload, err := proto.Marshal(in)
+	if err != nil {
+		return err
+	}
+	if len(payload) == 0 {
+		payload = []byte{}
+	}
+	_, data, err := a.sign(Request{
+		Type:          RequestTypeQuery,
+		Sender:        a.Sender(),
+		IngressExpiry: a.expiryDate(),
+		CanisterID:    canisterID,
+		MethodName:    methodName,
+		Arguments:     payload,
+	})
+	if err != nil {
+		return err
+	}
+	ctx, cancel := context.WithTimeout(a.ctx, a.ingressExpiry)
+	defer cancel()
+	resp, err := a.client.Query(ctx, canisterID, data)
+	if err != nil {
+		return err
+	}
+	var response Response
+	if err := cbor.Unmarshal(resp, &response); err != nil {
+		return err
+	}
+	if response.Status != "replied" {
+		return fmt.Errorf("status: %s", response.Status)
+	}
+	var reply map[string][]byte
+	if err := cbor.Unmarshal(response.Reply, &reply); err != nil {
+		return err
+	}
+	return proto.Unmarshal(reply["arg"], out)
 }

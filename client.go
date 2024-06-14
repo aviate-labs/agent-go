@@ -2,6 +2,7 @@ package agent
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -40,10 +41,14 @@ func NewClientWithLogger(cfg ClientConfig, logger Logger) Client {
 	}
 }
 
-func (c Client) Call(canisterID principal.Principal, data []byte) ([]byte, error) {
+func (c Client) Call(ctx context.Context, canisterID principal.Principal, data []byte) ([]byte, error) {
 	u := c.url(fmt.Sprintf("/api/v2/canister/%s/call", canisterID.Encode()))
 	c.logger.Printf("[CLIENT] CALL %s", u)
-	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
+	req, err := c.newRequest(ctx, "POST", u, bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -63,16 +68,16 @@ func (c Client) Call(canisterID principal.Principal, data []byte) ([]byte, error
 	}
 }
 
-func (c Client) Query(canisterID principal.Principal, data []byte) ([]byte, error) {
-	return c.post("query", canisterID, data)
+func (c Client) Query(ctx context.Context, canisterID principal.Principal, data []byte) ([]byte, error) {
+	return c.post(ctx, "query", canisterID, data)
 }
 
-func (c Client) ReadState(canisterID principal.Principal, data []byte) ([]byte, error) {
-	return c.post("read_state", canisterID, data)
+func (c Client) ReadState(ctx context.Context, canisterID principal.Principal, data []byte) ([]byte, error) {
+	return c.post(ctx, "read_state", canisterID, data)
 }
 
-func (c Client) ReadSubnetState(subnetID principal.Principal, data []byte) ([]byte, error) {
-	return c.postSubnet("read_state", subnetID, data)
+func (c Client) ReadSubnetState(ctx context.Context, subnetID principal.Principal, data []byte) ([]byte, error) {
+	return c.postSubnet(ctx, "read_state", subnetID, data)
 }
 
 // Status returns the status of the IC.
@@ -94,10 +99,23 @@ func (c Client) get(path string) ([]byte, error) {
 	return io.ReadAll(resp.Body)
 }
 
-func (c Client) post(path string, canisterID principal.Principal, data []byte) ([]byte, error) {
+func (c Client) newRequest(ctx context.Context, method, url string, body io.Reader) (*http.Request, error) {
+	req, err := http.NewRequestWithContext(ctx, method, url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", "application/cbor")
+	return req, nil
+}
+
+func (c Client) post(ctx context.Context, path string, canisterID principal.Principal, data []byte) ([]byte, error) {
 	u := c.url(fmt.Sprintf("/api/v2/canister/%s/%s", canisterID.Encode(), path))
 	c.logger.Printf("[CLIENT] POST %s", u)
-	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
+	req, err := c.newRequest(ctx, "POST", u, bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -110,10 +128,14 @@ func (c Client) post(path string, canisterID principal.Principal, data []byte) (
 	}
 }
 
-func (c Client) postSubnet(path string, subnetID principal.Principal, data []byte) ([]byte, error) {
+func (c Client) postSubnet(ctx context.Context, path string, subnetID principal.Principal, data []byte) ([]byte, error) {
 	u := c.url(fmt.Sprintf("/api/v2/subnet/%s/%s", subnetID.Encode(), path))
 	c.logger.Printf("[CLIENT] POST %s", u)
-	resp, err := c.client.Post(u, "application/cbor", bytes.NewBuffer(data))
+	req, err := c.newRequest(ctx, "POST", u, bytes.NewBuffer(data))
+	if err != nil {
+		return nil, err
+	}
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return nil, err
 	}

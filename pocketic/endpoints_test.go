@@ -16,7 +16,7 @@ func TestEndpoints(t *testing.T) {
 		pocketic.WithApplicationSubnet(),
 	)
 	if err != nil {
-		t.Skipf("skipping test: %v", err)
+		t.Skip(err)
 	}
 
 	t.Run("status", func(t *testing.T) {

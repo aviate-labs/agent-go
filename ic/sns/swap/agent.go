@@ -305,21 +305,6 @@ func (a Agent) RefreshBuyerTokens(arg0 RefreshBuyerTokensRequest) (*RefreshBuyer
 	return &r0, nil
 }
 
-// RestoreDappControllers calls the "restore_dapp_controllers" method on the "swap" canister.
-func (a Agent) RestoreDappControllers(arg0 struct {
-}) (*SetDappControllersCallResult, error) {
-	var r0 SetDappControllersCallResult
-	if err := a.Agent.Call(
-		a.CanisterId,
-		"restore_dapp_controllers",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
 type BuyerState struct {
 	Icp                     *TransferableAmount `ic:"icp,omitempty" json:"icp,omitempty"`
 	HasCreatedNeuronRecipes *bool               `ic:"has_created_neuron_recipes,omitempty" json:"has_created_neuron_recipes,omitempty"`
