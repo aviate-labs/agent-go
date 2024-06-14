@@ -41,8 +41,9 @@ func (a Agent) HelloQuery(arg0 string) (*string, error) {
 }
 
 // HelloQueryQuery creates an indirect representation of the "helloQuery" method on the "hello" canister.
-func (a Agent) HelloQueryQuery(arg0 string) (*agent.Query, error) {
-	return a.Agent.CreateQuery(
+func (a Agent) HelloQueryQuery(arg0 string) (*agent.CandidAPIRequest, error) {
+	return a.Agent.CreateCandidAPIRequest(
+		agent.RequestTypeQuery,
 		a.CanisterId,
 		"helloQuery",
 		arg0,
@@ -64,8 +65,9 @@ func (a Agent) HelloUpdate(arg0 string) (*string, error) {
 }
 
 // HelloUpdateCall creates an indirect representation of the "helloUpdate" method on the "hello" canister.
-func (a Agent) HelloUpdateCall(arg0 string) (*agent.Call, error) {
-	return a.Agent.CreateCall(
+func (a Agent) HelloUpdateCall(arg0 string) (*agent.CandidAPIRequest, error) {
+	return a.Agent.CreateCandidAPIRequest(
+		agent.RequestTypeCall,
 		a.CanisterId,
 		"helloUpdate",
 		arg0,

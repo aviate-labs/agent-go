@@ -219,19 +219,6 @@ func (a Agent) CreateSubnet(arg0 CreateSubnetPayload) error {
 	return nil
 }
 
-// DeleteSubnet calls the "delete_subnet" method on the "registry" canister.
-func (a Agent) DeleteSubnet(arg0 DeleteSubnetPayload) error {
-	if err := a.Agent.Call(
-		a.CanisterId,
-		"delete_subnet",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
 // DeployGuestosToAllSubnetNodes calls the "deploy_guestos_to_all_subnet_nodes" method on the "registry" canister.
 func (a Agent) DeployGuestosToAllSubnetNodes(arg0 DeployGuestosToAllSubnetNodesPayload) error {
 	if err := a.Agent.Call(

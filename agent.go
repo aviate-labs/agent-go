@@ -1,11 +1,13 @@
 package agent
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"net/url"
 	"reflect"
 	"time"
@@ -89,9 +91,66 @@ func uint64FromBytes(raw []byte) uint64 {
 	}
 }
 
+type APIRequest[In, Out any] struct {
+	a                   *Agent
+	unmarshal           func([]byte, Out) error
+	typ                 RequestType
+	methodName          string
+	effectiveCanisterID principal.Principal
+	requestID           RequestID
+	data                []byte
+}
+
+func CreateAPIRequest[In, Out any](
+	a *Agent,
+	marshal func(In) ([]byte, error),
+	unmarshal func([]byte, Out) error,
+	typ RequestType,
+	canisterID principal.Principal,
+	methodName string,
+	in In,
+) (*APIRequest[In, Out], error) {
+	rawArgs, err := marshal(in)
+	if err != nil {
+		return nil, err
+	}
+	nonce, err := newNonce()
+	if err != nil {
+		return nil, err
+	}
+	requestID, data, err := a.sign(Request{
+		Type:          typ,
+		Sender:        a.Sender(),
+		CanisterID:    canisterID,
+		MethodName:    methodName,
+		Arguments:     rawArgs,
+		IngressExpiry: a.expiryDate(),
+		Nonce:         nonce,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &APIRequest[In, Out]{
+		a:                   a,
+		unmarshal:           unmarshal,
+		typ:                 typ,
+		methodName:          methodName,
+		effectiveCanisterID: canisterID,
+		requestID:           *requestID,
+		data:                data,
+	}, nil
+}
+
+// WithEffectiveCanisterID sets the effective canister ID for the Call.
+func (c *APIRequest[In, Out]) WithEffectiveCanisterID(canisterID principal.Principal) *APIRequest[In, Out] {
+	c.effectiveCanisterID = canisterID
+	return c
+}
+
 // Agent is a client for the Internet Computer.
 type Agent struct {
 	client           Client
+	ctx              context.Context
 	identity         identity.Identity
 	ingressExpiry    time.Duration
 	rootKey          []byte
@@ -103,7 +162,7 @@ type Agent struct {
 // New returns a new Agent based on the given configuration.
 func New(cfg Config) (*Agent, error) {
 	if cfg.IngressExpiry == 0 {
-		cfg.IngressExpiry = time.Minute
+		cfg.IngressExpiry = 5 * time.Minute
 	}
 	// By default, use the anonymous identity.
 	var id identity.Identity = new(identity.AnonymousIdentity)
@@ -139,6 +198,7 @@ func New(cfg Config) (*Agent, error) {
 	}
 	return &Agent{
 		client:           client,
+		ctx:              context.Background(),
 		identity:         id,
 		ingressExpiry:    cfg.IngressExpiry,
 		rootKey:          rootKey,
@@ -152,6 +212,19 @@ func New(cfg Config) (*Agent, error) {
 // Client returns the underlying Client of the Agent.
 func (a Agent) Client() *Client {
 	return &a.client
+}
+
+// CreateCandidAPIRequest creates a new api request to the given canister and method.
+func (a *Agent) CreateCandidAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, args ...any) (*CandidAPIRequest, error) {
+	return CreateAPIRequest[[]any, []any](
+		a,
+		idl.Marshal,
+		idl.Unmarshal,
+		typ,
+		effectiveCanisterID(canisterID, args),
+		methodName,
+		args,
+	)
 }
 
 // GetCanisterControllers returns the list of principals that can control the given canister.
@@ -252,7 +325,9 @@ func (a Agent) Sender() principal.Principal {
 }
 
 func (a Agent) call(ecID principal.Principal, data []byte) ([]byte, error) {
-	return a.client.Call(ecID, data)
+	ctx, cancel := context.WithTimeout(a.ctx, a.ingressExpiry)
+	defer cancel()
+	return a.client.Call(ctx, ecID, data)
 }
 
 func (a Agent) expiryDate() uint64 {
@@ -299,7 +374,9 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, erro
 }
 
 func (a Agent) readState(ecID principal.Principal, data []byte) (map[string][]byte, error) {
-	resp, err := a.client.ReadState(ecID, data)
+	ctx, cancel := context.WithTimeout(a.ctx, a.ingressExpiry)
+	defer cancel()
+	resp, err := a.client.ReadState(ctx, ecID, data)
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +413,9 @@ func (a Agent) readStateCertificate(ecID principal.Principal, paths [][]hashtree
 }
 
 func (a Agent) readSubnetState(subnetID principal.Principal, data []byte) (map[string][]byte, error) {
-	resp, err := a.client.ReadSubnetState(subnetID, data)
+	ctx, cancel := context.WithTimeout(a.ctx, a.ingressExpiry)
+	defer cancel()
+	resp, err := a.client.ReadSubnetState(ctx, subnetID, data)
 	if err != nil {
 		return nil, err
 	}
@@ -385,12 +464,14 @@ func (a Agent) sign(request Request) (*RequestID, []byte, error) {
 	return &requestID, data, nil
 }
 
+type CandidAPIRequest = APIRequest[[]any, []any]
+
 // Config is the configuration for an Agent.
 type Config struct {
 	// Identity is the identity used by the Agent.
 	Identity identity.Identity
 	// IngressExpiry is the duration for which an ingress message is valid.
-	// The default is set to 1 minute.
+	// The default is set to 5 minutes.
 	IngressExpiry time.Duration
 	// ClientConfig is the configuration for the underlying Client.
 	ClientConfig *ClientConfig
