@@ -16,6 +16,9 @@ import (
 var (
 	//go:embed did
 	dids embed.FS
+
+	ICVersion  = "release-2024-06-05_23-01-base"
+	SDKVersion = "0.20.1"
 )
 
 func checkLatest() error {
@@ -25,27 +28,27 @@ func checkLatest() error {
 	}{
 		{
 			filepath: "ic/sns/testdata/did/sns.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/nns/sns-wasm/canister/sns-wasm.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/ic/%s/rs/nns/sns-wasm/canister/sns-wasm.did", ICVersion),
 		},
 		{
 			filepath: "ic/sns/testdata/did/governance.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/sdk/master/src/distributed/assetstorage.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/sdk/%s/src/distributed/assetstorage.did", SDKVersion),
 		},
 		{
 			filepath: "ic/sns/testdata/did/root.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/sns/root/canister/root.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/ic/%s/rs/sns/root/canister/root.did", ICVersion),
 		},
 		{
 			filepath: "ic/sns/testdata/did/swap.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/sns/swap/canister/swap.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/ic/%s/rs/sns/swap/canister/swap.did", ICVersion),
 		},
 		{
 			filepath: "ic/sns/testdata/did/ledger.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/rosetta-api/icrc1/ledger/ledger.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/ic/%s/rs/rosetta-api/icrc1/ledger/ledger.did", ICVersion),
 		},
 		{
 			filepath: "ic/sns/testdata/did/index.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/rosetta-api/icrc1/index/index.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/ic/%s/rs/rosetta-api/icrc1/index/index.did", ICVersion),
 		},
 	} {
 		raw, err := http.Get(f.remote)

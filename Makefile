@@ -4,7 +4,10 @@ test:
 	go test -v -cover ./...
 
 test-registry:
-	REGISTRY_TEST_ENABLE=true go test -v -cover ./registry/...
+	REGISTRY_TEST_ENABLE=true go test -v -cover ./clients/registry/...
+
+test-ledger:
+	REGISTRY_TEST_ENABLE=true go test -v -cover ./clients/ledger/...
 
 check-moc:
 	find ic -type f -name '*.mo' -print0 | xargs -0 $(shell dfx cache show)/moc --check
@@ -16,7 +19,8 @@ test-cover:
 gen:
 	cd candid && go generate
 	cd pocketic && go generate
-	cd registry && go generate
+	cd clients/ledger && go generate
+	cd clients/registry && go generate
 
 gen-ic:
 	go run ic/testdata/gen.go

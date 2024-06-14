@@ -16,6 +16,10 @@ import (
 var (
 	//go:embed did
 	dids embed.FS
+
+	ICVersion            = "release-2024-06-05_23-01-base"
+	InterfaceSpecVersion = "0.23.0"
+	SDKVersion           = "0.20.1"
 )
 
 func checkLatest() error {
@@ -25,31 +29,31 @@ func checkLatest() error {
 	}{
 		{
 			filepath: "ic/testdata/did/assetstorage.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/sdk/master/src/distributed/assetstorage.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/sdk/%s/src/distributed/assetstorage.did", SDKVersion),
 		},
 		{
 			filepath: "ic/testdata/did/cmc.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/nns/cmc/cmc.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/ic/%s/rs/nns/cmc/cmc.did", ICVersion),
 		},
 		{
 			filepath: "ic/testdata/did/ic.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/interface-spec/master/spec/_attachments/ic.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/interface-spec/%s/spec/_attachments/ic.did", InterfaceSpecVersion),
 		},
 		{
 			filepath: "ic/testdata/did/registry.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/registry/canister/canister/registry.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/ic/%s/rs/registry/canister/canister/registry.did", ICVersion),
 		},
 		{
 			filepath: "ic/testdata/did/governance.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/nns/governance/canister/governance.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/ic/%s/rs/nns/governance/canister/governance.did", ICVersion),
 		},
 		{
 			filepath: "ic/testdata/did/icparchive.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/rosetta-api/icp_ledger/ledger_archive.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/ic/%s/rs/rosetta-api/icp_ledger/ledger_archive.did", ICVersion),
 		},
 		{
 			filepath: "ic/testdata/did/icpledger.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/ic/master/rs/rosetta-api/icp_ledger/ledger.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/ic/%s/rs/rosetta-api/icp_ledger/ledger.did", ICVersion),
 		},
 		{
 			filepath: "ic/testdata/did/icrc1.did",
@@ -57,7 +61,7 @@ func checkLatest() error {
 		},
 		{
 			filepath: "ic/testdata/did/wallet.did",
-			remote:   "https://raw.githubusercontent.com/dfinity/sdk/master/src/distributed/wallet.did",
+			remote:   fmt.Sprintf("https://raw.githubusercontent.com/dfinity/sdk/%s/src/distributed/wallet.did", SDKVersion),
 		},
 	} {
 		raw, err := http.Get(f.remote)
