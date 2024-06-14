@@ -105,89 +105,12 @@ var file_local_proto_rawDesc = []byte{
 	0x74, 0x6f, 0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
-func file_local_proto_init() {
-	if File_local_proto != nil {
-		return
-	}
-	if !protoimpl.UnsafeEnabled {
-		file_local_proto_msgTypes[0].Exporter = func(v any, i int) any {
-			switch v := v.(*ChangelogEntry); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_local_proto_msgTypes[1].Exporter = func(v any, i int) any {
-			switch v := v.(*KeyMutation); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_local_proto_msgTypes[2].Exporter = func(v any, i int) any {
-			switch v := v.(*CertifiedTime); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_local_proto_msgTypes[3].Exporter = func(v any, i int) any {
-			switch v := v.(*Delta); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-	}
-	type x struct{}
-	out := protoimpl.TypeBuilder{
-		File: protoimpl.DescBuilder{
-			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_local_proto_rawDesc,
-			NumEnums:      1,
-			NumMessages:   4,
-			NumExtensions: 0,
-			NumServices:   0,
-		},
-		GoTypes:           file_local_proto_goTypes,
-		DependencyIndexes: file_local_proto_depIdxs,
-		EnumInfos:         file_local_proto_enumTypes,
-		MessageInfos:      file_local_proto_msgTypes,
-	}.Build()
-	File_local_proto = out.File
-	file_local_proto_rawDesc = nil
-	file_local_proto_goTypes = nil
-	file_local_proto_depIdxs = nil
-}
-
 func file_local_proto_rawDescGZIP() []byte {
 	file_local_proto_rawDescOnce.Do(func() {
 		file_local_proto_rawDescData = protoimpl.X.CompressGZIP(file_local_proto_rawDescData)
 	})
 	return file_local_proto_rawDescData
 }
-
-func init() { file_local_proto_init() }
 
 // The time when the last certified update was successfully received.
 type CertifiedTime struct {
@@ -425,6 +348,7 @@ const (
 func (MutationType) Descriptor() protoreflect.EnumDescriptor {
 	return file_local_proto_enumTypes[0].Descriptor()
 }
+
 func (x MutationType) Enum() *MutationType {
 	p := new(MutationType)
 	*p = x
@@ -438,10 +362,85 @@ func (MutationType) EnumDescriptor() ([]byte, []int) {
 func (x MutationType) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
-
 func (x MutationType) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 func (MutationType) Type() protoreflect.EnumType {
 	return &file_local_proto_enumTypes[0]
+}
+
+func init() { file_local_proto_init() }
+func file_local_proto_init() {
+	if File_local_proto != nil {
+		return
+	}
+	if !protoimpl.UnsafeEnabled {
+		file_local_proto_msgTypes[0].Exporter = func(v any, i int) any {
+			switch v := v.(*ChangelogEntry); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_local_proto_msgTypes[1].Exporter = func(v any, i int) any {
+			switch v := v.(*KeyMutation); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_local_proto_msgTypes[2].Exporter = func(v any, i int) any {
+			switch v := v.(*CertifiedTime); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_local_proto_msgTypes[3].Exporter = func(v any, i int) any {
+			switch v := v.(*Delta); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+	}
+	type x struct{}
+	out := protoimpl.TypeBuilder{
+		File: protoimpl.DescBuilder{
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: file_local_proto_rawDesc,
+			NumEnums:      1,
+			NumMessages:   4,
+			NumExtensions: 0,
+			NumServices:   0,
+		},
+		GoTypes:           file_local_proto_goTypes,
+		DependencyIndexes: file_local_proto_depIdxs,
+		EnumInfos:         file_local_proto_enumTypes,
+		MessageInfos:      file_local_proto_msgTypes,
+	}.Build()
+	File_local_proto = out.File
+	file_local_proto_rawDesc = nil
+	file_local_proto_goTypes = nil
+	file_local_proto_depIdxs = nil
 }
