@@ -150,12 +150,14 @@ func (q Query) Query(values ...any) error {
 			}
 			switch resp.Status {
 			case "replied":
-				sig, err := hashOfMap(map[string]any{
-					"status":     resp.Status,
-					"reply":      resp.Reply,
-					"timestamp":  signature.Timestamp,
-					"request_id": q.requestID[:],
-				})
+				sig, err := certification.RepresentationIndependentHash(
+					[]certification.KeyValuePair{
+						{Key: "status", Value: resp.Status},
+						{Key: "reply", Value: resp.Reply},
+						{Key: "timestamp", Value: signature.Timestamp},
+						{Key: "request_id", Value: q.requestID[:]},
+					},
+				)
 				if err != nil {
 					return err
 				}
@@ -171,14 +173,16 @@ func (q Query) Query(values ...any) error {
 				if err != nil {
 					return err
 				}
-				sig, err := hashOfMap(map[string]any{
-					"status":         resp.Status,
-					"reject_code":    code,
-					"reject_message": resp.RejectMsg,
-					"error_code":     resp.ErrorCode,
-					"timestamp":      signature.Timestamp,
-					"request_id":     q.requestID[:],
-				})
+				sig, err := certification.RepresentationIndependentHash(
+					[]certification.KeyValuePair{
+						{Key: "status", Value: resp.Status},
+						{Key: "reject_code", Value: code},
+						{Key: "reject_message", Value: resp.RejectMsg},
+						{Key: "error_code", Value: resp.ErrorCode},
+						{Key: "timestamp", Value: signature.Timestamp},
+						{Key: "request_id", Value: q.requestID[:]},
+					},
+				)
 				if err != nil {
 					return err
 				}
