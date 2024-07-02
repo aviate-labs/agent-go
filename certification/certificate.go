@@ -139,7 +139,7 @@ func VerifyCertifiedData(
 		return err
 	}
 	if !bytes.Equal(certificateCertifiedData, certifiedData) {
-		return fmt.Errorf("certified data does not match")
+		return fmt.Errorf("certified data does not match: %x != %x", certificateCertifiedData, certifiedData)
 	}
 	return nil
 }

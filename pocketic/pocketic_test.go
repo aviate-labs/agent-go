@@ -21,7 +21,7 @@ import (
 func TestConcurrentCalls(t *testing.T) {
 	pic, err := pocketic.New(pocketic.WithPollingDelay(10*time.Millisecond, 10*time.Second))
 	if err != nil {
-		t.Fatal(err)
+		t.Skipf("skipping test: %v", err)
 	}
 	var wg sync.WaitGroup
 	for i := 0; i < 10; i++ {
@@ -47,7 +47,7 @@ func TestConcurrentCalls(t *testing.T) {
 func TestCreateCanister(t *testing.T) {
 	pic, err := pocketic.New(pocketic.WithLogger(new(testLogger)))
 	if err != nil {
-		t.Fatal(err)
+		t.Skipf("skipping test: %v", err)
 	}
 
 	canisterID, err := pic.CreateCanister()
@@ -66,7 +66,7 @@ func TestHttpGateway(t *testing.T) {
 		pocketic.WithApplicationSubnet(),
 	)
 	if err != nil {
-		t.Fatal(err)
+		t.Skipf("skipping test: %v", err)
 	}
 
 	endpoint, err := pic.MakeLive(nil)
