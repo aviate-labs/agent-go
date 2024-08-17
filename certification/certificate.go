@@ -51,7 +51,7 @@ func PublicBLSKeyFromDER(der []byte) (*bls.PublicKey, error) {
 		return nil, fmt.Errorf("invalid curve identifier: %v", curveID)
 	}
 	pub, err := bls.PublicKeyFromBytes(bs.Bytes)
-	return &pub, err
+	return pub, err
 }
 
 func PublicBLSKeyToDER(publicKey []byte) ([]byte, error) {
@@ -164,7 +164,7 @@ func verifyCertificateSignature(certificate Certificate, publicKey *bls.PublicKe
 	if err != nil {
 		return err
 	}
-	if !signature.Verify(*publicKey, message) {
+	if !signature.Verify(publicKey, message) {
 		return fmt.Errorf("signature verification failed")
 	}
 	return nil
