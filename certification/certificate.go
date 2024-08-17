@@ -163,7 +163,7 @@ func verifyCertificateSignature(certificate Certificate, publicKey *bls.PublicKe
 	if err != nil {
 		return err
 	}
-	if !signature.VerifyByte(publicKey, message) {
+	if !signature.Verify(publicKey, message) {
 		return fmt.Errorf("signature verification failed")
 	}
 	return nil

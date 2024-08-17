@@ -6,9 +6,9 @@ import (
 )
 
 func TestSecretKey(t *testing.T) {
+	msg := []byte("hello")
 	sk := NewSecretKeyByCSPRNG()
-	s := sk.Sign("hello")
-	if !s.Verify(sk.GetPublicKey(), "hello") {
+	if !sk.Sign(msg).Verify(sk.GetPublicKey(), msg) {
 		t.Error()
 	}
 }
@@ -29,10 +29,10 @@ func TestVerify(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if signature.Verify(publicKey, "bye") {
+	if signature.Verify(publicKey, []byte("bye")) {
 		t.Error()
 	}
-	if !signature.Verify(publicKey, "hello") {
+	if !signature.Verify(publicKey, []byte("hello")) {
 		t.Error()
 	}
 }
@@ -51,10 +51,10 @@ func TestVerify_hex(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if signature.Verify(publicKey, "bye") {
+	if signature.Verify(publicKey, []byte("bye")) {
 		t.Error()
 	}
-	if !signature.Verify(publicKey, "hello") {
+	if !signature.Verify(publicKey, []byte("hello")) {
 		t.Error()
 	}
 }
