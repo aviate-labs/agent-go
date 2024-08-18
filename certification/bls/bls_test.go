@@ -2,15 +2,21 @@ package bls
 
 import (
 	"encoding/hex"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestSecretKey(t *testing.T) {
 	sk := NewSecretKeyByCSPRNG()
-	s := sk.Sign([]byte("hello"))
-	assert.True(t, s.Verify(sk.PublicKey(), []byte("hello")))
-	assert.False(t, s.Verify(sk.PublicKey(), []byte("world")))
+	s, err := sk.Sign([]byte("hello"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Verify(sk.PublicKey(), []byte("hello")) != true {
+		t.Error()
+	}
+	if s.Verify(sk.PublicKey(), []byte("world")) != false {
+		t.Error()
+	}
 }
 
 func TestVerify(t *testing.T) {
