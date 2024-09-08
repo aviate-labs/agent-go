@@ -71,6 +71,11 @@ config := agent.Config{
 }
 ```
 
+### Using WalletCanister as proxy 
+Please refer ic/wallet/README.md for detail.
+
+
+
 ## Packages
 
 You can find the documentation for each package in the links below. Examples can be found throughout the documentation.
