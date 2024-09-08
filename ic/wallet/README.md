@@ -1,10 +1,9 @@
-The examples demonstrate how to access a canister named **hasher** on local replica. 2 directories define difference access method to hasher
-- agent: directly access hasher canister, for normal purpose.
-- wallet: access hasher canister by wallet canister, user can provide cycles for canister execution.
+##  2 methods to access a canister:
+- agent: directly access, normal purpose.
+- wallet: use wallet canister as proxy, user can provide cycles for canister execution, demonstrating in Test_WalletCanister_LocalNet()
 
-
-
-a hasher canister deployed on local replica for examples, its code shown below.
+## Prerequisite
+For test agent-go/agent_test.go/Test_Agent_LocalNet() and agent-go/ic/wallet/agent_test.go/Test_WalletCanister_LocalNet(), a hasher canister deployed on local replica for demonstration, its code shown below.
 ```rust
 
 use ic_cdk_macros::{init, post_upgrade, pre_upgrade, query, update};
