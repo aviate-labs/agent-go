@@ -67,6 +67,7 @@ u, _ := url.Parse("http://localhost:8000")
 config := agent.Config{
     ClientConfig: &agent.ClientConfig{Host: u},
     FetchRootKey: true,
+    DisableSignedQueryVerification: true,
 }
 ```
 
