@@ -15,6 +15,9 @@ type AccountIdentifier struct {
 type Action struct {
 	RegisterKnownNeuron           *KnownNeuron                   `ic:"RegisterKnownNeuron,variant"`
 	ManageNeuron                  *ManageNeuron                  `ic:"ManageNeuron,variant"`
+	UpdateCanisterSettings        *UpdateCanisterSettings        `ic:"UpdateCanisterSettings,variant"`
+	InstallCode                   *InstallCode                   `ic:"InstallCode,variant"`
+	StopOrStartCanister           *StopOrStartCanister           `ic:"StopOrStartCanister,variant"`
 	CreateServiceNervousSystem    *CreateServiceNervousSystem    `ic:"CreateServiceNervousSystem,variant"`
 	ExecuteNnsFunction            *ExecuteNnsFunction            `ic:"ExecuteNnsFunction,variant"`
 	RewardNodeProvider            *RewardNodeProvider            `ic:"RewardNodeProvider,variant"`
@@ -23,7 +26,7 @@ type Action struct {
 	SetDefaultFollowees           *SetDefaultFollowees           `ic:"SetDefaultFollowees,variant"`
 	RewardNodeProviders           *RewardNodeProviders           `ic:"RewardNodeProviders,variant"`
 	ManageNetworkEconomics        *NetworkEconomics              `ic:"ManageNetworkEconomics,variant"`
-	ApproveGenesisKyc             *ApproveGenesisKyc             `ic:"ApproveGenesisKyc,variant"`
+	ApproveGenesisKyc             *Principals                    `ic:"ApproveGenesisKyc,variant"`
 	AddOrRemoveNodeProvider       *AddOrRemoveNodeProvider       `ic:"AddOrRemoveNodeProvider,variant"`
 	Motion                        *Motion                        `ic:"Motion,variant"`
 }
@@ -167,8 +170,8 @@ func (a Agent) GetMonthlyNodeProviderRewards() (*Result4, error) {
 }
 
 // GetMostRecentMonthlyNodeProviderRewards calls the "get_most_recent_monthly_node_provider_rewards" method on the "governance" canister.
-func (a Agent) GetMostRecentMonthlyNodeProviderRewards() (**MostRecentMonthlyNodeProviderRewards, error) {
-	var r0 *MostRecentMonthlyNodeProviderRewards
+func (a Agent) GetMostRecentMonthlyNodeProviderRewards() (**MonthlyNodeProviderRewards, error) {
+	var r0 *MonthlyNodeProviderRewards
 	if err := a.Agent.Query(
 		a.CanisterId,
 		"get_most_recent_monthly_node_provider_rewards",
@@ -334,6 +337,20 @@ func (a Agent) ListNeurons(arg0 ListNeurons) (*ListNeuronsResponse, error) {
 	return &r0, nil
 }
 
+// ListNodeProviderRewards calls the "list_node_provider_rewards" method on the "governance" canister.
+func (a Agent) ListNodeProviderRewards(arg0 ListNodeProviderRewardsRequest) (*ListNodeProviderRewardsResponse, error) {
+	var r0 ListNodeProviderRewardsResponse
+	if err := a.Agent.Query(
+		a.CanisterId,
+		"list_node_provider_rewards",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 // ListNodeProviders calls the "list_node_providers" method on the "governance" canister.
 func (a Agent) ListNodeProviders() (*ListNodeProvidersResponse, error) {
 	var r0 ListNodeProvidersResponse
@@ -363,7 +380,7 @@ func (a Agent) ListProposals(arg0 ListProposalInfo) (*ListProposalInfoResponse, 
 }
 
 // ManageNeuron calls the "manage_neuron" method on the "governance" canister.
-func (a Agent) ManageNeuron(arg0 ManageNeuron) (*ManageNeuronResponse, error) {
+func (a Agent) ManageNeuron(arg0 ManageNeuronRequest) (*ManageNeuronResponse, error) {
 	var r0 ManageNeuronResponse
 	if err := a.Agent.Call(
 		a.CanisterId,
@@ -405,7 +422,7 @@ func (a Agent) SettleNeuronsFundParticipation(arg0 SettleNeuronsFundParticipatio
 }
 
 // SimulateManageNeuron calls the "simulate_manage_neuron" method on the "governance" canister.
-func (a Agent) SimulateManageNeuron(arg0 ManageNeuron) (*ManageNeuronResponse, error) {
+func (a Agent) SimulateManageNeuron(arg0 ManageNeuronRequest) (*ManageNeuronResponse, error) {
 	var r0 ManageNeuronResponse
 	if err := a.Agent.Call(
 		a.CanisterId,
@@ -475,6 +492,15 @@ type Canister struct {
 	Id *principal.Principal `ic:"id,omitempty" json:"id,omitempty"`
 }
 
+type CanisterSettings struct {
+	FreezingThreshold *uint64      `ic:"freezing_threshold,omitempty" json:"freezing_threshold,omitempty"`
+	Controllers       *Controllers `ic:"controllers,omitempty" json:"controllers,omitempty"`
+	LogVisibility     *int32       `ic:"log_visibility,omitempty" json:"log_visibility,omitempty"`
+	WasmMemoryLimit   *uint64      `ic:"wasm_memory_limit,omitempty" json:"wasm_memory_limit,omitempty"`
+	MemoryAllocation  *uint64      `ic:"memory_allocation,omitempty" json:"memory_allocation,omitempty"`
+	ComputeAllocation *uint64      `ic:"compute_allocation,omitempty" json:"compute_allocation,omitempty"`
+}
+
 type CanisterStatusResultV2 struct {
 	Status                 *int32                `ic:"status,omitempty" json:"status,omitempty"`
 	FreezingThreshold      *uint64               `ic:"freezing_threshold,omitempty" json:"freezing_threshold,omitempty"`
@@ -488,17 +514,6 @@ type CanisterStatusResultV2 struct {
 type CanisterSummary struct {
 	Status     *CanisterStatusResultV2 `ic:"status,omitempty" json:"status,omitempty"`
 	CanisterId *principal.Principal    `ic:"canister_id,omitempty" json:"canister_id,omitempty"`
-}
-
-type CfNeuron struct {
-	HasCreatedNeuronRecipes *bool  `ic:"has_created_neuron_recipes,omitempty" json:"has_created_neuron_recipes,omitempty"`
-	NnsNeuronId             uint64 `ic:"nns_neuron_id" json:"nns_neuron_id"`
-	AmountIcpE8s            uint64 `ic:"amount_icp_e8s" json:"amount_icp_e8s"`
-}
-
-type CfParticipant struct {
-	HotkeyPrincipal string     `ic:"hotkey_principal" json:"hotkey_principal"`
-	CfNeurons       []CfNeuron `ic:"cf_neurons" json:"cf_neurons"`
 }
 
 type Change struct {
@@ -590,6 +605,10 @@ type Configure struct {
 	Operation *Operation `ic:"operation,omitempty" json:"operation,omitempty"`
 }
 
+type Controllers struct {
+	Controllers []principal.Principal `ic:"controllers" json:"controllers"`
+}
+
 type Countries struct {
 	IsoCodes []string `ic:"iso_codes" json:"iso_codes"`
 }
@@ -605,6 +624,11 @@ type CreateServiceNervousSystem struct {
 	DappCanisters                  []Canister                `ic:"dapp_canisters" json:"dapp_canisters"`
 	SwapParameters                 *SwapParameters           `ic:"swap_parameters,omitempty" json:"swap_parameters,omitempty"`
 	InitialTokenDistribution       *InitialTokenDistribution `ic:"initial_token_distribution,omitempty" json:"initial_token_distribution,omitempty"`
+}
+
+type DateRangeFilter struct {
+	StartTimestampSeconds *uint64 `ic:"start_timestamp_seconds,omitempty" json:"start_timestamp_seconds,omitempty"`
+	EndTimestampSeconds   *uint64 `ic:"end_timestamp_seconds,omitempty" json:"end_timestamp_seconds,omitempty"`
 }
 
 type Decimal struct {
@@ -687,20 +711,20 @@ type Governance struct {
 		Field0 int32     `ic:"0" json:"0"`
 		Field1 Followees `ic:"1" json:"1"`
 	} `ic:"default_followees" json:"default_followees"`
-	MakingSnsProposal                               *MakingSnsProposal                    `ic:"making_sns_proposal,omitempty" json:"making_sns_proposal,omitempty"`
-	MostRecentMonthlyNodeProviderRewards            *MostRecentMonthlyNodeProviderRewards `ic:"most_recent_monthly_node_provider_rewards,omitempty" json:"most_recent_monthly_node_provider_rewards,omitempty"`
-	MaturityModulationLastUpdatedAtTimestampSeconds *uint64                               `ic:"maturity_modulation_last_updated_at_timestamp_seconds,omitempty" json:"maturity_modulation_last_updated_at_timestamp_seconds,omitempty"`
-	WaitForQuietThresholdSeconds                    uint64                                `ic:"wait_for_quiet_threshold_seconds" json:"wait_for_quiet_threshold_seconds"`
-	Metrics                                         *GovernanceCachedMetrics              `ic:"metrics,omitempty" json:"metrics,omitempty"`
-	NeuronManagementVotingPeriodSeconds             *uint64                               `ic:"neuron_management_voting_period_seconds,omitempty" json:"neuron_management_voting_period_seconds,omitempty"`
-	NodeProviders                                   []NodeProvider                        `ic:"node_providers" json:"node_providers"`
-	CachedDailyMaturityModulationBasisPoints        *int32                                `ic:"cached_daily_maturity_modulation_basis_points,omitempty" json:"cached_daily_maturity_modulation_basis_points,omitempty"`
-	Economics                                       *NetworkEconomics                     `ic:"economics,omitempty" json:"economics,omitempty"`
-	RestoreAgingSummary                             *RestoreAgingSummary                  `ic:"restore_aging_summary,omitempty" json:"restore_aging_summary,omitempty"`
-	SpawningNeurons                                 *bool                                 `ic:"spawning_neurons,omitempty" json:"spawning_neurons,omitempty"`
-	LatestRewardEvent                               *RewardEvent                          `ic:"latest_reward_event,omitempty" json:"latest_reward_event,omitempty"`
-	ToClaimTransfers                                []NeuronStakeTransfer                 `ic:"to_claim_transfers" json:"to_claim_transfers"`
-	ShortVotingPeriodSeconds                        uint64                                `ic:"short_voting_period_seconds" json:"short_voting_period_seconds"`
+	MakingSnsProposal                               *MakingSnsProposal          `ic:"making_sns_proposal,omitempty" json:"making_sns_proposal,omitempty"`
+	MostRecentMonthlyNodeProviderRewards            *MonthlyNodeProviderRewards `ic:"most_recent_monthly_node_provider_rewards,omitempty" json:"most_recent_monthly_node_provider_rewards,omitempty"`
+	MaturityModulationLastUpdatedAtTimestampSeconds *uint64                     `ic:"maturity_modulation_last_updated_at_timestamp_seconds,omitempty" json:"maturity_modulation_last_updated_at_timestamp_seconds,omitempty"`
+	WaitForQuietThresholdSeconds                    uint64                      `ic:"wait_for_quiet_threshold_seconds" json:"wait_for_quiet_threshold_seconds"`
+	Metrics                                         *GovernanceCachedMetrics    `ic:"metrics,omitempty" json:"metrics,omitempty"`
+	NeuronManagementVotingPeriodSeconds             *uint64                     `ic:"neuron_management_voting_period_seconds,omitempty" json:"neuron_management_voting_period_seconds,omitempty"`
+	NodeProviders                                   []NodeProvider              `ic:"node_providers" json:"node_providers"`
+	CachedDailyMaturityModulationBasisPoints        *int32                      `ic:"cached_daily_maturity_modulation_basis_points,omitempty" json:"cached_daily_maturity_modulation_basis_points,omitempty"`
+	Economics                                       *NetworkEconomics           `ic:"economics,omitempty" json:"economics,omitempty"`
+	RestoreAgingSummary                             *RestoreAgingSummary        `ic:"restore_aging_summary,omitempty" json:"restore_aging_summary,omitempty"`
+	SpawningNeurons                                 *bool                       `ic:"spawning_neurons,omitempty" json:"spawning_neurons,omitempty"`
+	LatestRewardEvent                               *RewardEvent                `ic:"latest_reward_event,omitempty" json:"latest_reward_event,omitempty"`
+	ToClaimTransfers                                []NeuronStakeTransfer       `ic:"to_claim_transfers" json:"to_claim_transfers"`
+	ShortVotingPeriodSeconds                        uint64                      `ic:"short_voting_period_seconds" json:"short_voting_period_seconds"`
 	TopicFolloweeIndex                              []struct {
 		Field0 int32        `ic:"0" json:"0"`
 		Field1 FollowersMap `ic:"1" json:"1"`
@@ -739,25 +763,27 @@ type GovernanceCachedMetrics struct {
 		Field0 uint64 `ic:"0" json:"0"`
 		Field1 uint64 `ic:"1" json:"1"`
 	} `ic:"not_dissolving_neurons_count_buckets" json:"not_dissolving_neurons_count_buckets"`
-	EctNeuronCount                               uint64 `ic:"ect_neuron_count" json:"ect_neuron_count"`
-	TotalSupplyIcp                               uint64 `ic:"total_supply_icp" json:"total_supply_icp"`
-	NeuronsWithLessThan6MonthsDissolveDelayCount uint64 `ic:"neurons_with_less_than_6_months_dissolve_delay_count" json:"neurons_with_less_than_6_months_dissolve_delay_count"`
-	DissolvedNeuronsCount                        uint64 `ic:"dissolved_neurons_count" json:"dissolved_neurons_count"`
-	CommunityFundTotalMaturityE8sEquivalent      uint64 `ic:"community_fund_total_maturity_e8s_equivalent" json:"community_fund_total_maturity_e8s_equivalent"`
-	TotalStakedE8sSeed                           uint64 `ic:"total_staked_e8s_seed" json:"total_staked_e8s_seed"`
-	TotalStakedMaturityE8sEquivalentEct          uint64 `ic:"total_staked_maturity_e8s_equivalent_ect" json:"total_staked_maturity_e8s_equivalent_ect"`
-	TotalStakedE8s                               uint64 `ic:"total_staked_e8s" json:"total_staked_e8s"`
-	NotDissolvingNeuronsCount                    uint64 `ic:"not_dissolving_neurons_count" json:"not_dissolving_neurons_count"`
-	TotalLockedE8s                               uint64 `ic:"total_locked_e8s" json:"total_locked_e8s"`
-	NeuronsFundTotalActiveNeurons                uint64 `ic:"neurons_fund_total_active_neurons" json:"neurons_fund_total_active_neurons"`
-	TotalStakedMaturityE8sEquivalent             uint64 `ic:"total_staked_maturity_e8s_equivalent" json:"total_staked_maturity_e8s_equivalent"`
-	NotDissolvingNeuronsE8sBucketsEct            []struct {
+	EctNeuronCount                                  uint64  `ic:"ect_neuron_count" json:"ect_neuron_count"`
+	TotalSupplyIcp                                  uint64  `ic:"total_supply_icp" json:"total_supply_icp"`
+	NeuronsWithLessThan6MonthsDissolveDelayCount    uint64  `ic:"neurons_with_less_than_6_months_dissolve_delay_count" json:"neurons_with_less_than_6_months_dissolve_delay_count"`
+	DissolvedNeuronsCount                           uint64  `ic:"dissolved_neurons_count" json:"dissolved_neurons_count"`
+	CommunityFundTotalMaturityE8sEquivalent         uint64  `ic:"community_fund_total_maturity_e8s_equivalent" json:"community_fund_total_maturity_e8s_equivalent"`
+	TotalStakedE8sSeed                              uint64  `ic:"total_staked_e8s_seed" json:"total_staked_e8s_seed"`
+	TotalStakedMaturityE8sEquivalentEct             uint64  `ic:"total_staked_maturity_e8s_equivalent_ect" json:"total_staked_maturity_e8s_equivalent_ect"`
+	TotalStakedE8s                                  uint64  `ic:"total_staked_e8s" json:"total_staked_e8s"`
+	NotDissolvingNeuronsCount                       uint64  `ic:"not_dissolving_neurons_count" json:"not_dissolving_neurons_count"`
+	TotalLockedE8s                                  uint64  `ic:"total_locked_e8s" json:"total_locked_e8s"`
+	NeuronsFundTotalActiveNeurons                   uint64  `ic:"neurons_fund_total_active_neurons" json:"neurons_fund_total_active_neurons"`
+	TotalVotingPowerNonSelfAuthenticatingController *uint64 `ic:"total_voting_power_non_self_authenticating_controller,omitempty" json:"total_voting_power_non_self_authenticating_controller,omitempty"`
+	TotalStakedMaturityE8sEquivalent                uint64  `ic:"total_staked_maturity_e8s_equivalent" json:"total_staked_maturity_e8s_equivalent"`
+	NotDissolvingNeuronsE8sBucketsEct               []struct {
 		Field0 uint64  `ic:"0" json:"0"`
 		Field1 float64 `ic:"1" json:"1"`
 	} `ic:"not_dissolving_neurons_e8s_buckets_ect" json:"not_dissolving_neurons_e8s_buckets_ect"`
-	TotalStakedE8sEct                                  uint64 `ic:"total_staked_e8s_ect" json:"total_staked_e8s_ect"`
-	NotDissolvingNeuronsStakedMaturityE8sEquivalentSum uint64 `ic:"not_dissolving_neurons_staked_maturity_e8s_equivalent_sum" json:"not_dissolving_neurons_staked_maturity_e8s_equivalent_sum"`
-	DissolvedNeuronsE8s                                uint64 `ic:"dissolved_neurons_e8s" json:"dissolved_neurons_e8s"`
+	TotalStakedE8sEct                                  uint64  `ic:"total_staked_e8s_ect" json:"total_staked_e8s_ect"`
+	NotDissolvingNeuronsStakedMaturityE8sEquivalentSum uint64  `ic:"not_dissolving_neurons_staked_maturity_e8s_equivalent_sum" json:"not_dissolving_neurons_staked_maturity_e8s_equivalent_sum"`
+	DissolvedNeuronsE8s                                uint64  `ic:"dissolved_neurons_e8s" json:"dissolved_neurons_e8s"`
+	TotalStakedE8sNonSelfAuthenticatingController      *uint64 `ic:"total_staked_e8s_non_self_authenticating_controller,omitempty" json:"total_staked_e8s_non_self_authenticating_controller,omitempty"`
 	DissolvingNeuronsE8sBucketsSeed                    []struct {
 		Field0 uint64  `ic:"0" json:"0"`
 		Field1 float64 `ic:"1" json:"1"`
@@ -775,8 +801,9 @@ type GovernanceCachedMetrics struct {
 		Field0 uint64  `ic:"0" json:"0"`
 		Field1 float64 `ic:"1" json:"1"`
 	} `ic:"dissolving_neurons_e8s_buckets_ect" json:"dissolving_neurons_e8s_buckets_ect"`
-	DissolvingNeuronsCount      uint64 `ic:"dissolving_neurons_count" json:"dissolving_neurons_count"`
-	DissolvingNeuronsE8sBuckets []struct {
+	NonSelfAuthenticatingControllerNeuronSubsetMetrics *NeuronSubsetMetrics `ic:"non_self_authenticating_controller_neuron_subset_metrics,omitempty" json:"non_self_authenticating_controller_neuron_subset_metrics,omitempty"`
+	DissolvingNeuronsCount                             uint64               `ic:"dissolving_neurons_count" json:"dissolving_neurons_count"`
+	DissolvingNeuronsE8sBuckets                        []struct {
 		Field0 uint64  `ic:"0" json:"0"`
 		Field1 float64 `ic:"1" json:"1"`
 	} `ic:"dissolving_neurons_e8s_buckets" json:"dissolving_neurons_e8s_buckets"`
@@ -786,8 +813,9 @@ type GovernanceCachedMetrics struct {
 		Field0 uint64  `ic:"0" json:"0"`
 		Field1 float64 `ic:"1" json:"1"`
 	} `ic:"not_dissolving_neurons_e8s_buckets_seed" json:"not_dissolving_neurons_e8s_buckets_seed"`
-	TimestampSeconds uint64 `ic:"timestamp_seconds" json:"timestamp_seconds"`
-	SeedNeuronCount  uint64 `ic:"seed_neuron_count" json:"seed_neuron_count"`
+	PublicNeuronSubsetMetrics *NeuronSubsetMetrics `ic:"public_neuron_subset_metrics,omitempty" json:"public_neuron_subset_metrics,omitempty"`
+	TimestampSeconds          uint64               `ic:"timestamp_seconds" json:"timestamp_seconds"`
+	SeedNeuronCount           uint64               `ic:"seed_neuron_count" json:"seed_neuron_count"`
 }
 
 type GovernanceError struct {
@@ -826,6 +854,22 @@ type InitialTokenDistribution struct {
 	SwapDistribution      *SwapDistribution      `ic:"swap_distribution,omitempty" json:"swap_distribution,omitempty"`
 }
 
+type InstallCode struct {
+	SkipStoppingBeforeInstalling *bool                `ic:"skip_stopping_before_installing,omitempty" json:"skip_stopping_before_installing,omitempty"`
+	WasmModuleHash               *[]byte              `ic:"wasm_module_hash,omitempty" json:"wasm_module_hash,omitempty"`
+	CanisterId                   *principal.Principal `ic:"canister_id,omitempty" json:"canister_id,omitempty"`
+	ArgHash                      *[]byte              `ic:"arg_hash,omitempty" json:"arg_hash,omitempty"`
+	InstallMode                  *int32               `ic:"install_mode,omitempty" json:"install_mode,omitempty"`
+}
+
+type InstallCodeRequest struct {
+	Arg                          *[]byte              `ic:"arg,omitempty" json:"arg,omitempty"`
+	WasmModule                   *[]byte              `ic:"wasm_module,omitempty" json:"wasm_module,omitempty"`
+	SkipStoppingBeforeInstalling *bool                `ic:"skip_stopping_before_installing,omitempty" json:"skip_stopping_before_installing,omitempty"`
+	CanisterId                   *principal.Principal `ic:"canister_id,omitempty" json:"canister_id,omitempty"`
+	InstallMode                  *int32               `ic:"install_mode,omitempty" json:"install_mode,omitempty"`
+}
+
 type KnownNeuron struct {
 	Id              *NeuronId        `ic:"id,omitempty" json:"id,omitempty"`
 	KnownNeuronData *KnownNeuronData `ic:"known_neuron_data,omitempty" json:"known_neuron_data,omitempty"`
@@ -848,8 +892,10 @@ type ListKnownNeuronsResponse struct {
 }
 
 type ListNeurons struct {
-	NeuronIds                      []uint64 `ic:"neuron_ids" json:"neuron_ids"`
-	IncludeNeuronsReadableByCaller bool     `ic:"include_neurons_readable_by_caller" json:"include_neurons_readable_by_caller"`
+	IncludePublicNeuronsInFullNeurons   *bool    `ic:"include_public_neurons_in_full_neurons,omitempty" json:"include_public_neurons_in_full_neurons,omitempty"`
+	NeuronIds                           []uint64 `ic:"neuron_ids" json:"neuron_ids"`
+	IncludeEmptyNeuronsReadableByCaller *bool    `ic:"include_empty_neurons_readable_by_caller,omitempty" json:"include_empty_neurons_readable_by_caller,omitempty"`
+	IncludeNeuronsReadableByCaller      bool     `ic:"include_neurons_readable_by_caller" json:"include_neurons_readable_by_caller"`
 }
 
 type ListNeuronsResponse struct {
@@ -858,6 +904,14 @@ type ListNeuronsResponse struct {
 		Field1 NeuronInfo `ic:"1" json:"1"`
 	} `ic:"neuron_infos" json:"neuron_infos"`
 	FullNeurons []Neuron `ic:"full_neurons" json:"full_neurons"`
+}
+
+type ListNodeProviderRewardsRequest struct {
+	DateFilter *DateRangeFilter `ic:"date_filter,omitempty" json:"date_filter,omitempty"`
+}
+
+type ListNodeProviderRewardsResponse struct {
+	Rewards []MonthlyNodeProviderRewards `ic:"rewards" json:"rewards"`
 }
 
 type ListNodeProvidersResponse struct {
@@ -878,6 +932,13 @@ type ListProposalInfoResponse struct {
 	ProposalInfo []ProposalInfo `ic:"proposal_info" json:"proposal_info"`
 }
 
+type MakeProposalRequest struct {
+	Url     string                 `ic:"url" json:"url"`
+	Title   *string                `ic:"title,omitempty" json:"title,omitempty"`
+	Action  *ProposalActionRequest `ic:"action,omitempty" json:"action,omitempty"`
+	Summary string                 `ic:"summary" json:"summary"`
+}
+
 type MakeProposalResponse struct {
 	Message    *string   `ic:"message,omitempty" json:"message,omitempty"`
 	ProposalId *NeuronId `ic:"proposal_id,omitempty" json:"proposal_id,omitempty"`
@@ -893,6 +954,27 @@ type ManageNeuron struct {
 	Id                   *NeuronId             `ic:"id,omitempty" json:"id,omitempty"`
 	Command              *Command              `ic:"command,omitempty" json:"command,omitempty"`
 	NeuronIdOrSubaccount *NeuronIdOrSubaccount `ic:"neuron_id_or_subaccount,omitempty" json:"neuron_id_or_subaccount,omitempty"`
+}
+
+type ManageNeuronCommandRequest struct {
+	Spawn            *Spawn               `ic:"Spawn,variant"`
+	Split            *Split               `ic:"Split,variant"`
+	Follow           *Follow              `ic:"Follow,variant"`
+	ClaimOrRefresh   *ClaimOrRefresh      `ic:"ClaimOrRefresh,variant"`
+	Configure        *Configure           `ic:"Configure,variant"`
+	RegisterVote     *RegisterVote        `ic:"RegisterVote,variant"`
+	Merge            *Merge               `ic:"Merge,variant"`
+	DisburseToNeuron *DisburseToNeuron    `ic:"DisburseToNeuron,variant"`
+	MakeProposal     *MakeProposalRequest `ic:"MakeProposal,variant"`
+	StakeMaturity    *StakeMaturity       `ic:"StakeMaturity,variant"`
+	MergeMaturity    *MergeMaturity       `ic:"MergeMaturity,variant"`
+	Disburse         *Disburse            `ic:"Disburse,variant"`
+}
+
+type ManageNeuronRequest struct {
+	Id                   *NeuronId                   `ic:"id,omitempty" json:"id,omitempty"`
+	Command              *ManageNeuronCommandRequest `ic:"command,omitempty" json:"command,omitempty"`
+	NeuronIdOrSubaccount *NeuronIdOrSubaccount       `ic:"neuron_id_or_subaccount,omitempty" json:"neuron_id_or_subaccount,omitempty"`
 }
 
 type ManageNeuronResponse struct {
@@ -930,9 +1012,14 @@ type Migrations struct {
 	CopyInactiveNeuronsToStableMemoryMigration *Migration `ic:"copy_inactive_neurons_to_stable_memory_migration,omitempty" json:"copy_inactive_neurons_to_stable_memory_migration,omitempty"`
 }
 
-type MostRecentMonthlyNodeProviderRewards struct {
-	Timestamp uint64               `ic:"timestamp" json:"timestamp"`
-	Rewards   []RewardNodeProvider `ic:"rewards" json:"rewards"`
+type MonthlyNodeProviderRewards struct {
+	MinimumXdrPermyriadPerIcp     *uint64              `ic:"minimum_xdr_permyriad_per_icp,omitempty" json:"minimum_xdr_permyriad_per_icp,omitempty"`
+	RegistryVersion               *uint64              `ic:"registry_version,omitempty" json:"registry_version,omitempty"`
+	NodeProviders                 []NodeProvider       `ic:"node_providers" json:"node_providers"`
+	Timestamp                     uint64               `ic:"timestamp" json:"timestamp"`
+	Rewards                       []RewardNodeProvider `ic:"rewards" json:"rewards"`
+	XdrConversionRate             *XdrConversionRate   `ic:"xdr_conversion_rate,omitempty" json:"xdr_conversion_rate,omitempty"`
+	MaximumNodeProviderRewardsE8s *uint64              `ic:"maximum_node_provider_rewards_e8s,omitempty" json:"maximum_node_provider_rewards_e8s,omitempty"`
 }
 
 type Motion struct {
@@ -973,6 +1060,7 @@ type Neuron struct {
 		Field1 Followees `ic:"1" json:"1"`
 	} `ic:"followees" json:"followees"`
 	NeuronFeesE8s           uint64               `ic:"neuron_fees_e8s" json:"neuron_fees_e8s"`
+	Visibility              *int32               `ic:"visibility,omitempty" json:"visibility,omitempty"`
 	Transfer                *NeuronStakeTransfer `ic:"transfer,omitempty" json:"transfer,omitempty"`
 	KnownNeuronData         *KnownNeuronData     `ic:"known_neuron_data,omitempty" json:"known_neuron_data,omitempty"`
 	SpawnAtTimestampSeconds *uint64              `ic:"spawn_at_timestamp_seconds,omitempty" json:"spawn_at_timestamp_seconds,omitempty"`
@@ -1019,6 +1107,7 @@ type NeuronInfo struct {
 	StakeE8s                            uint64           `ic:"stake_e8s" json:"stake_e8s"`
 	JoinedCommunityFundTimestampSeconds *uint64          `ic:"joined_community_fund_timestamp_seconds,omitempty" json:"joined_community_fund_timestamp_seconds,omitempty"`
 	RetrievedAtTimestampSeconds         uint64           `ic:"retrieved_at_timestamp_seconds" json:"retrieved_at_timestamp_seconds"`
+	Visibility                          *int32           `ic:"visibility,omitempty" json:"visibility,omitempty"`
 	KnownNeuronData                     *KnownNeuronData `ic:"known_neuron_data,omitempty" json:"known_neuron_data,omitempty"`
 	VotingPower                         uint64           `ic:"voting_power" json:"voting_power"`
 	AgeSeconds                          uint64           `ic:"age_seconds" json:"age_seconds"`
@@ -1032,6 +1121,34 @@ type NeuronStakeTransfer struct {
 	FromSubaccount    []byte               `ic:"from_subaccount" json:"from_subaccount"`
 	TransferTimestamp uint64               `ic:"transfer_timestamp" json:"transfer_timestamp"`
 	BlockHeight       uint64               `ic:"block_height" json:"block_height"`
+}
+
+type NeuronSubsetMetrics struct {
+	TotalMaturityE8sEquivalent   *uint64 `ic:"total_maturity_e8s_equivalent,omitempty" json:"total_maturity_e8s_equivalent,omitempty"`
+	MaturityE8sEquivalentBuckets []struct {
+		Field0 uint64 `ic:"0" json:"0"`
+		Field1 uint64 `ic:"1" json:"1"`
+	} `ic:"maturity_e8s_equivalent_buckets" json:"maturity_e8s_equivalent_buckets"`
+	VotingPowerBuckets []struct {
+		Field0 uint64 `ic:"0" json:"0"`
+		Field1 uint64 `ic:"1" json:"1"`
+	} `ic:"voting_power_buckets" json:"voting_power_buckets"`
+	TotalStakedE8s                     *uint64 `ic:"total_staked_e8s,omitempty" json:"total_staked_e8s,omitempty"`
+	Count                              *uint64 `ic:"count,omitempty" json:"count,omitempty"`
+	TotalStakedMaturityE8sEquivalent   *uint64 `ic:"total_staked_maturity_e8s_equivalent,omitempty" json:"total_staked_maturity_e8s_equivalent,omitempty"`
+	StakedMaturityE8sEquivalentBuckets []struct {
+		Field0 uint64 `ic:"0" json:"0"`
+		Field1 uint64 `ic:"1" json:"1"`
+	} `ic:"staked_maturity_e8s_equivalent_buckets" json:"staked_maturity_e8s_equivalent_buckets"`
+	StakedE8sBuckets []struct {
+		Field0 uint64 `ic:"0" json:"0"`
+		Field1 uint64 `ic:"1" json:"1"`
+	} `ic:"staked_e8s_buckets" json:"staked_e8s_buckets"`
+	TotalVotingPower *uint64 `ic:"total_voting_power,omitempty" json:"total_voting_power,omitempty"`
+	CountBuckets     []struct {
+		Field0 uint64 `ic:"0" json:"0"`
+		Field1 uint64 `ic:"1" json:"1"`
+	} `ic:"count_buckets" json:"count_buckets"`
 }
 
 type NeuronsFundAuditInfo struct {
@@ -1060,18 +1177,20 @@ type NeuronsFundMatchedFundingCurveCoefficients struct {
 }
 
 type NeuronsFundNeuron struct {
-	HotkeyPrincipal *string `ic:"hotkey_principal,omitempty" json:"hotkey_principal,omitempty"`
-	IsCapped        *bool   `ic:"is_capped,omitempty" json:"is_capped,omitempty"`
-	NnsNeuronId     *uint64 `ic:"nns_neuron_id,omitempty" json:"nns_neuron_id,omitempty"`
-	AmountIcpE8s    *uint64 `ic:"amount_icp_e8s,omitempty" json:"amount_icp_e8s,omitempty"`
+	Controller   *principal.Principal `ic:"controller,omitempty" json:"controller,omitempty"`
+	Hotkeys      *Principals          `ic:"hotkeys,omitempty" json:"hotkeys,omitempty"`
+	IsCapped     *bool                `ic:"is_capped,omitempty" json:"is_capped,omitempty"`
+	NnsNeuronId  *uint64              `ic:"nns_neuron_id,omitempty" json:"nns_neuron_id,omitempty"`
+	AmountIcpE8s *uint64              `ic:"amount_icp_e8s,omitempty" json:"amount_icp_e8s,omitempty"`
 }
 
 type NeuronsFundNeuronPortion struct {
-	HotkeyPrincipal          *principal.Principal `ic:"hotkey_principal,omitempty" json:"hotkey_principal,omitempty"`
-	IsCapped                 *bool                `ic:"is_capped,omitempty" json:"is_capped,omitempty"`
-	MaturityEquivalentIcpE8s *uint64              `ic:"maturity_equivalent_icp_e8s,omitempty" json:"maturity_equivalent_icp_e8s,omitempty"`
-	NnsNeuronId              *NeuronId            `ic:"nns_neuron_id,omitempty" json:"nns_neuron_id,omitempty"`
-	AmountIcpE8s             *uint64              `ic:"amount_icp_e8s,omitempty" json:"amount_icp_e8s,omitempty"`
+	Controller               *principal.Principal  `ic:"controller,omitempty" json:"controller,omitempty"`
+	Hotkeys                  []principal.Principal `ic:"hotkeys" json:"hotkeys"`
+	IsCapped                 *bool                 `ic:"is_capped,omitempty" json:"is_capped,omitempty"`
+	MaturityEquivalentIcpE8s *uint64               `ic:"maturity_equivalent_icp_e8s,omitempty" json:"maturity_equivalent_icp_e8s,omitempty"`
+	NnsNeuronId              *NeuronId             `ic:"nns_neuron_id,omitempty" json:"nns_neuron_id,omitempty"`
+	AmountIcpE8s             *uint64               `ic:"amount_icp_e8s,omitempty" json:"amount_icp_e8s,omitempty"`
 }
 
 type NeuronsFundParticipation struct {
@@ -1117,6 +1236,7 @@ type Operation struct {
 	StartDissolving *struct {
 	} `ic:"StartDissolving,variant"`
 	IncreaseDissolveDelay *IncreaseDissolveDelay `ic:"IncreaseDissolveDelay,variant"`
+	SetVisibility         *SetVisibility         `ic:"SetVisibility,variant"`
 	JoinCommunityFund     *struct {
 	} `ic:"JoinCommunityFund,variant"`
 	LeaveCommunityFund *struct {
@@ -1142,6 +1262,10 @@ type Percentage struct {
 	BasisPoints *uint64 `ic:"basis_points,omitempty" json:"basis_points,omitempty"`
 }
 
+type Principals struct {
+	Principals []principal.Principal `ic:"principals" json:"principals"`
+}
+
 type Progress struct {
 	LastNeuronId *NeuronId `ic:"LastNeuronId,variant"`
 }
@@ -1153,11 +1277,26 @@ type Proposal struct {
 	Summary string  `ic:"summary" json:"summary"`
 }
 
+type ProposalActionRequest struct {
+	RegisterKnownNeuron        *KnownNeuron                `ic:"RegisterKnownNeuron,variant"`
+	ManageNeuron               *ManageNeuronRequest        `ic:"ManageNeuron,variant"`
+	UpdateCanisterSettings     *UpdateCanisterSettings     `ic:"UpdateCanisterSettings,variant"`
+	InstallCode                *InstallCodeRequest         `ic:"InstallCode,variant"`
+	StopOrStartCanister        *StopOrStartCanister        `ic:"StopOrStartCanister,variant"`
+	CreateServiceNervousSystem *CreateServiceNervousSystem `ic:"CreateServiceNervousSystem,variant"`
+	ExecuteNnsFunction         *ExecuteNnsFunction         `ic:"ExecuteNnsFunction,variant"`
+	RewardNodeProvider         *RewardNodeProvider         `ic:"RewardNodeProvider,variant"`
+	RewardNodeProviders        *RewardNodeProviders        `ic:"RewardNodeProviders,variant"`
+	ManageNetworkEconomics     *NetworkEconomics           `ic:"ManageNetworkEconomics,variant"`
+	ApproveGenesisKyc          *Principals                 `ic:"ApproveGenesisKyc,variant"`
+	AddOrRemoveNodeProvider    *AddOrRemoveNodeProvider    `ic:"AddOrRemoveNodeProvider,variant"`
+	Motion                     *Motion                     `ic:"Motion,variant"`
+}
+
 type ProposalData struct {
-	Id             *NeuronId        `ic:"id,omitempty" json:"id,omitempty"`
-	FailureReason  *GovernanceError `ic:"failure_reason,omitempty" json:"failure_reason,omitempty"`
-	CfParticipants []CfParticipant  `ic:"cf_participants" json:"cf_participants"`
-	Ballots        []struct {
+	Id            *NeuronId        `ic:"id,omitempty" json:"id,omitempty"`
+	FailureReason *GovernanceError `ic:"failure_reason,omitempty" json:"failure_reason,omitempty"`
+	Ballots       []struct {
 		Field0 uint64 `ic:"0" json:"0"`
 		Field1 Ballot `ic:"1" json:"1"`
 	} `ic:"ballots" json:"ballots"`
@@ -1247,8 +1386,8 @@ type Result3 struct {
 }
 
 type Result4 struct {
-	Ok  *RewardNodeProviders `ic:"Ok,variant"`
-	Err *GovernanceError     `ic:"Err,variant"`
+	Ok  *MonthlyNodeProviderRewards `ic:"Ok,variant"`
+	Err *GovernanceError            `ic:"Err,variant"`
 }
 
 type Result5 struct {
@@ -1332,6 +1471,10 @@ type SetSnsTokenSwapOpenTimeWindow struct {
 	SwapCanisterId *principal.Principal      `ic:"swap_canister_id,omitempty" json:"swap_canister_id,omitempty"`
 }
 
+type SetVisibility struct {
+	Visibility *int32 `ic:"visibility,omitempty" json:"visibility,omitempty"`
+}
+
 type SettleCommunityFundParticipation struct {
 	Result                     *Result8 `ic:"result,omitempty" json:"result,omitempty"`
 	OpenSnsTokenSwapProposalId *uint64  `ic:"open_sns_token_swap_proposal_id,omitempty" json:"open_sns_token_swap_proposal_id,omitempty"`
@@ -1367,6 +1510,11 @@ type StakeMaturity struct {
 type StakeMaturityResponse struct {
 	MaturityE8s       uint64 `ic:"maturity_e8s" json:"maturity_e8s"`
 	StakedMaturityE8s uint64 `ic:"staked_maturity_e8s" json:"staked_maturity_e8s"`
+}
+
+type StopOrStartCanister struct {
+	Action     *int32               `ic:"action,omitempty" json:"action,omitempty"`
+	CanisterId *principal.Principal `ic:"canister_id,omitempty" json:"canister_id,omitempty"`
 }
 
 type SwapBackgroundInformation struct {
@@ -1422,6 +1570,11 @@ type TimeWindow struct {
 
 type Tokens struct {
 	E8s *uint64 `ic:"e8s,omitempty" json:"e8s,omitempty"`
+}
+
+type UpdateCanisterSettings struct {
+	CanisterId *principal.Principal `ic:"canister_id,omitempty" json:"canister_id,omitempty"`
+	Settings   *CanisterSettings    `ic:"settings,omitempty" json:"settings,omitempty"`
 }
 
 type UpdateNodeProvider struct {

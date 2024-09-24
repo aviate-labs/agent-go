@@ -173,3 +173,41 @@ func TestParseDID(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestRecordSubtyping(t *testing.T) {
+	type T struct{ X idl.Nat }
+	type T_ struct {
+		X idl.Nat
+		Y *idl.Nat
+	}
+	ONE := idl.NewNat(uint(1))
+	t.Run("missing field", func(t *testing.T) {
+		encoded, err := idl.Marshal([]any{T_{X: ONE, Y: &ONE}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var value T
+		if err := idl.Unmarshal(encoded, []any{&value}); err != nil {
+			t.Fatal(err)
+		}
+		if value.X.BigInt().Int64() != 1 {
+			t.Error(value.X)
+		}
+	})
+	t.Run("extra field", func(t *testing.T) {
+		encoded, err := idl.Marshal([]any{T{X: ONE}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var value T_
+		if err := idl.Unmarshal(encoded, []any{&value}); err != nil {
+			t.Fatal(err)
+		}
+		if value.X.BigInt().Int64() != 1 {
+			t.Error(value.X)
+		}
+		if value.Y != nil {
+			t.Error(value.Y)
+		}
+	})
+}

@@ -206,6 +206,9 @@ func (record RecordType) unmarshalStruct(raw map[string]any, _v reflect.Value) e
 	for _, f := range record.Fields {
 		v, ok := findField(f.Name)
 		if !ok {
+			if _, ok := f.Type.(*OptionalType); ok {
+				continue
+			}
 			return NewUnmarshalGoError(raw, _v.Interface())
 		}
 		v = v.Addr()

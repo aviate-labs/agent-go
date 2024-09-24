@@ -64,7 +64,13 @@ func (pic PocketIC) InstallCode(canisterID principal.Principal, wasmModule []byt
 		sender = *optSender
 	}
 	payload, err := idl.Marshal([]any{ic0.InstallCodeArgs{
-		Mode: ic0.CanisterInstallMode{
+		Mode: struct {
+			Install   *idl.Null `ic:"install,variant"`
+			Reinstall *idl.Null `ic:"reinstall,variant"`
+			Upgrade   **struct {
+				SkipPreUpgrade *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
+			} `ic:"upgrade,variant"`
+		}{
 			Install: new(idl.Null),
 		},
 		WasmModule: wasmModule,

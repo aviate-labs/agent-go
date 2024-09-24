@@ -193,6 +193,27 @@ func (a Agent) CreateChunk(arg0 struct {
 	return &r0, nil
 }
 
+// CreateChunks calls the "create_chunks" method on the "assetstorage" canister.
+func (a Agent) CreateChunks(arg0 struct {
+	BatchId BatchId  `ic:"batch_id" json:"batch_id"`
+	Content [][]byte `ic:"content" json:"content"`
+}) (*struct {
+	ChunkIds []ChunkId `ic:"chunk_ids" json:"chunk_ids"`
+}, error) {
+	var r0 struct {
+		ChunkIds []ChunkId `ic:"chunk_ids" json:"chunk_ids"`
+	}
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"create_chunks",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
 // Deauthorize calls the "deauthorize" method on the "assetstorage" canister.
 func (a Agent) Deauthorize(arg0 principal.Principal) error {
 	if err := a.Agent.Call(

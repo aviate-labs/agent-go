@@ -154,19 +154,6 @@ func (a Agent) AddOrRemoveDataCenters(arg0 AddOrRemoveDataCentersProposalPayload
 	return nil
 }
 
-// BlessReplicaVersion calls the "bless_replica_version" method on the "registry" canister.
-func (a Agent) BlessReplicaVersion(arg0 BlessReplicaVersionPayload) error {
-	if err := a.Agent.Call(
-		a.CanisterId,
-		"bless_replica_version",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
 // ChangeSubnetMembership calls the "change_subnet_membership" method on the "registry" canister.
 func (a Agent) ChangeSubnetMembership(arg0 ChangeSubnetMembershipPayload) error {
 	if err := a.Agent.Call(
@@ -243,6 +230,46 @@ func (a Agent) DeployGuestosToAllUnassignedNodes(arg0 DeployGuestosToAllUnassign
 		return err
 	}
 	return nil
+}
+
+// DeployGuestosToSomeApiBoundaryNodes calls the "deploy_guestos_to_some_api_boundary_nodes" method on the "registry" canister.
+func (a Agent) DeployGuestosToSomeApiBoundaryNodes(arg0 DeployGuestosToSomeApiBoundaryNodes) error {
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"deploy_guestos_to_some_api_boundary_nodes",
+		[]any{arg0},
+		[]any{},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeployHostosToSomeNodes calls the "deploy_hostos_to_some_nodes" method on the "registry" canister.
+func (a Agent) DeployHostosToSomeNodes(arg0 DeployHostosToSomeNodes) error {
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"deploy_hostos_to_some_nodes",
+		[]any{arg0},
+		[]any{},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+// GetApiBoundaryNodeIds calls the "get_api_boundary_node_ids" method on the "registry" canister.
+func (a Agent) GetApiBoundaryNodeIds(arg0 GetApiBoundaryNodeIdsRequest) (*GetApiBoundaryNodeIdsResponse, error) {
+	var r0 GetApiBoundaryNodeIdsResponse
+	if err := a.Agent.Query(
+		a.CanisterId,
+		"get_api_boundary_node_ids",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
 }
 
 // GetBuildMetadata calls the "get_build_metadata" method on the "registry" canister.
@@ -418,11 +445,24 @@ func (a Agent) RerouteCanisterRanges(arg0 RerouteCanisterRangesPayload) error {
 	return nil
 }
 
-// RetireReplicaVersion calls the "retire_replica_version" method on the "registry" canister.
-func (a Agent) RetireReplicaVersion(arg0 RetireReplicaVersionPayload) error {
+// ReviseElectedGuestosVersions calls the "revise_elected_guestos_versions" method on the "registry" canister.
+func (a Agent) ReviseElectedGuestosVersions(arg0 ReviseElectedGuestosVersionsPayload) error {
 	if err := a.Agent.Call(
 		a.CanisterId,
-		"retire_replica_version",
+		"revise_elected_guestos_versions",
+		[]any{arg0},
+		[]any{},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+// ReviseElectedHostosVersions calls the "revise_elected_hostos_versions" method on the "registry" canister.
+func (a Agent) ReviseElectedHostosVersions(arg0 ReviseElectedHostosVersionsPayload) error {
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"revise_elected_hostos_versions",
 		[]any{arg0},
 		[]any{},
 	); err != nil {
@@ -475,19 +515,6 @@ func (a Agent) UpdateElectedHostosVersions(arg0 UpdateElectedHostosVersionsPaylo
 	if err := a.Agent.Call(
 		a.CanisterId,
 		"update_elected_hostos_versions",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
-// UpdateElectedReplicaVersions calls the "update_elected_replica_versions" method on the "registry" canister.
-func (a Agent) UpdateElectedReplicaVersions(arg0 ReviseElectedGuestosVersionsPayload) error {
-	if err := a.Agent.Call(
-		a.CanisterId,
-		"update_elected_replica_versions",
 		[]any{arg0},
 		[]any{},
 	); err != nil {
@@ -628,19 +655,6 @@ func (a Agent) UpdateSubnet(arg0 UpdateSubnetPayload) error {
 	return nil
 }
 
-// UpdateSubnetReplicaVersion calls the "update_subnet_replica_version" method on the "registry" canister.
-func (a Agent) UpdateSubnetReplicaVersion(arg0 DeployGuestosToAllSubnetNodesPayload) error {
-	if err := a.Agent.Call(
-		a.CanisterId,
-		"update_subnet_replica_version",
-		[]any{arg0},
-		[]any{},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
 // UpdateUnassignedNodesConfig calls the "update_unassigned_nodes_config" method on the "registry" canister.
 func (a Agent) UpdateUnassignedNodesConfig(arg0 UpdateUnassignedNodesConfigPayload) error {
 	if err := a.Agent.Call(
@@ -654,21 +668,19 @@ func (a Agent) UpdateUnassignedNodesConfig(arg0 UpdateUnassignedNodesConfigPaylo
 	return nil
 }
 
-type BlessReplicaVersionPayload struct {
-	ReleasePackageUrls              *[]string `ic:"release_package_urls,omitempty" json:"release_package_urls,omitempty"`
-	NodeManagerSha256Hex            string    `ic:"node_manager_sha256_hex" json:"node_manager_sha256_hex"`
-	ReleasePackageUrl               string    `ic:"release_package_url" json:"release_package_url"`
-	Sha256Hex                       string    `ic:"sha256_hex" json:"sha256_hex"`
-	GuestLaunchMeasurementSha256Hex *string   `ic:"guest_launch_measurement_sha256_hex,omitempty" json:"guest_launch_measurement_sha256_hex,omitempty"`
-	ReplicaVersionId                string    `ic:"replica_version_id" json:"replica_version_id"`
-	ReleasePackageSha256Hex         string    `ic:"release_package_sha256_hex" json:"release_package_sha256_hex"`
-	NodeManagerBinaryUrl            string    `ic:"node_manager_binary_url" json:"node_manager_binary_url"`
-	BinaryUrl                       string    `ic:"binary_url" json:"binary_url"`
+type ApiBoundaryNodeIdRecord struct {
+	Id *principal.Principal `ic:"id,omitempty" json:"id,omitempty"`
 }
 
 type CanisterIdRange struct {
 	End   principal.Principal `ic:"end" json:"end"`
 	Start principal.Principal `ic:"start" json:"start"`
+}
+
+type ChainKeyConfig struct {
+	KeyConfigs                []KeyConfig `ic:"key_configs" json:"key_configs"`
+	SignatureRequestTimeoutNs *uint64     `ic:"signature_request_timeout_ns,omitempty" json:"signature_request_timeout_ns,omitempty"`
+	IdkgKeyRotationPeriodMs   *uint64     `ic:"idkg_key_rotation_period_ms,omitempty" json:"idkg_key_rotation_period_ms,omitempty"`
 }
 
 type ChangeSubnetMembershipPayload struct {
@@ -683,36 +695,34 @@ type CompleteCanisterMigrationPayload struct {
 }
 
 type CreateSubnetPayload struct {
-	UnitDelayMillis                 uint64                `ic:"unit_delay_millis" json:"unit_delay_millis"`
-	MaxInstructionsPerRound         uint64                `ic:"max_instructions_per_round" json:"max_instructions_per_round"`
-	Features                        SubnetFeatures        `ic:"features" json:"features"`
-	MaxInstructionsPerMessage       uint64                `ic:"max_instructions_per_message" json:"max_instructions_per_message"`
-	GossipRegistryPollPeriodMs      uint32                `ic:"gossip_registry_poll_period_ms" json:"gossip_registry_poll_period_ms"`
-	MaxIngressBytesPerMessage       uint64                `ic:"max_ingress_bytes_per_message" json:"max_ingress_bytes_per_message"`
-	DkgDealingsPerBlock             uint64                `ic:"dkg_dealings_per_block" json:"dkg_dealings_per_block"`
-	MaxBlockPayloadSize             uint64                `ic:"max_block_payload_size" json:"max_block_payload_size"`
-	MaxInstructionsPerInstallCode   uint64                `ic:"max_instructions_per_install_code" json:"max_instructions_per_install_code"`
-	StartAsNns                      bool                  `ic:"start_as_nns" json:"start_as_nns"`
-	IsHalted                        bool                  `ic:"is_halted" json:"is_halted"`
-	GossipPfnEvaluationPeriodMs     uint32                `ic:"gossip_pfn_evaluation_period_ms" json:"gossip_pfn_evaluation_period_ms"`
-	MaxIngressMessagesPerBlock      uint64                `ic:"max_ingress_messages_per_block" json:"max_ingress_messages_per_block"`
-	MaxNumberOfCanisters            uint64                `ic:"max_number_of_canisters" json:"max_number_of_canisters"`
-	EcdsaConfig                     *EcdsaInitialConfig   `ic:"ecdsa_config,omitempty" json:"ecdsa_config,omitempty"`
-	GossipMaxArtifactStreamsPerPeer uint32                `ic:"gossip_max_artifact_streams_per_peer" json:"gossip_max_artifact_streams_per_peer"`
-	ReplicaVersionId                string                `ic:"replica_version_id" json:"replica_version_id"`
-	GossipMaxDuplicity              uint32                `ic:"gossip_max_duplicity" json:"gossip_max_duplicity"`
-	GossipMaxChunkWaitMs            uint32                `ic:"gossip_max_chunk_wait_ms" json:"gossip_max_chunk_wait_ms"`
-	DkgIntervalLength               uint64                `ic:"dkg_interval_length" json:"dkg_interval_length"`
-	SubnetIdOverride                *principal.Principal  `ic:"subnet_id_override,omitempty" json:"subnet_id_override,omitempty"`
-	SshBackupAccess                 []string              `ic:"ssh_backup_access" json:"ssh_backup_access"`
-	IngressBytesPerBlockSoftCap     uint64                `ic:"ingress_bytes_per_block_soft_cap" json:"ingress_bytes_per_block_soft_cap"`
-	InitialNotaryDelayMillis        uint64                `ic:"initial_notary_delay_millis" json:"initial_notary_delay_millis"`
-	GossipMaxChunkSize              uint32                `ic:"gossip_max_chunk_size" json:"gossip_max_chunk_size"`
-	SubnetType                      SubnetType            `ic:"subnet_type" json:"subnet_type"`
-	SshReadonlyAccess               []string              `ic:"ssh_readonly_access" json:"ssh_readonly_access"`
-	GossipRetransmissionRequestMs   uint32                `ic:"gossip_retransmission_request_ms" json:"gossip_retransmission_request_ms"`
-	GossipReceiveCheckCacheSize     uint32                `ic:"gossip_receive_check_cache_size" json:"gossip_receive_check_cache_size"`
-	NodeIds                         []principal.Principal `ic:"node_ids" json:"node_ids"`
+	UnitDelayMillis                 uint64                 `ic:"unit_delay_millis" json:"unit_delay_millis"`
+	Features                        SubnetFeatures         `ic:"features" json:"features"`
+	GossipRegistryPollPeriodMs      uint32                 `ic:"gossip_registry_poll_period_ms" json:"gossip_registry_poll_period_ms"`
+	MaxIngressBytesPerMessage       uint64                 `ic:"max_ingress_bytes_per_message" json:"max_ingress_bytes_per_message"`
+	DkgDealingsPerBlock             uint64                 `ic:"dkg_dealings_per_block" json:"dkg_dealings_per_block"`
+	MaxBlockPayloadSize             uint64                 `ic:"max_block_payload_size" json:"max_block_payload_size"`
+	StartAsNns                      bool                   `ic:"start_as_nns" json:"start_as_nns"`
+	IsHalted                        bool                   `ic:"is_halted" json:"is_halted"`
+	GossipPfnEvaluationPeriodMs     uint32                 `ic:"gossip_pfn_evaluation_period_ms" json:"gossip_pfn_evaluation_period_ms"`
+	MaxIngressMessagesPerBlock      uint64                 `ic:"max_ingress_messages_per_block" json:"max_ingress_messages_per_block"`
+	MaxNumberOfCanisters            uint64                 `ic:"max_number_of_canisters" json:"max_number_of_canisters"`
+	EcdsaConfig                     *EcdsaInitialConfig    `ic:"ecdsa_config,omitempty" json:"ecdsa_config,omitempty"`
+	ChainKeyConfig                  *InitialChainKeyConfig `ic:"chain_key_config,omitempty" json:"chain_key_config,omitempty"`
+	GossipMaxArtifactStreamsPerPeer uint32                 `ic:"gossip_max_artifact_streams_per_peer" json:"gossip_max_artifact_streams_per_peer"`
+	ReplicaVersionId                string                 `ic:"replica_version_id" json:"replica_version_id"`
+	GossipMaxDuplicity              uint32                 `ic:"gossip_max_duplicity" json:"gossip_max_duplicity"`
+	GossipMaxChunkWaitMs            uint32                 `ic:"gossip_max_chunk_wait_ms" json:"gossip_max_chunk_wait_ms"`
+	DkgIntervalLength               uint64                 `ic:"dkg_interval_length" json:"dkg_interval_length"`
+	SubnetIdOverride                *principal.Principal   `ic:"subnet_id_override,omitempty" json:"subnet_id_override,omitempty"`
+	SshBackupAccess                 []string               `ic:"ssh_backup_access" json:"ssh_backup_access"`
+	IngressBytesPerBlockSoftCap     uint64                 `ic:"ingress_bytes_per_block_soft_cap" json:"ingress_bytes_per_block_soft_cap"`
+	InitialNotaryDelayMillis        uint64                 `ic:"initial_notary_delay_millis" json:"initial_notary_delay_millis"`
+	GossipMaxChunkSize              uint32                 `ic:"gossip_max_chunk_size" json:"gossip_max_chunk_size"`
+	SubnetType                      SubnetType             `ic:"subnet_type" json:"subnet_type"`
+	SshReadonlyAccess               []string               `ic:"ssh_readonly_access" json:"ssh_readonly_access"`
+	GossipRetransmissionRequestMs   uint32                 `ic:"gossip_retransmission_request_ms" json:"gossip_retransmission_request_ms"`
+	GossipReceiveCheckCacheSize     uint32                 `ic:"gossip_receive_check_cache_size" json:"gossip_receive_check_cache_size"`
+	NodeIds                         []principal.Principal  `ic:"node_ids" json:"node_ids"`
 }
 
 type DataCenterRecord struct {
@@ -722,10 +732,6 @@ type DataCenterRecord struct {
 	Owner  string `ic:"owner" json:"owner"`
 }
 
-type DeleteSubnetPayload struct {
-	SubnetId *principal.Principal `ic:"subnet_id,omitempty" json:"subnet_id,omitempty"`
-}
-
 type DeployGuestosToAllSubnetNodesPayload struct {
 	SubnetId         principal.Principal `ic:"subnet_id" json:"subnet_id"`
 	ReplicaVersionId string              `ic:"replica_version_id" json:"replica_version_id"`
@@ -733,6 +739,16 @@ type DeployGuestosToAllSubnetNodesPayload struct {
 
 type DeployGuestosToAllUnassignedNodesPayload struct {
 	ElectedReplicaVersion string `ic:"elected_replica_version" json:"elected_replica_version"`
+}
+
+type DeployGuestosToSomeApiBoundaryNodes struct {
+	Version string                `ic:"version" json:"version"`
+	NodeIds []principal.Principal `ic:"node_ids" json:"node_ids"`
+}
+
+type DeployHostosToSomeNodes struct {
+	HostosVersionId *string               `ic:"hostos_version_id,omitempty" json:"hostos_version_id,omitempty"`
+	NodeIds         []principal.Principal `ic:"node_ids" json:"node_ids"`
 }
 
 type EcdsaConfig struct {
@@ -783,6 +799,14 @@ type FirewallRulesScope struct {
 	Global           *idl.Null            `ic:"Global,variant"`
 }
 
+type GetApiBoundaryNodeIdsRequest struct {
+}
+
+type GetApiBoundaryNodeIdsResponse struct {
+	Ok  *[]ApiBoundaryNodeIdRecord `ic:"Ok,variant"`
+	Err *string                    `ic:"Err,variant"`
+}
+
 type GetNodeOperatorsAndDcsOfNodeProviderResponse struct {
 	Ok *[]struct {
 		Field0 DataCenterRecord   `ic:"0" json:"0"`
@@ -818,6 +842,28 @@ type IPv4Config struct {
 	IpAddr        string `ic:"ip_addr" json:"ip_addr"`
 }
 
+type InitialChainKeyConfig struct {
+	KeyConfigs                []KeyConfigRequest `ic:"key_configs" json:"key_configs"`
+	SignatureRequestTimeoutNs *uint64            `ic:"signature_request_timeout_ns,omitempty" json:"signature_request_timeout_ns,omitempty"`
+	IdkgKeyRotationPeriodMs   *uint64            `ic:"idkg_key_rotation_period_ms,omitempty" json:"idkg_key_rotation_period_ms,omitempty"`
+}
+
+type KeyConfig struct {
+	KeyId                          *MasterPublicKeyId `ic:"key_id,omitempty" json:"key_id,omitempty"`
+	PreSignaturesToCreateInAdvance *uint32            `ic:"pre_signatures_to_create_in_advance,omitempty" json:"pre_signatures_to_create_in_advance,omitempty"`
+	MaxQueueSize                   *uint32            `ic:"max_queue_size,omitempty" json:"max_queue_size,omitempty"`
+}
+
+type KeyConfigRequest struct {
+	KeyConfig *KeyConfig           `ic:"key_config,omitempty" json:"key_config,omitempty"`
+	SubnetId  *principal.Principal `ic:"subnet_id,omitempty" json:"subnet_id,omitempty"`
+}
+
+type MasterPublicKeyId struct {
+	Schnorr *SchnorrKeyId `ic:"Schnorr,variant"`
+	Ecdsa   *EcdsaKeyId   `ic:"Ecdsa,variant"`
+}
+
 type NodeOperatorRecord struct {
 	Ipv6                    *string `ic:"ipv6,omitempty" json:"ipv6,omitempty"`
 	NodeOperatorPrincipalId []byte  `ic:"node_operator_principal_id" json:"node_operator_principal_id"`
@@ -835,6 +881,7 @@ type NodeProvidersMonthlyXdrRewards struct {
 		Field0 string `ic:"0" json:"0"`
 		Field1 uint64 `ic:"1" json:"1"`
 	} `ic:"rewards" json:"rewards"`
+	RegistryVersion *uint64 `ic:"registry_version,omitempty" json:"registry_version,omitempty"`
 }
 
 type NodeRewardRate struct {
@@ -864,9 +911,10 @@ type RecoverSubnetPayload struct {
 		Field1 string `ic:"1" json:"1"`
 		Field2 uint64 `ic:"2" json:"2"`
 	} `ic:"registry_store_uri,omitempty" json:"registry_store_uri,omitempty"`
-	EcdsaConfig *EcdsaInitialConfig `ic:"ecdsa_config,omitempty" json:"ecdsa_config,omitempty"`
-	StateHash   []byte              `ic:"state_hash" json:"state_hash"`
-	TimeNs      uint64              `ic:"time_ns" json:"time_ns"`
+	EcdsaConfig    *EcdsaInitialConfig    `ic:"ecdsa_config,omitempty" json:"ecdsa_config,omitempty"`
+	ChainKeyConfig *InitialChainKeyConfig `ic:"chain_key_config,omitempty" json:"chain_key_config,omitempty"`
+	StateHash      []byte                 `ic:"state_hash" json:"state_hash"`
+	TimeNs         uint64                 `ic:"time_ns" json:"time_ns"`
 }
 
 type RemoveApiBoundaryNodesPayload struct {
@@ -901,16 +949,29 @@ type RerouteCanisterRangesPayload struct {
 	DestinationSubnet        principal.Principal `ic:"destination_subnet" json:"destination_subnet"`
 }
 
-type RetireReplicaVersionPayload struct {
-	ReplicaVersionIds []string `ic:"replica_version_ids" json:"replica_version_ids"`
-}
-
 type ReviseElectedGuestosVersionsPayload struct {
 	ReleasePackageUrls              []string `ic:"release_package_urls" json:"release_package_urls"`
 	ReplicaVersionsToUnelect        []string `ic:"replica_versions_to_unelect" json:"replica_versions_to_unelect"`
 	ReplicaVersionToElect           *string  `ic:"replica_version_to_elect,omitempty" json:"replica_version_to_elect,omitempty"`
 	GuestLaunchMeasurementSha256Hex *string  `ic:"guest_launch_measurement_sha256_hex,omitempty" json:"guest_launch_measurement_sha256_hex,omitempty"`
 	ReleasePackageSha256Hex         *string  `ic:"release_package_sha256_hex,omitempty" json:"release_package_sha256_hex,omitempty"`
+}
+
+type ReviseElectedHostosVersionsPayload struct {
+	ReleasePackageUrls      []string `ic:"release_package_urls" json:"release_package_urls"`
+	HostosVersionToElect    *string  `ic:"hostos_version_to_elect,omitempty" json:"hostos_version_to_elect,omitempty"`
+	HostosVersionsToUnelect []string `ic:"hostos_versions_to_unelect" json:"hostos_versions_to_unelect"`
+	ReleasePackageSha256Hex *string  `ic:"release_package_sha256_hex,omitempty" json:"release_package_sha256_hex,omitempty"`
+}
+
+type SchnorrAlgorithm struct {
+	Ed25519         *idl.Null `ic:"ed25519,variant"`
+	Bip340secp256k1 *idl.Null `ic:"bip340secp256k1,variant"`
+}
+
+type SchnorrKeyId struct {
+	Algorithm SchnorrAlgorithm `ic:"algorithm" json:"algorithm"`
+	Name      string           `ic:"name" json:"name"`
 }
 
 type SetFirewallConfigPayload struct {
@@ -1009,37 +1070,37 @@ type UpdateSshReadOnlyAccessForAllUnassignedNodesPayload struct {
 }
 
 type UpdateSubnetPayload struct {
-	UnitDelayMillis               *uint64             `ic:"unit_delay_millis,omitempty" json:"unit_delay_millis,omitempty"`
-	MaxDuplicity                  *uint32             `ic:"max_duplicity,omitempty" json:"max_duplicity,omitempty"`
-	MaxInstructionsPerRound       *uint64             `ic:"max_instructions_per_round,omitempty" json:"max_instructions_per_round,omitempty"`
-	Features                      *SubnetFeatures     `ic:"features,omitempty" json:"features,omitempty"`
-	SetGossipConfigToDefault      bool                `ic:"set_gossip_config_to_default" json:"set_gossip_config_to_default"`
-	MaxInstructionsPerMessage     *uint64             `ic:"max_instructions_per_message,omitempty" json:"max_instructions_per_message,omitempty"`
-	HaltAtCupHeight               *bool               `ic:"halt_at_cup_height,omitempty" json:"halt_at_cup_height,omitempty"`
-	PfnEvaluationPeriodMs         *uint32             `ic:"pfn_evaluation_period_ms,omitempty" json:"pfn_evaluation_period_ms,omitempty"`
-	SubnetId                      principal.Principal `ic:"subnet_id" json:"subnet_id"`
-	MaxIngressBytesPerMessage     *uint64             `ic:"max_ingress_bytes_per_message,omitempty" json:"max_ingress_bytes_per_message,omitempty"`
-	DkgDealingsPerBlock           *uint64             `ic:"dkg_dealings_per_block,omitempty" json:"dkg_dealings_per_block,omitempty"`
-	EcdsaKeySigningDisable        *[]EcdsaKeyId       `ic:"ecdsa_key_signing_disable,omitempty" json:"ecdsa_key_signing_disable,omitempty"`
-	MaxBlockPayloadSize           *uint64             `ic:"max_block_payload_size,omitempty" json:"max_block_payload_size,omitempty"`
-	MaxInstructionsPerInstallCode *uint64             `ic:"max_instructions_per_install_code,omitempty" json:"max_instructions_per_install_code,omitempty"`
-	StartAsNns                    *bool               `ic:"start_as_nns,omitempty" json:"start_as_nns,omitempty"`
-	IsHalted                      *bool               `ic:"is_halted,omitempty" json:"is_halted,omitempty"`
-	MaxIngressMessagesPerBlock    *uint64             `ic:"max_ingress_messages_per_block,omitempty" json:"max_ingress_messages_per_block,omitempty"`
-	MaxNumberOfCanisters          *uint64             `ic:"max_number_of_canisters,omitempty" json:"max_number_of_canisters,omitempty"`
-	EcdsaConfig                   *EcdsaConfig        `ic:"ecdsa_config,omitempty" json:"ecdsa_config,omitempty"`
-	RetransmissionRequestMs       *uint32             `ic:"retransmission_request_ms,omitempty" json:"retransmission_request_ms,omitempty"`
-	DkgIntervalLength             *uint64             `ic:"dkg_interval_length,omitempty" json:"dkg_interval_length,omitempty"`
-	RegistryPollPeriodMs          *uint32             `ic:"registry_poll_period_ms,omitempty" json:"registry_poll_period_ms,omitempty"`
-	MaxChunkWaitMs                *uint32             `ic:"max_chunk_wait_ms,omitempty" json:"max_chunk_wait_ms,omitempty"`
-	ReceiveCheckCacheSize         *uint32             `ic:"receive_check_cache_size,omitempty" json:"receive_check_cache_size,omitempty"`
-	EcdsaKeySigningEnable         *[]EcdsaKeyId       `ic:"ecdsa_key_signing_enable,omitempty" json:"ecdsa_key_signing_enable,omitempty"`
-	SshBackupAccess               *[]string           `ic:"ssh_backup_access,omitempty" json:"ssh_backup_access,omitempty"`
-	MaxChunkSize                  *uint32             `ic:"max_chunk_size,omitempty" json:"max_chunk_size,omitempty"`
-	InitialNotaryDelayMillis      *uint64             `ic:"initial_notary_delay_millis,omitempty" json:"initial_notary_delay_millis,omitempty"`
-	MaxArtifactStreamsPerPeer     *uint32             `ic:"max_artifact_streams_per_peer,omitempty" json:"max_artifact_streams_per_peer,omitempty"`
-	SubnetType                    *SubnetType         `ic:"subnet_type,omitempty" json:"subnet_type,omitempty"`
-	SshReadonlyAccess             *[]string           `ic:"ssh_readonly_access,omitempty" json:"ssh_readonly_access,omitempty"`
+	UnitDelayMillis            *uint64              `ic:"unit_delay_millis,omitempty" json:"unit_delay_millis,omitempty"`
+	MaxDuplicity               *uint32              `ic:"max_duplicity,omitempty" json:"max_duplicity,omitempty"`
+	Features                   *SubnetFeatures      `ic:"features,omitempty" json:"features,omitempty"`
+	SetGossipConfigToDefault   bool                 `ic:"set_gossip_config_to_default" json:"set_gossip_config_to_default"`
+	HaltAtCupHeight            *bool                `ic:"halt_at_cup_height,omitempty" json:"halt_at_cup_height,omitempty"`
+	PfnEvaluationPeriodMs      *uint32              `ic:"pfn_evaluation_period_ms,omitempty" json:"pfn_evaluation_period_ms,omitempty"`
+	SubnetId                   principal.Principal  `ic:"subnet_id" json:"subnet_id"`
+	MaxIngressBytesPerMessage  *uint64              `ic:"max_ingress_bytes_per_message,omitempty" json:"max_ingress_bytes_per_message,omitempty"`
+	DkgDealingsPerBlock        *uint64              `ic:"dkg_dealings_per_block,omitempty" json:"dkg_dealings_per_block,omitempty"`
+	MaxBlockPayloadSize        *uint64              `ic:"max_block_payload_size,omitempty" json:"max_block_payload_size,omitempty"`
+	StartAsNns                 *bool                `ic:"start_as_nns,omitempty" json:"start_as_nns,omitempty"`
+	IsHalted                   *bool                `ic:"is_halted,omitempty" json:"is_halted,omitempty"`
+	MaxIngressMessagesPerBlock *uint64              `ic:"max_ingress_messages_per_block,omitempty" json:"max_ingress_messages_per_block,omitempty"`
+	MaxNumberOfCanisters       *uint64              `ic:"max_number_of_canisters,omitempty" json:"max_number_of_canisters,omitempty"`
+	RetransmissionRequestMs    *uint32              `ic:"retransmission_request_ms,omitempty" json:"retransmission_request_ms,omitempty"`
+	DkgIntervalLength          *uint64              `ic:"dkg_interval_length,omitempty" json:"dkg_interval_length,omitempty"`
+	RegistryPollPeriodMs       *uint32              `ic:"registry_poll_period_ms,omitempty" json:"registry_poll_period_ms,omitempty"`
+	MaxChunkWaitMs             *uint32              `ic:"max_chunk_wait_ms,omitempty" json:"max_chunk_wait_ms,omitempty"`
+	ReceiveCheckCacheSize      *uint32              `ic:"receive_check_cache_size,omitempty" json:"receive_check_cache_size,omitempty"`
+	SshBackupAccess            *[]string            `ic:"ssh_backup_access,omitempty" json:"ssh_backup_access,omitempty"`
+	MaxChunkSize               *uint32              `ic:"max_chunk_size,omitempty" json:"max_chunk_size,omitempty"`
+	InitialNotaryDelayMillis   *uint64              `ic:"initial_notary_delay_millis,omitempty" json:"initial_notary_delay_millis,omitempty"`
+	MaxArtifactStreamsPerPeer  *uint32              `ic:"max_artifact_streams_per_peer,omitempty" json:"max_artifact_streams_per_peer,omitempty"`
+	SubnetType                 *SubnetType          `ic:"subnet_type,omitempty" json:"subnet_type,omitempty"`
+	SshReadonlyAccess          *[]string            `ic:"ssh_readonly_access,omitempty" json:"ssh_readonly_access,omitempty"`
+	ChainKeyConfig             *ChainKeyConfig      `ic:"chain_key_config,omitempty" json:"chain_key_config,omitempty"`
+	ChainKeySigningEnable      *[]MasterPublicKeyId `ic:"chain_key_signing_enable,omitempty" json:"chain_key_signing_enable,omitempty"`
+	ChainKeySigningDisable     *[]MasterPublicKeyId `ic:"chain_key_signing_disable,omitempty" json:"chain_key_signing_disable,omitempty"`
+	EcdsaConfig                *EcdsaConfig         `ic:"ecdsa_config,omitempty" json:"ecdsa_config,omitempty"`
+	EcdsaKeySigningEnable      *[]EcdsaKeyId        `ic:"ecdsa_key_signing_enable,omitempty" json:"ecdsa_key_signing_enable,omitempty"`
+	EcdsaKeySigningDisable     *[]EcdsaKeyId        `ic:"ecdsa_key_signing_disable,omitempty" json:"ecdsa_key_signing_disable,omitempty"`
 }
 
 type UpdateUnassignedNodesConfigPayload struct {

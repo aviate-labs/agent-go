@@ -17,8 +17,8 @@ var (
 	//go:embed did
 	dids embed.FS
 
-	ICVersion  = "release-2024-06-05_23-01-base"
-	SDKVersion = "0.20.1"
+	ICVersion  = "release-2024-09-19_01-31-base"
+	SDKVersion = "0.23.0"
 )
 
 func checkLatest() error {

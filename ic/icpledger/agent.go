@@ -610,7 +610,8 @@ type Icrc21ConsentMessage struct {
 }
 
 type Icrc21ConsentMessageMetadata struct {
-	Language string `ic:"language" json:"language"`
+	Language         string `ic:"language" json:"language"`
+	UtcOffsetMinutes *int16 `ic:"utc_offset_minutes,omitempty" json:"utc_offset_minutes,omitempty"`
 }
 
 type Icrc21ConsentMessageRequest struct {
@@ -855,9 +856,8 @@ type TransferResult struct {
 }
 
 type UpgradeArgs struct {
-	MaximumNumberOfAccounts *uint64       `ic:"maximum_number_of_accounts,omitempty" json:"maximum_number_of_accounts,omitempty"`
-	Icrc1MintingAccount     *Account      `ic:"icrc1_minting_account,omitempty" json:"icrc1_minting_account,omitempty"`
-	FeatureFlags            *FeatureFlags `ic:"feature_flags,omitempty" json:"feature_flags,omitempty"`
+	Icrc1MintingAccount *Account      `ic:"icrc1_minting_account,omitempty" json:"icrc1_minting_account,omitempty"`
+	FeatureFlags        *FeatureFlags `ic:"feature_flags,omitempty" json:"feature_flags,omitempty"`
 }
 
 type Value struct {

@@ -591,7 +591,8 @@ type Icrc21ConsentMessage struct {
 }
 
 type Icrc21ConsentMessageMetadata struct {
-	Language string `ic:"language" json:"language"`
+	Language         string `ic:"language" json:"language"`
+	UtcOffsetMinutes *int16 `ic:"utc_offset_minutes,omitempty" json:"utc_offset_minutes,omitempty"`
 }
 
 type Icrc21ConsentMessageRequest struct {
@@ -818,7 +819,6 @@ type UpgradeArgs struct {
 	ChangeFeeCollector           *ChangeFeeCollector   `ic:"change_fee_collector,omitempty" json:"change_fee_collector,omitempty"`
 	MaxMemoLength                *uint16               `ic:"max_memo_length,omitempty" json:"max_memo_length,omitempty"`
 	FeatureFlags                 *FeatureFlags         `ic:"feature_flags,omitempty" json:"feature_flags,omitempty"`
-	MaximumNumberOfAccounts      *uint64               `ic:"maximum_number_of_accounts,omitempty" json:"maximum_number_of_accounts,omitempty"`
 	AccountsOverflowTrimQuantity *uint64               `ic:"accounts_overflow_trim_quantity,omitempty" json:"accounts_overflow_trim_quantity,omitempty"`
 	ChangeArchiveOptions         *ChangeArchiveOptions `ic:"change_archive_options,omitempty" json:"change_archive_options,omitempty"`
 }
