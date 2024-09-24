@@ -11,7 +11,7 @@ ActorType <-- '{' Ws (MethType (';' Ws MethType)* ';'? Ws)? '}'
 MethType  <-- Name Sp? ':' Ws (FuncType / Id)
 FuncType  <-- TupType (Sp '->' Ws TupType (Sp FuncAnn)?)?
 FuncAnn   <-- 'oneway' / 'query'
-TupType   <-- '(' Ws (ArgType (',' Sp ArgType)* (',' Ws)?)? Sp? ')' / ArgType
+TupType   <-- '(' Ws (ArgType (',' Sp ArgType)* (',' Ws)?)? Ws ')' / ArgType
 ArgType   <-- (Name Sp? ':' Sp)? DataType
 FieldType <-- ((Nat / Name) Sp? ':' Sp)? DataType / Nat / Name
 DataType  <-- ConsType / RefType / PrimType / Id

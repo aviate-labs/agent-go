@@ -107,7 +107,13 @@ func TestHttpGateway(t *testing.T) {
 
 	wasmModule := compileMotoko(t, "testdata/main.mo", "testdata/main.wasm")
 	if err := mgmtAgent.InstallCode(ic0.InstallCodeArgs{
-		Mode: ic0.CanisterInstallMode{
+		Mode: struct {
+			Install   *idl.Null `ic:"install,variant"`
+			Reinstall *idl.Null `ic:"reinstall,variant"`
+			Upgrade   **struct {
+				SkipPreUpgrade *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
+			} `ic:"upgrade,variant"`
+		}{
 			Install: new(idl.Null),
 		},
 		CanisterId: result.CanisterId,

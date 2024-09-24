@@ -733,9 +733,7 @@ func TupType(p *ast.Parser) (*ast.Node, error) {
 							),
 						},
 					),
-					op.Optional(
-						Sp,
-					),
+					Ws,
 					')',
 				},
 				ArgType,

@@ -334,30 +334,6 @@ func (a Agent) EcdsaPublicKeyCall(arg0 EcdsaPublicKeyArgs) (*agent.CandidAPIRequ
 	)
 }
 
-// FetchCanisterLogs calls the "fetch_canister_logs" method on the "ic" canister.
-func (a Agent) FetchCanisterLogs(arg0 FetchCanisterLogsArgs) (*FetchCanisterLogsResult, error) {
-	var r0 FetchCanisterLogsResult
-	if err := a.Agent.Query(
-		a.CanisterId,
-		"fetch_canister_logs",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
-// FetchCanisterLogsQuery creates an indirect representation of the "fetch_canister_logs" method on the "ic" canister.
-func (a Agent) FetchCanisterLogsQuery(arg0 FetchCanisterLogsArgs) (*agent.CandidAPIRequest, error) {
-	return a.Agent.CreateCandidAPIRequest(
-		agent.RequestTypeQuery,
-		a.CanisterId,
-		"fetch_canister_logs",
-		arg0,
-	)
-}
-
 // HttpRequest calls the "http_request" method on the "ic" canister.
 func (a Agent) HttpRequest(arg0 HttpRequestArgs) (*HttpRequestResult, error) {
 	var r0 HttpRequestResult
@@ -768,32 +744,12 @@ type CanisterInfoResult struct {
 	Controllers     []principal.Principal `ic:"controllers" json:"controllers"`
 }
 
-type CanisterInstallMode struct {
-	Install   *idl.Null `ic:"install,variant"`
-	Reinstall *idl.Null `ic:"reinstall,variant"`
-	Upgrade   **struct {
-		SkipPreUpgrade        *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
-		WasmMemoryPersistence *struct {
-			Keep    *idl.Null `ic:"keep,variant"`
-			Replace *idl.Null `ic:"replace,variant"`
-		} `ic:"wasm_memory_persistence,omitempty" json:"wasm_memory_persistence,omitempty"`
-	} `ic:"upgrade,variant"`
-}
-
-type CanisterLogRecord struct {
-	Idx            uint64 `ic:"idx" json:"idx"`
-	TimestampNanos uint64 `ic:"timestamp_nanos" json:"timestamp_nanos"`
-	Content        []byte `ic:"content" json:"content"`
-}
-
 type CanisterSettings struct {
 	Controllers         *[]principal.Principal `ic:"controllers,omitempty" json:"controllers,omitempty"`
 	ComputeAllocation   *idl.Nat               `ic:"compute_allocation,omitempty" json:"compute_allocation,omitempty"`
 	MemoryAllocation    *idl.Nat               `ic:"memory_allocation,omitempty" json:"memory_allocation,omitempty"`
 	FreezingThreshold   *idl.Nat               `ic:"freezing_threshold,omitempty" json:"freezing_threshold,omitempty"`
 	ReservedCyclesLimit *idl.Nat               `ic:"reserved_cycles_limit,omitempty" json:"reserved_cycles_limit,omitempty"`
-	LogVisibility       *LogVisibility         `ic:"log_visibility,omitempty" json:"log_visibility,omitempty"`
-	WasmMemoryLimit     *idl.Nat               `ic:"wasm_memory_limit,omitempty" json:"wasm_memory_limit,omitempty"`
 }
 
 type CanisterStatusArgs struct {
@@ -812,12 +768,6 @@ type CanisterStatusResult struct {
 	Cycles                 idl.Nat                  `ic:"cycles" json:"cycles"`
 	ReservedCycles         idl.Nat                  `ic:"reserved_cycles" json:"reserved_cycles"`
 	IdleCyclesBurnedPerDay idl.Nat                  `ic:"idle_cycles_burned_per_day" json:"idle_cycles_burned_per_day"`
-	QueryStats             struct {
-		NumCallsTotal             idl.Nat `ic:"num_calls_total" json:"num_calls_total"`
-		NumInstructionsTotal      idl.Nat `ic:"num_instructions_total" json:"num_instructions_total"`
-		RequestPayloadBytesTotal  idl.Nat `ic:"request_payload_bytes_total" json:"request_payload_bytes_total"`
-		ResponsePayloadBytesTotal idl.Nat `ic:"response_payload_bytes_total" json:"response_payload_bytes_total"`
-	} `ic:"query_stats" json:"query_stats"`
 }
 
 type Change struct {
@@ -855,9 +805,7 @@ type ChangeOrigin struct {
 	} `ic:"from_canister,variant"`
 }
 
-type ChunkHash struct {
-	Hash []byte `ic:"hash" json:"hash"`
-}
+type ChunkHash = []byte
 
 type ClearChunkStoreArgs struct {
 	CanisterId CanisterId `ic:"canister_id" json:"canister_id"`
@@ -878,8 +826,6 @@ type DefiniteCanisterSettings struct {
 	MemoryAllocation    idl.Nat               `ic:"memory_allocation" json:"memory_allocation"`
 	FreezingThreshold   idl.Nat               `ic:"freezing_threshold" json:"freezing_threshold"`
 	ReservedCyclesLimit idl.Nat               `ic:"reserved_cycles_limit" json:"reserved_cycles_limit"`
-	LogVisibility       LogVisibility         `ic:"log_visibility" json:"log_visibility"`
-	WasmMemoryLimit     idl.Nat               `ic:"wasm_memory_limit" json:"wasm_memory_limit"`
 }
 
 type DeleteCanisterArgs struct {
@@ -906,14 +852,6 @@ type EcdsaPublicKeyArgs struct {
 type EcdsaPublicKeyResult struct {
 	PublicKey []byte `ic:"public_key" json:"public_key"`
 	ChainCode []byte `ic:"chain_code" json:"chain_code"`
-}
-
-type FetchCanisterLogsArgs struct {
-	CanisterId CanisterId `ic:"canister_id" json:"canister_id"`
-}
-
-type FetchCanisterLogsResult struct {
-	CanisterLogRecords []CanisterLogRecord `ic:"canister_log_records" json:"canister_log_records"`
 }
 
 type HttpHeader struct {
@@ -945,34 +883,41 @@ type HttpRequestResult struct {
 }
 
 type InstallChunkedCodeArgs struct {
-	Mode                  CanisterInstallMode `ic:"mode" json:"mode"`
-	TargetCanister        CanisterId          `ic:"target_canister" json:"target_canister"`
-	StoreCanister         *CanisterId         `ic:"store_canister,omitempty" json:"store_canister,omitempty"`
-	ChunkHashesList       []ChunkHash         `ic:"chunk_hashes_list" json:"chunk_hashes_list"`
-	WasmModuleHash        []byte              `ic:"wasm_module_hash" json:"wasm_module_hash"`
-	Arg                   []byte              `ic:"arg" json:"arg"`
-	SenderCanisterVersion *uint64             `ic:"sender_canister_version,omitempty" json:"sender_canister_version,omitempty"`
+	Mode struct {
+		Install   *idl.Null `ic:"install,variant"`
+		Reinstall *idl.Null `ic:"reinstall,variant"`
+		Upgrade   **struct {
+			SkipPreUpgrade *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
+		} `ic:"upgrade,variant"`
+	} `ic:"mode" json:"mode"`
+	TargetCanister        CanisterId  `ic:"target_canister" json:"target_canister"`
+	StorageCanister       *CanisterId `ic:"storage_canister,omitempty" json:"storage_canister,omitempty"`
+	ChunkHashesList       []ChunkHash `ic:"chunk_hashes_list" json:"chunk_hashes_list"`
+	WasmModuleHash        []byte      `ic:"wasm_module_hash" json:"wasm_module_hash"`
+	Arg                   []byte      `ic:"arg" json:"arg"`
+	SenderCanisterVersion *uint64     `ic:"sender_canister_version,omitempty" json:"sender_canister_version,omitempty"`
 }
 
 type InstallCodeArgs struct {
-	Mode                  CanisterInstallMode `ic:"mode" json:"mode"`
-	CanisterId            CanisterId          `ic:"canister_id" json:"canister_id"`
-	WasmModule            WasmModule          `ic:"wasm_module" json:"wasm_module"`
-	Arg                   []byte              `ic:"arg" json:"arg"`
-	SenderCanisterVersion *uint64             `ic:"sender_canister_version,omitempty" json:"sender_canister_version,omitempty"`
-}
-
-type LogVisibility struct {
-	Controllers *idl.Null `ic:"controllers,variant"`
-	Public      *idl.Null `ic:"public,variant"`
+	Mode struct {
+		Install   *idl.Null `ic:"install,variant"`
+		Reinstall *idl.Null `ic:"reinstall,variant"`
+		Upgrade   **struct {
+			SkipPreUpgrade *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
+		} `ic:"upgrade,variant"`
+	} `ic:"mode" json:"mode"`
+	CanisterId            CanisterId `ic:"canister_id" json:"canister_id"`
+	WasmModule            WasmModule `ic:"wasm_module" json:"wasm_module"`
+	Arg                   []byte     `ic:"arg" json:"arg"`
+	SenderCanisterVersion *uint64    `ic:"sender_canister_version,omitempty" json:"sender_canister_version,omitempty"`
 }
 
 type MillisatoshiPerByte = uint64
 
 type NodeMetrics struct {
-	NodeId                 principal.Principal `ic:"node_id" json:"node_id"`
-	NumBlocksProposedTotal uint64              `ic:"num_blocks_proposed_total" json:"num_blocks_proposed_total"`
-	NumBlockFailuresTotal  uint64              `ic:"num_block_failures_total" json:"num_block_failures_total"`
+	NodeId                principal.Principal `ic:"node_id" json:"node_id"`
+	NumBlocksTotal        uint64              `ic:"num_blocks_total" json:"num_blocks_total"`
+	NumBlockFailuresTotal uint64              `ic:"num_block_failures_total" json:"num_block_failures_total"`
 }
 
 type NodeMetricsHistoryArgs struct {

@@ -262,17 +262,6 @@ type Canister struct {
 	Id *principal.Principal `ic:"id,omitempty" json:"id,omitempty"`
 }
 
-type CfNeuron struct {
-	HasCreatedNeuronRecipes *bool  `ic:"has_created_neuron_recipes,omitempty" json:"has_created_neuron_recipes,omitempty"`
-	NnsNeuronId             uint64 `ic:"nns_neuron_id" json:"nns_neuron_id"`
-	AmountIcpE8s            uint64 `ic:"amount_icp_e8s" json:"amount_icp_e8s"`
-}
-
-type CfParticipant struct {
-	HotkeyPrincipal string     `ic:"hotkey_principal" json:"hotkey_principal"`
-	CfNeurons       []CfNeuron `ic:"cf_neurons" json:"cf_neurons"`
-}
-
 type Countries struct {
 	IsoCodes []string `ic:"iso_codes" json:"iso_codes"`
 }
@@ -434,10 +423,6 @@ type NeuronDistribution struct {
 	VestingPeriodSeconds *uint64              `ic:"vesting_period_seconds,omitempty" json:"vesting_period_seconds,omitempty"`
 }
 
-type NeuronsFundParticipants struct {
-	Participants []CfParticipant `ic:"participants" json:"participants"`
-}
-
 type NeuronsFundParticipationConstraints struct {
 	CoefficientIntervals                  []LinearScalingCoefficient         `ic:"coefficient_intervals" json:"coefficient_intervals"`
 	MaxNeuronsFundParticipationIcpE8s     *uint64                            `ic:"max_neurons_fund_participation_icp_e8s,omitempty" json:"max_neurons_fund_participation_icp_e8s,omitempty"`
@@ -504,7 +489,6 @@ type SnsInitPayload struct {
 	TransactionFeeE8s                       *uint64                              `ic:"transaction_fee_e8s,omitempty" json:"transaction_fee_e8s,omitempty"`
 	DappCanisters                           *DappCanisters                       `ic:"dapp_canisters,omitempty" json:"dapp_canisters,omitempty"`
 	NeuronsFundParticipationConstraints     *NeuronsFundParticipationConstraints `ic:"neurons_fund_participation_constraints,omitempty" json:"neurons_fund_participation_constraints,omitempty"`
-	NeuronsFundParticipants                 *NeuronsFundParticipants             `ic:"neurons_fund_participants,omitempty" json:"neurons_fund_participants,omitempty"`
 	MaxAgeBonusPercentage                   *uint64                              `ic:"max_age_bonus_percentage,omitempty" json:"max_age_bonus_percentage,omitempty"`
 	InitialTokenDistribution                *InitialTokenDistribution            `ic:"initial_token_distribution,omitempty" json:"initial_token_distribution,omitempty"`
 	RewardRateTransitionDurationSeconds     *uint64                              `ic:"reward_rate_transition_duration_seconds,omitempty" json:"reward_rate_transition_duration_seconds,omitempty"`

@@ -4,22 +4,23 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"github.com/aviate-labs/agent-go/gen"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 	"unicode"
+
+	"github.com/aviate-labs/agent-go/gen"
 )
 
 var (
 	//go:embed did
 	dids embed.FS
 
-	ICVersion            = "release-2024-06-05_23-01-base"
+	ICVersion            = "release-2024-09-19_01-31-base"
 	InterfaceSpecVersion = "0.23.0"
-	SDKVersion           = "0.20.1"
+	SDKVersion           = "0.23.0"
 )
 
 func checkLatest() error {

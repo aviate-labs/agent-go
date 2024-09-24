@@ -143,7 +143,6 @@ func (a Agent) NotifyTopUp(arg0 NotifyTopUpArg) (*NotifyTopUpResult, error) {
 type BlockIndex = uint64
 
 type CanisterSettings struct {
-	Controller          *principal.Principal   `ic:"controller,omitempty" json:"controller,omitempty"`
 	Controllers         *[]principal.Principal `ic:"controllers,omitempty" json:"controllers,omitempty"`
 	ComputeAllocation   *idl.Nat               `ic:"compute_allocation,omitempty" json:"compute_allocation,omitempty"`
 	MemoryAllocation    *idl.Nat               `ic:"memory_allocation,omitempty" json:"memory_allocation,omitempty"`
@@ -151,6 +150,7 @@ type CanisterSettings struct {
 	ReservedCyclesLimit *idl.Nat               `ic:"reserved_cycles_limit,omitempty" json:"reserved_cycles_limit,omitempty"`
 	LogVisibility       *LogVisibility         `ic:"log_visibility,omitempty" json:"log_visibility,omitempty"`
 	WasmMemoryLimit     *idl.Nat               `ic:"wasm_memory_limit,omitempty" json:"wasm_memory_limit,omitempty"`
+	WasmMemoryThreshold *idl.Nat               `ic:"wasm_memory_threshold,omitempty" json:"wasm_memory_threshold,omitempty"`
 }
 
 type CreateCanisterArg struct {
@@ -164,10 +164,6 @@ type CreateCanisterError struct {
 		RefundAmount idl.Nat `ic:"refund_amount" json:"refund_amount"`
 		CreateError  string  `ic:"create_error" json:"create_error"`
 	} `ic:"Refunded,variant"`
-	RefundFailed *struct {
-		CreateError string `ic:"create_error" json:"create_error"`
-		RefundError string `ic:"refund_error" json:"refund_error"`
-	} `ic:"RefundFailed,variant"`
 }
 
 type CreateCanisterResult struct {

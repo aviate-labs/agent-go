@@ -215,6 +215,8 @@ type DefiniteCanisterSettings struct {
 	FreezingThreshold   *idl.Nat              `ic:"freezing_threshold,omitempty" json:"freezing_threshold,omitempty"`
 	Controllers         []principal.Principal `ic:"controllers" json:"controllers"`
 	ReservedCyclesLimit *idl.Nat              `ic:"reserved_cycles_limit,omitempty" json:"reserved_cycles_limit,omitempty"`
+	LogVisibility       *LogVisibility        `ic:"log_visibility,omitempty" json:"log_visibility,omitempty"`
+	WasmMemoryLimit     *idl.Nat              `ic:"wasm_memory_limit,omitempty" json:"wasm_memory_limit,omitempty"`
 	MemoryAllocation    *idl.Nat              `ic:"memory_allocation,omitempty" json:"memory_allocation,omitempty"`
 	ComputeAllocation   *idl.Nat              `ic:"compute_allocation,omitempty" json:"compute_allocation,omitempty"`
 }
@@ -222,6 +224,7 @@ type DefiniteCanisterSettings struct {
 type DefiniteCanisterSettingsArgs struct {
 	FreezingThreshold idl.Nat               `ic:"freezing_threshold" json:"freezing_threshold"`
 	Controllers       []principal.Principal `ic:"controllers" json:"controllers"`
+	WasmMemoryLimit   *idl.Nat              `ic:"wasm_memory_limit,omitempty" json:"wasm_memory_limit,omitempty"`
 	MemoryAllocation  idl.Nat               `ic:"memory_allocation" json:"memory_allocation"`
 	ComputeAllocation idl.Nat               `ic:"compute_allocation" json:"compute_allocation"`
 }
@@ -253,6 +256,11 @@ type ListSnsCanistersResponse struct {
 	Governance *principal.Principal  `ic:"governance,omitempty" json:"governance,omitempty"`
 	Dapps      []principal.Principal `ic:"dapps" json:"dapps"`
 	Archives   []principal.Principal `ic:"archives" json:"archives"`
+}
+
+type LogVisibility struct {
+	Controllers *idl.Null `ic:"controllers,variant"`
+	Public      *idl.Null `ic:"public,variant"`
 }
 
 type ManageDappCanisterSettingsRequest struct {
@@ -287,12 +295,11 @@ type SetDappControllersResponse struct {
 }
 
 type SnsRootCanister struct {
-	DappCanisterIds                         []principal.Principal `ic:"dapp_canister_ids" json:"dapp_canister_ids"`
-	Testflight                              bool                  `ic:"testflight" json:"testflight"`
-	LatestLedgerArchivePollTimestampSeconds *uint64               `ic:"latest_ledger_archive_poll_timestamp_seconds,omitempty" json:"latest_ledger_archive_poll_timestamp_seconds,omitempty"`
-	ArchiveCanisterIds                      []principal.Principal `ic:"archive_canister_ids" json:"archive_canister_ids"`
-	GovernanceCanisterId                    *principal.Principal  `ic:"governance_canister_id,omitempty" json:"governance_canister_id,omitempty"`
-	IndexCanisterId                         *principal.Principal  `ic:"index_canister_id,omitempty" json:"index_canister_id,omitempty"`
-	SwapCanisterId                          *principal.Principal  `ic:"swap_canister_id,omitempty" json:"swap_canister_id,omitempty"`
-	LedgerCanisterId                        *principal.Principal  `ic:"ledger_canister_id,omitempty" json:"ledger_canister_id,omitempty"`
+	DappCanisterIds      []principal.Principal `ic:"dapp_canister_ids" json:"dapp_canister_ids"`
+	Testflight           bool                  `ic:"testflight" json:"testflight"`
+	ArchiveCanisterIds   []principal.Principal `ic:"archive_canister_ids" json:"archive_canister_ids"`
+	GovernanceCanisterId *principal.Principal  `ic:"governance_canister_id,omitempty" json:"governance_canister_id,omitempty"`
+	IndexCanisterId      *principal.Principal  `ic:"index_canister_id,omitempty" json:"index_canister_id,omitempty"`
+	SwapCanisterId       *principal.Principal  `ic:"swap_canister_id,omitempty" json:"swap_canister_id,omitempty"`
+	LedgerCanisterId     *principal.Principal  `ic:"ledger_canister_id,omitempty" json:"ledger_canister_id,omitempty"`
 }

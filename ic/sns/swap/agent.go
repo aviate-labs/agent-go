@@ -205,8 +205,8 @@ func (a Agent) GetState(arg0 struct {
 }
 
 // ListCommunityFundParticipants calls the "list_community_fund_participants" method on the "swap" canister.
-func (a Agent) ListCommunityFundParticipants(arg0 ListCommunityFundParticipantsRequest) (*NeuronsFundParticipants, error) {
-	var r0 NeuronsFundParticipants
+func (a Agent) ListCommunityFundParticipants(arg0 ListCommunityFundParticipantsRequest) (*ListCommunityFundParticipantsResponse, error) {
+	var r0 ListCommunityFundParticipantsResponse
 	if err := a.Agent.Query(
 		a.CanisterId,
 		"list_community_fund_participants",
@@ -275,22 +275,6 @@ func (a Agent) NotifyPaymentFailure(arg0 struct {
 	return &r0, nil
 }
 
-// Open calls the "open" method on the "swap" canister.
-func (a Agent) Open(arg0 OpenRequest) (*struct {
-}, error) {
-	var r0 struct {
-	}
-	if err := a.Agent.Call(
-		a.CanisterId,
-		"open",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
 // RefreshBuyerTokens calls the "refresh_buyer_tokens" method on the "swap" canister.
 func (a Agent) RefreshBuyerTokens(arg0 RefreshBuyerTokensRequest) (*RefreshBuyerTokensResponse, error) {
 	var r0 RefreshBuyerTokensResponse
@@ -331,19 +315,23 @@ type CanisterStatusType struct {
 }
 
 type CfInvestment struct {
-	HotkeyPrincipal string `ic:"hotkey_principal" json:"hotkey_principal"`
-	NnsNeuronId     uint64 `ic:"nns_neuron_id" json:"nns_neuron_id"`
+	Controller      *principal.Principal `ic:"controller,omitempty" json:"controller,omitempty"`
+	HotkeyPrincipal string               `ic:"hotkey_principal" json:"hotkey_principal"`
+	Hotkeys         *Principals          `ic:"hotkeys,omitempty" json:"hotkeys,omitempty"`
+	NnsNeuronId     uint64               `ic:"nns_neuron_id" json:"nns_neuron_id"`
 }
 
 type CfNeuron struct {
-	HasCreatedNeuronRecipes *bool  `ic:"has_created_neuron_recipes,omitempty" json:"has_created_neuron_recipes,omitempty"`
-	NnsNeuronId             uint64 `ic:"nns_neuron_id" json:"nns_neuron_id"`
-	AmountIcpE8s            uint64 `ic:"amount_icp_e8s" json:"amount_icp_e8s"`
+	HasCreatedNeuronRecipes *bool       `ic:"has_created_neuron_recipes,omitempty" json:"has_created_neuron_recipes,omitempty"`
+	Hotkeys                 *Principals `ic:"hotkeys,omitempty" json:"hotkeys,omitempty"`
+	NnsNeuronId             uint64      `ic:"nns_neuron_id" json:"nns_neuron_id"`
+	AmountIcpE8s            uint64      `ic:"amount_icp_e8s" json:"amount_icp_e8s"`
 }
 
 type CfParticipant struct {
-	HotkeyPrincipal string     `ic:"hotkey_principal" json:"hotkey_principal"`
-	CfNeurons       []CfNeuron `ic:"cf_neurons" json:"cf_neurons"`
+	Controller      *principal.Principal `ic:"controller,omitempty" json:"controller,omitempty"`
+	HotkeyPrincipal string               `ic:"hotkey_principal" json:"hotkey_principal"`
+	CfNeurons       []CfNeuron           `ic:"cf_neurons" json:"cf_neurons"`
 }
 
 type Countries struct {
@@ -353,6 +341,7 @@ type Countries struct {
 type DefiniteCanisterSettingsArgs struct {
 	FreezingThreshold idl.Nat               `ic:"freezing_threshold" json:"freezing_threshold"`
 	Controllers       []principal.Principal `ic:"controllers" json:"controllers"`
+	WasmMemoryLimit   *idl.Nat              `ic:"wasm_memory_limit,omitempty" json:"wasm_memory_limit,omitempty"`
 	MemoryAllocation  idl.Nat               `ic:"memory_allocation" json:"memory_allocation"`
 	ComputeAllocation idl.Nat               `ic:"compute_allocation" json:"compute_allocation"`
 }
@@ -499,7 +488,6 @@ type Init struct {
 	IcpLedgerCanisterId                 string                               `ic:"icp_ledger_canister_id" json:"icp_ledger_canister_id"`
 	SnsLedgerCanisterId                 string                               `ic:"sns_ledger_canister_id" json:"sns_ledger_canister_id"`
 	NeuronsFundParticipationConstraints *NeuronsFundParticipationConstraints `ic:"neurons_fund_participation_constraints,omitempty" json:"neurons_fund_participation_constraints,omitempty"`
-	NeuronsFundParticipants             *NeuronsFundParticipants             `ic:"neurons_fund_participants,omitempty" json:"neurons_fund_participants,omitempty"`
 	ShouldAutoFinalize                  *bool                                `ic:"should_auto_finalize,omitempty" json:"should_auto_finalize,omitempty"`
 	MaxParticipantIcpE8s                *uint64                              `ic:"max_participant_icp_e8s,omitempty" json:"max_participant_icp_e8s,omitempty"`
 	SnsGovernanceCanisterId             string                               `ic:"sns_governance_canister_id" json:"sns_governance_canister_id"`
@@ -530,6 +518,10 @@ type LinearScalingCoefficient struct {
 type ListCommunityFundParticipantsRequest struct {
 	Offset *uint64 `ic:"offset,omitempty" json:"offset,omitempty"`
 	Limit  *uint32 `ic:"limit,omitempty" json:"limit,omitempty"`
+}
+
+type ListCommunityFundParticipantsResponse struct {
+	CfParticipants []CfParticipant `ic:"cf_participants" json:"cf_participants"`
 }
 
 type ListDirectParticipantsRequest struct {
@@ -565,10 +557,6 @@ type NeuronId struct {
 	Id []byte `ic:"id" json:"id"`
 }
 
-type NeuronsFundParticipants struct {
-	CfParticipants []CfParticipant `ic:"cf_participants" json:"cf_participants"`
-}
-
 type NeuronsFundParticipationConstraints struct {
 	CoefficientIntervals                  []LinearScalingCoefficient         `ic:"coefficient_intervals" json:"coefficient_intervals"`
 	MaxNeuronsFundParticipationIcpE8s     *uint64                            `ic:"max_neurons_fund_participation_icp_e8s,omitempty" json:"max_neurons_fund_participation_icp_e8s,omitempty"`
@@ -596,12 +584,6 @@ type Ok1 struct {
 
 type Ok2 struct {
 	Ticket *Ticket `ic:"ticket,omitempty" json:"ticket,omitempty"`
-}
-
-type OpenRequest struct {
-	CfParticipants             []CfParticipant `ic:"cf_participants" json:"cf_participants"`
-	Params                     *Params         `ic:"params,omitempty" json:"params,omitempty"`
-	OpenSnsTokenSwapProposalId *uint64         `ic:"open_sns_token_swap_proposal_id,omitempty" json:"open_sns_token_swap_proposal_id,omitempty"`
 }
 
 type Params struct {
@@ -642,6 +624,10 @@ type Possibility3 struct {
 	Ok *struct {
 	} `ic:"Ok,variant"`
 	Err *CanisterCallError `ic:"Err,variant"`
+}
+
+type Principals struct {
+	Principals []principal.Principal `ic:"principals" json:"principals"`
 }
 
 type RefreshBuyerTokensRequest struct {
