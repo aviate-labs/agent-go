@@ -3,6 +3,7 @@ package agent_test
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"testing"
 
 	"github.com/aviate-labs/agent-go"
@@ -189,4 +190,44 @@ type testLogger struct{}
 
 func (t testLogger) Printf(format string, v ...any) {
 	fmt.Printf("[TEST]"+format+"\n", v...)
+}
+
+// Refer ic/wallet/README.md for more information
+func Test_Agent_LocalNet(t *testing.T) {
+	host, err := url.Parse("http://localhost:4943")
+	if err != nil {
+		panic(err)
+	}
+	cfg := agent.Config{
+		ClientConfig:                   &agent.ClientConfig{Host: host},
+		FetchRootKey:                   true,
+		DisableSignedQueryVerification: true, //MUST BE TRUE TO ACCESS LOCAL REPLICA
+	}
+	a, err := agent.New(cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	principal := principal.MustDecode("bkyz2-fmaaa-aaaaa-qaaaq-cai")
+
+	var s1 string
+	err = a.Query(principal, "greet", []any{}, []any{&s1})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("s1:%v\n", s1)
+
+	var s2 string
+	err = a.Query(principal, "concat", []any{"hello", "world"}, []any{&s2})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("s2:%v\n", s2)
+
+	var s3 string
+	err = a.Call(principal, "sha256", []any{"hello, world", uint32(2)}, []any{&s3}) //2's type should match with taht defined in hasher canister.
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("s3:%v\n", s3)
 }
