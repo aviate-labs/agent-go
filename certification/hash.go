@@ -38,6 +38,8 @@ func HashAny(v any) ([32]byte, error) {
 			return [32]byte{}, err
 		}
 		return sha256.Sum256(e), nil
+	case leb128.LEB128:
+		return sha256.Sum256(v), nil
 	case map[any]any: // cbor maps are not guaranteed to have string keys
 		kv := make([]KeyValuePair, len(v))
 		i := 0
