@@ -3,8 +3,13 @@ package pocketic
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/aviate-labs/agent-go/ic"
 	"testing"
+
+	"github.com/aviate-labs/agent-go/principal"
+)
+
+var (
+	LEDGER_PRINCIPAL = principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 )
 
 func TestBase64EncodedBlob(t *testing.T) {
@@ -27,7 +32,7 @@ func TestBase64EncodedBlob(t *testing.T) {
 
 func TestRawCanisterID(t *testing.T) {
 	canisterID := RawCanisterID{
-		CanisterID: ic.LEDGER_PRINCIPAL.Raw,
+		CanisterID: LEDGER_PRINCIPAL.Raw,
 	}
 	jsonEncoded, err := json.Marshal(canisterID)
 	if err != nil {
@@ -40,7 +45,7 @@ func TestRawCanisterID(t *testing.T) {
 	if err := json.Unmarshal(jsonEncoded, &decoded); err != nil {
 		t.Fatal(err)
 	}
-	if !bytes.Equal(decoded.CanisterID, ic.LEDGER_PRINCIPAL.Raw) {
+	if !bytes.Equal(decoded.CanisterID, LEDGER_PRINCIPAL.Raw) {
 		t.Errorf("unexpected JSON decoding: %s", decoded.CanisterID)
 	}
 }

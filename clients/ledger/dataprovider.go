@@ -2,11 +2,13 @@ package ledger
 
 import (
 	"fmt"
+
 	"github.com/aviate-labs/agent-go"
 	v1 "github.com/aviate-labs/agent-go/clients/ledger/proto/v1"
-	"github.com/aviate-labs/agent-go/ic"
 	"github.com/aviate-labs/agent-go/principal"
 )
+
+var LEDGER_PRINCIPAL = principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 
 const MaxBlocksPerRequest = 2000
 
@@ -27,7 +29,7 @@ func NewDataProvider() (*DataProvider, error) {
 func (d DataProvider) GetArchiveIndex() ([]*v1.ArchiveIndexEntry, error) {
 	var resp v1.ArchiveIndexResponse
 	if err := d.a.QueryProto(
-		ic.LEDGER_PRINCIPAL,
+		LEDGER_PRINCIPAL,
 		"get_archive_index_pb",
 		nil,
 		&resp,
@@ -40,7 +42,7 @@ func (d DataProvider) GetArchiveIndex() ([]*v1.ArchiveIndexEntry, error) {
 func (d DataProvider) GetRawBlock(height BlockIndex) (*v1.EncodedBlock, error) {
 	var resp v1.BlockResponse
 	if err := d.a.QueryProto(
-		ic.LEDGER_PRINCIPAL,
+		LEDGER_PRINCIPAL,
 		"block_pb",
 		&v1.BlockRequest{
 			BlockHeight: uint64(height),
@@ -74,7 +76,7 @@ func (d DataProvider) GetRawBlock(height BlockIndex) (*v1.EncodedBlock, error) {
 
 func (d DataProvider) GetRawBlocks(start, end BlockIndex) ([]*v1.EncodedBlock, error) {
 	if end-start < 2000 {
-		blocks, err := d.GetRawBlocksRange(ic.LEDGER_PRINCIPAL, start, end)
+		blocks, err := d.GetRawBlocksRange(LEDGER_PRINCIPAL, start, end)
 		if err == nil {
 			return blocks, nil
 		}
@@ -127,7 +129,7 @@ func (d DataProvider) GetRawBlocksRange(canisterID principal.Principal, start, e
 func (d DataProvider) GetTipOfChain() (*BlockIndex, error) {
 	var resp v1.TipOfChainResponse
 	if err := d.a.QueryProto(
-		ic.LEDGER_PRINCIPAL,
+		LEDGER_PRINCIPAL,
 		"tip_of_chain_pb",
 		&v1.TipOfChainRequest{},
 		&resp,

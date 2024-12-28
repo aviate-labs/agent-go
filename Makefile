@@ -25,10 +25,6 @@ gen:
 	cd clients/ledger && go generate
 	cd clients/registry && go generate
 
-gen-ic:
-	go run ic/testdata/gen.go
-	go run ic/sns/testdata/gen.go
-
 fmt:
 	go mod tidy
 	gofmt -s -w .

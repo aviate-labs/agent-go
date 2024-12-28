@@ -6,7 +6,6 @@ import (
 
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/ic"
-	ic0 "github.com/aviate-labs/agent-go/ic/ic"
 	"github.com/aviate-labs/agent-go/principal"
 )
 
@@ -63,14 +62,8 @@ func (pic PocketIC) InstallCode(canisterID principal.Principal, wasmModule []byt
 	if optSender != nil {
 		sender = *optSender
 	}
-	payload, err := idl.Marshal([]any{ic0.InstallCodeArgs{
-		Mode: struct {
-			Install   *idl.Null `ic:"install,variant"`
-			Reinstall *idl.Null `ic:"reinstall,variant"`
-			Upgrade   **struct {
-				SkipPreUpgrade *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
-			} `ic:"upgrade,variant"`
-		}{
+	payload, err := idl.Marshal([]any{ic.InstallCodeArgs{
+		Mode: ic.CanisterInstallMode{
 			Install: new(idl.Null),
 		},
 		WasmModule: wasmModule,
@@ -96,7 +89,7 @@ func (pic PocketIC) UninstallCode(canisterID principal.Principal, optSender *pri
 	if optSender != nil {
 		sender = *optSender
 	}
-	payload, err := idl.Marshal([]any{ic0.UninstallCodeArgs{
+	payload, err := idl.Marshal([]any{ic.UninstallCodeArgs{
 		CanisterId: canisterID,
 	}})
 	if err != nil {
@@ -137,7 +130,7 @@ func (pic PocketIC) createCanister(effectivePrincipal EffectivePrincipal, args P
 }
 
 type ProvisionalCreateCanisterArgument struct {
-	Settings    *ic0.CanisterSettings `ic:"settings"`
-	SpecifiedID *principal.Principal  `ic:"specified_id"`
-	Amount      *int                  `ic:"amount"`
+	Settings    *ic.CanisterSettings `ic:"settings"`
+	SpecifiedID *principal.Principal `ic:"specified_id"`
+	Amount      *int                 `ic:"amount"`
 }

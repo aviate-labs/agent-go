@@ -50,12 +50,12 @@ func (a Agent) BitcoinGetBalanceCall(arg0 BitcoinGetBalanceArgs) (*agent.CandidA
 	)
 }
 
-// BitcoinGetBalanceQuery calls the "bitcoin_get_balance_query" method on the "ic" canister.
-func (a Agent) BitcoinGetBalanceQuery(arg0 BitcoinGetBalanceQueryArgs) (*BitcoinGetBalanceQueryResult, error) {
-	var r0 BitcoinGetBalanceQueryResult
-	if err := a.Agent.Query(
+// BitcoinGetBlockHeaders calls the "bitcoin_get_block_headers" method on the "ic" canister.
+func (a Agent) BitcoinGetBlockHeaders(arg0 BitcoinGetBlockHeadersArgs) (*BitcoinGetBlockHeadersResult, error) {
+	var r0 BitcoinGetBlockHeadersResult
+	if err := a.Agent.Call(
 		a.CanisterId,
-		"bitcoin_get_balance_query",
+		"bitcoin_get_block_headers",
 		[]any{arg0},
 		[]any{&r0},
 	); err != nil {
@@ -64,12 +64,12 @@ func (a Agent) BitcoinGetBalanceQuery(arg0 BitcoinGetBalanceQueryArgs) (*Bitcoin
 	return &r0, nil
 }
 
-// BitcoinGetBalanceQueryQuery creates an indirect representation of the "bitcoin_get_balance_query" method on the "ic" canister.
-func (a Agent) BitcoinGetBalanceQueryQuery(arg0 BitcoinGetBalanceQueryArgs) (*agent.CandidAPIRequest, error) {
+// BitcoinGetBlockHeadersCall creates an indirect representation of the "bitcoin_get_block_headers" method on the "ic" canister.
+func (a Agent) BitcoinGetBlockHeadersCall(arg0 BitcoinGetBlockHeadersArgs) (*agent.CandidAPIRequest, error) {
 	return a.Agent.CreateCandidAPIRequest(
-		agent.RequestTypeQuery,
+		agent.RequestTypeCall,
 		a.CanisterId,
-		"bitcoin_get_balance_query",
+		"bitcoin_get_block_headers",
 		arg0,
 	)
 }
@@ -118,30 +118,6 @@ func (a Agent) BitcoinGetUtxosCall(arg0 BitcoinGetUtxosArgs) (*agent.CandidAPIRe
 		agent.RequestTypeCall,
 		a.CanisterId,
 		"bitcoin_get_utxos",
-		arg0,
-	)
-}
-
-// BitcoinGetUtxosQuery calls the "bitcoin_get_utxos_query" method on the "ic" canister.
-func (a Agent) BitcoinGetUtxosQuery(arg0 BitcoinGetUtxosQueryArgs) (*BitcoinGetUtxosQueryResult, error) {
-	var r0 BitcoinGetUtxosQueryResult
-	if err := a.Agent.Query(
-		a.CanisterId,
-		"bitcoin_get_utxos_query",
-		[]any{arg0},
-		[]any{&r0},
-	); err != nil {
-		return nil, err
-	}
-	return &r0, nil
-}
-
-// BitcoinGetUtxosQueryQuery creates an indirect representation of the "bitcoin_get_utxos_query" method on the "ic" canister.
-func (a Agent) BitcoinGetUtxosQueryQuery(arg0 BitcoinGetUtxosQueryArgs) (*agent.CandidAPIRequest, error) {
-	return a.Agent.CreateCandidAPIRequest(
-		agent.RequestTypeQuery,
-		a.CanisterId,
-		"bitcoin_get_utxos_query",
 		arg0,
 	)
 }
@@ -287,6 +263,29 @@ func (a Agent) DeleteCanisterCall(arg0 DeleteCanisterArgs) (*agent.CandidAPIRequ
 	)
 }
 
+// DeleteCanisterSnapshot calls the "delete_canister_snapshot" method on the "ic" canister.
+func (a Agent) DeleteCanisterSnapshot(arg0 DeleteCanisterSnapshotArgs) error {
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"delete_canister_snapshot",
+		[]any{arg0},
+		[]any{},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+// DeleteCanisterSnapshotCall creates an indirect representation of the "delete_canister_snapshot" method on the "ic" canister.
+func (a Agent) DeleteCanisterSnapshotCall(arg0 DeleteCanisterSnapshotArgs) (*agent.CandidAPIRequest, error) {
+	return a.Agent.CreateCandidAPIRequest(
+		agent.RequestTypeCall,
+		a.CanisterId,
+		"delete_canister_snapshot",
+		arg0,
+	)
+}
+
 // DepositCycles calls the "deposit_cycles" method on the "ic" canister.
 func (a Agent) DepositCycles(arg0 DepositCyclesArgs) error {
 	if err := a.Agent.Call(
@@ -330,6 +329,30 @@ func (a Agent) EcdsaPublicKeyCall(arg0 EcdsaPublicKeyArgs) (*agent.CandidAPIRequ
 		agent.RequestTypeCall,
 		a.CanisterId,
 		"ecdsa_public_key",
+		arg0,
+	)
+}
+
+// FetchCanisterLogs calls the "fetch_canister_logs" method on the "ic" canister.
+func (a Agent) FetchCanisterLogs(arg0 FetchCanisterLogsArgs) (*FetchCanisterLogsResult, error) {
+	var r0 FetchCanisterLogsResult
+	if err := a.Agent.Query(
+		a.CanisterId,
+		"fetch_canister_logs",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// FetchCanisterLogsQuery creates an indirect representation of the "fetch_canister_logs" method on the "ic" canister.
+func (a Agent) FetchCanisterLogsQuery(arg0 FetchCanisterLogsArgs) (*agent.CandidAPIRequest, error) {
+	return a.Agent.CreateCandidAPIRequest(
+		agent.RequestTypeQuery,
+		a.CanisterId,
+		"fetch_canister_logs",
 		arg0,
 	)
 }
@@ -400,6 +423,53 @@ func (a Agent) InstallCodeCall(arg0 InstallCodeArgs) (*agent.CandidAPIRequest, e
 		agent.RequestTypeCall,
 		a.CanisterId,
 		"install_code",
+		arg0,
+	)
+}
+
+// ListCanisterSnapshots calls the "list_canister_snapshots" method on the "ic" canister.
+func (a Agent) ListCanisterSnapshots(arg0 ListCanisterSnapshotsArgs) (*ListCanisterSnapshotsResult, error) {
+	var r0 ListCanisterSnapshotsResult
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"list_canister_snapshots",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// ListCanisterSnapshotsCall creates an indirect representation of the "list_canister_snapshots" method on the "ic" canister.
+func (a Agent) ListCanisterSnapshotsCall(arg0 ListCanisterSnapshotsArgs) (*agent.CandidAPIRequest, error) {
+	return a.Agent.CreateCandidAPIRequest(
+		agent.RequestTypeCall,
+		a.CanisterId,
+		"list_canister_snapshots",
+		arg0,
+	)
+}
+
+// LoadCanisterSnapshot calls the "load_canister_snapshot" method on the "ic" canister.
+func (a Agent) LoadCanisterSnapshot(arg0 LoadCanisterSnapshotArgs) error {
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"load_canister_snapshot",
+		[]any{arg0},
+		[]any{},
+	); err != nil {
+		return err
+	}
+	return nil
+}
+
+// LoadCanisterSnapshotCall creates an indirect representation of the "load_canister_snapshot" method on the "ic" canister.
+func (a Agent) LoadCanisterSnapshotCall(arg0 LoadCanisterSnapshotArgs) (*agent.CandidAPIRequest, error) {
+	return a.Agent.CreateCandidAPIRequest(
+		agent.RequestTypeCall,
+		a.CanisterId,
+		"load_canister_snapshot",
 		arg0,
 	)
 }
@@ -498,6 +568,30 @@ func (a Agent) RawRandCall() (*agent.CandidAPIRequest, error) {
 	)
 }
 
+// SchnorrPublicKey calls the "schnorr_public_key" method on the "ic" canister.
+func (a Agent) SchnorrPublicKey(arg0 SchnorrPublicKeyArgs) (*SchnorrPublicKeyResult, error) {
+	var r0 SchnorrPublicKeyResult
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"schnorr_public_key",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// SchnorrPublicKeyCall creates an indirect representation of the "schnorr_public_key" method on the "ic" canister.
+func (a Agent) SchnorrPublicKeyCall(arg0 SchnorrPublicKeyArgs) (*agent.CandidAPIRequest, error) {
+	return a.Agent.CreateCandidAPIRequest(
+		agent.RequestTypeCall,
+		a.CanisterId,
+		"schnorr_public_key",
+		arg0,
+	)
+}
+
 // SignWithEcdsa calls the "sign_with_ecdsa" method on the "ic" canister.
 func (a Agent) SignWithEcdsa(arg0 SignWithEcdsaArgs) (*SignWithEcdsaResult, error) {
 	var r0 SignWithEcdsaResult
@@ -518,6 +612,30 @@ func (a Agent) SignWithEcdsaCall(arg0 SignWithEcdsaArgs) (*agent.CandidAPIReques
 		agent.RequestTypeCall,
 		a.CanisterId,
 		"sign_with_ecdsa",
+		arg0,
+	)
+}
+
+// SignWithSchnorr calls the "sign_with_schnorr" method on the "ic" canister.
+func (a Agent) SignWithSchnorr(arg0 SignWithSchnorrArgs) (*SignWithSchnorrResult, error) {
+	var r0 SignWithSchnorrResult
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"sign_with_schnorr",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// SignWithSchnorrCall creates an indirect representation of the "sign_with_schnorr" method on the "ic" canister.
+func (a Agent) SignWithSchnorrCall(arg0 SignWithSchnorrArgs) (*agent.CandidAPIRequest, error) {
+	return a.Agent.CreateCandidAPIRequest(
+		agent.RequestTypeCall,
+		a.CanisterId,
+		"sign_with_schnorr",
 		arg0,
 	)
 }
@@ -588,6 +706,54 @@ func (a Agent) StoredChunksCall(arg0 StoredChunksArgs) (*agent.CandidAPIRequest,
 		agent.RequestTypeCall,
 		a.CanisterId,
 		"stored_chunks",
+		arg0,
+	)
+}
+
+// SubnetInfo calls the "subnet_info" method on the "ic" canister.
+func (a Agent) SubnetInfo(arg0 SubnetInfoArgs) (*SubnetInfoResult, error) {
+	var r0 SubnetInfoResult
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"subnet_info",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// SubnetInfoCall creates an indirect representation of the "subnet_info" method on the "ic" canister.
+func (a Agent) SubnetInfoCall(arg0 SubnetInfoArgs) (*agent.CandidAPIRequest, error) {
+	return a.Agent.CreateCandidAPIRequest(
+		agent.RequestTypeCall,
+		a.CanisterId,
+		"subnet_info",
+		arg0,
+	)
+}
+
+// TakeCanisterSnapshot calls the "take_canister_snapshot" method on the "ic" canister.
+func (a Agent) TakeCanisterSnapshot(arg0 TakeCanisterSnapshotArgs) (*TakeCanisterSnapshotResult, error) {
+	var r0 TakeCanisterSnapshotResult
+	if err := a.Agent.Call(
+		a.CanisterId,
+		"take_canister_snapshot",
+		[]any{arg0},
+		[]any{&r0},
+	); err != nil {
+		return nil, err
+	}
+	return &r0, nil
+}
+
+// TakeCanisterSnapshotCall creates an indirect representation of the "take_canister_snapshot" method on the "ic" canister.
+func (a Agent) TakeCanisterSnapshotCall(arg0 TakeCanisterSnapshotArgs) (*agent.CandidAPIRequest, error) {
+	return a.Agent.CreateCandidAPIRequest(
+		agent.RequestTypeCall,
+		a.CanisterId,
+		"take_canister_snapshot",
 		arg0,
 	)
 }
@@ -664,21 +830,30 @@ func (a Agent) UploadChunkCall(arg0 UploadChunkArgs) (*agent.CandidAPIRequest, e
 
 type BitcoinAddress = string
 
+type BitcoinBlockHash = []byte
+
+type BitcoinBlockHeader = []byte
+
+type BitcoinBlockHeight = uint32
+
 type BitcoinGetBalanceArgs struct {
 	Address          BitcoinAddress `ic:"address" json:"address"`
 	Network          BitcoinNetwork `ic:"network" json:"network"`
 	MinConfirmations *uint32        `ic:"min_confirmations,omitempty" json:"min_confirmations,omitempty"`
 }
 
-type BitcoinGetBalanceQueryArgs struct {
-	Address          BitcoinAddress `ic:"address" json:"address"`
-	Network          BitcoinNetwork `ic:"network" json:"network"`
-	MinConfirmations *uint32        `ic:"min_confirmations,omitempty" json:"min_confirmations,omitempty"`
+type BitcoinGetBalanceResult = Satoshi
+
+type BitcoinGetBlockHeadersArgs struct {
+	StartHeight BitcoinBlockHeight  `ic:"start_height" json:"start_height"`
+	EndHeight   *BitcoinBlockHeight `ic:"end_height,omitempty" json:"end_height,omitempty"`
+	Network     BitcoinNetwork      `ic:"network" json:"network"`
 }
 
-type BitcoinGetBalanceQueryResult = Satoshi
-
-type BitcoinGetBalanceResult = Satoshi
+type BitcoinGetBlockHeadersResult struct {
+	TipHeight    BitcoinBlockHeight   `ic:"tip_height" json:"tip_height"`
+	BlockHeaders []BitcoinBlockHeader `ic:"block_headers" json:"block_headers"`
+}
 
 type BitcoinGetCurrentFeePercentilesArgs struct {
 	Network BitcoinNetwork `ic:"network" json:"network"`
@@ -695,27 +870,11 @@ type BitcoinGetUtxosArgs struct {
 	} `ic:"filter,omitempty" json:"filter,omitempty"`
 }
 
-type BitcoinGetUtxosQueryArgs struct {
-	Address BitcoinAddress `ic:"address" json:"address"`
-	Network BitcoinNetwork `ic:"network" json:"network"`
-	Filter  *struct {
-		MinConfirmations *uint32 `ic:"min_confirmations,variant"`
-		Page             *[]byte `ic:"page,variant"`
-	} `ic:"filter,omitempty" json:"filter,omitempty"`
-}
-
-type BitcoinGetUtxosQueryResult struct {
-	Utxos        []Utxo    `ic:"utxos" json:"utxos"`
-	TipBlockHash BlockHash `ic:"tip_block_hash" json:"tip_block_hash"`
-	TipHeight    uint32    `ic:"tip_height" json:"tip_height"`
-	NextPage     *[]byte   `ic:"next_page,omitempty" json:"next_page,omitempty"`
-}
-
 type BitcoinGetUtxosResult struct {
-	Utxos        []Utxo    `ic:"utxos" json:"utxos"`
-	TipBlockHash BlockHash `ic:"tip_block_hash" json:"tip_block_hash"`
-	TipHeight    uint32    `ic:"tip_height" json:"tip_height"`
-	NextPage     *[]byte   `ic:"next_page,omitempty" json:"next_page,omitempty"`
+	Utxos        []Utxo             `ic:"utxos" json:"utxos"`
+	TipBlockHash BitcoinBlockHash   `ic:"tip_block_hash" json:"tip_block_hash"`
+	TipHeight    BitcoinBlockHeight `ic:"tip_height" json:"tip_height"`
+	NextPage     *[]byte            `ic:"next_page,omitempty" json:"next_page,omitempty"`
 }
 
 type BitcoinNetwork struct {
@@ -727,8 +886,6 @@ type BitcoinSendTransactionArgs struct {
 	Transaction []byte         `ic:"transaction" json:"transaction"`
 	Network     BitcoinNetwork `ic:"network" json:"network"`
 }
-
-type BlockHash = []byte
 
 type CanisterId = principal.Principal
 
@@ -744,12 +901,32 @@ type CanisterInfoResult struct {
 	Controllers     []principal.Principal `ic:"controllers" json:"controllers"`
 }
 
+type CanisterInstallMode struct {
+	Install   *idl.Null `ic:"install,variant"`
+	Reinstall *idl.Null `ic:"reinstall,variant"`
+	Upgrade   **struct {
+		SkipPreUpgrade        *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
+		WasmMemoryPersistence *struct {
+			Keep    *idl.Null `ic:"keep,variant"`
+			Replace *idl.Null `ic:"replace,variant"`
+		} `ic:"wasm_memory_persistence,omitempty" json:"wasm_memory_persistence,omitempty"`
+	} `ic:"upgrade,variant"`
+}
+
+type CanisterLogRecord struct {
+	Idx            uint64 `ic:"idx" json:"idx"`
+	TimestampNanos uint64 `ic:"timestamp_nanos" json:"timestamp_nanos"`
+	Content        []byte `ic:"content" json:"content"`
+}
+
 type CanisterSettings struct {
 	Controllers         *[]principal.Principal `ic:"controllers,omitempty" json:"controllers,omitempty"`
 	ComputeAllocation   *idl.Nat               `ic:"compute_allocation,omitempty" json:"compute_allocation,omitempty"`
 	MemoryAllocation    *idl.Nat               `ic:"memory_allocation,omitempty" json:"memory_allocation,omitempty"`
 	FreezingThreshold   *idl.Nat               `ic:"freezing_threshold,omitempty" json:"freezing_threshold,omitempty"`
 	ReservedCyclesLimit *idl.Nat               `ic:"reserved_cycles_limit,omitempty" json:"reserved_cycles_limit,omitempty"`
+	LogVisibility       *LogVisibility         `ic:"log_visibility,omitempty" json:"log_visibility,omitempty"`
+	WasmMemoryLimit     *idl.Nat               `ic:"wasm_memory_limit,omitempty" json:"wasm_memory_limit,omitempty"`
 }
 
 type CanisterStatusArgs struct {
@@ -768,6 +945,12 @@ type CanisterStatusResult struct {
 	Cycles                 idl.Nat                  `ic:"cycles" json:"cycles"`
 	ReservedCycles         idl.Nat                  `ic:"reserved_cycles" json:"reserved_cycles"`
 	IdleCyclesBurnedPerDay idl.Nat                  `ic:"idle_cycles_burned_per_day" json:"idle_cycles_burned_per_day"`
+	QueryStats             struct {
+		NumCallsTotal             idl.Nat `ic:"num_calls_total" json:"num_calls_total"`
+		NumInstructionsTotal      idl.Nat `ic:"num_instructions_total" json:"num_instructions_total"`
+		RequestPayloadBytesTotal  idl.Nat `ic:"request_payload_bytes_total" json:"request_payload_bytes_total"`
+		ResponsePayloadBytesTotal idl.Nat `ic:"response_payload_bytes_total" json:"response_payload_bytes_total"`
+	} `ic:"query_stats" json:"query_stats"`
 }
 
 type Change struct {
@@ -790,6 +973,11 @@ type ChangeDetails struct {
 		} `ic:"mode" json:"mode"`
 		ModuleHash []byte `ic:"module_hash" json:"module_hash"`
 	} `ic:"code_deployment,variant"`
+	LoadSnapshot *struct {
+		CanisterVersion  uint64     `ic:"canister_version" json:"canister_version"`
+		SnapshotId       SnapshotId `ic:"snapshot_id" json:"snapshot_id"`
+		TakenAtTimestamp uint64     `ic:"taken_at_timestamp" json:"taken_at_timestamp"`
+	} `ic:"load_snapshot,variant"`
 	ControllersChange *struct {
 		Controllers []principal.Principal `ic:"controllers" json:"controllers"`
 	} `ic:"controllers_change,variant"`
@@ -805,7 +993,9 @@ type ChangeOrigin struct {
 	} `ic:"from_canister,variant"`
 }
 
-type ChunkHash = []byte
+type ChunkHash struct {
+	Hash []byte `ic:"hash" json:"hash"`
+}
 
 type ClearChunkStoreArgs struct {
 	CanisterId CanisterId `ic:"canister_id" json:"canister_id"`
@@ -826,10 +1016,17 @@ type DefiniteCanisterSettings struct {
 	MemoryAllocation    idl.Nat               `ic:"memory_allocation" json:"memory_allocation"`
 	FreezingThreshold   idl.Nat               `ic:"freezing_threshold" json:"freezing_threshold"`
 	ReservedCyclesLimit idl.Nat               `ic:"reserved_cycles_limit" json:"reserved_cycles_limit"`
+	LogVisibility       LogVisibility         `ic:"log_visibility" json:"log_visibility"`
+	WasmMemoryLimit     idl.Nat               `ic:"wasm_memory_limit" json:"wasm_memory_limit"`
 }
 
 type DeleteCanisterArgs struct {
 	CanisterId CanisterId `ic:"canister_id" json:"canister_id"`
+}
+
+type DeleteCanisterSnapshotArgs struct {
+	CanisterId CanisterId `ic:"canister_id" json:"canister_id"`
+	SnapshotId SnapshotId `ic:"snapshot_id" json:"snapshot_id"`
 }
 
 type DepositCyclesArgs struct {
@@ -852,6 +1049,14 @@ type EcdsaPublicKeyArgs struct {
 type EcdsaPublicKeyResult struct {
 	PublicKey []byte `ic:"public_key" json:"public_key"`
 	ChainCode []byte `ic:"chain_code" json:"chain_code"`
+}
+
+type FetchCanisterLogsArgs struct {
+	CanisterId CanisterId `ic:"canister_id" json:"canister_id"`
+}
+
+type FetchCanisterLogsResult struct {
+	CanisterLogRecords []CanisterLogRecord `ic:"canister_log_records" json:"canister_log_records"`
 }
 
 type HttpHeader struct {
@@ -883,41 +1088,47 @@ type HttpRequestResult struct {
 }
 
 type InstallChunkedCodeArgs struct {
-	Mode struct {
-		Install   *idl.Null `ic:"install,variant"`
-		Reinstall *idl.Null `ic:"reinstall,variant"`
-		Upgrade   **struct {
-			SkipPreUpgrade *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
-		} `ic:"upgrade,variant"`
-	} `ic:"mode" json:"mode"`
-	TargetCanister        CanisterId  `ic:"target_canister" json:"target_canister"`
-	StorageCanister       *CanisterId `ic:"storage_canister,omitempty" json:"storage_canister,omitempty"`
-	ChunkHashesList       []ChunkHash `ic:"chunk_hashes_list" json:"chunk_hashes_list"`
-	WasmModuleHash        []byte      `ic:"wasm_module_hash" json:"wasm_module_hash"`
-	Arg                   []byte      `ic:"arg" json:"arg"`
-	SenderCanisterVersion *uint64     `ic:"sender_canister_version,omitempty" json:"sender_canister_version,omitempty"`
+	Mode                  CanisterInstallMode `ic:"mode" json:"mode"`
+	TargetCanister        CanisterId          `ic:"target_canister" json:"target_canister"`
+	StoreCanister         *CanisterId         `ic:"store_canister,omitempty" json:"store_canister,omitempty"`
+	ChunkHashesList       []ChunkHash         `ic:"chunk_hashes_list" json:"chunk_hashes_list"`
+	WasmModuleHash        []byte              `ic:"wasm_module_hash" json:"wasm_module_hash"`
+	Arg                   []byte              `ic:"arg" json:"arg"`
+	SenderCanisterVersion *uint64             `ic:"sender_canister_version,omitempty" json:"sender_canister_version,omitempty"`
 }
 
 type InstallCodeArgs struct {
-	Mode struct {
-		Install   *idl.Null `ic:"install,variant"`
-		Reinstall *idl.Null `ic:"reinstall,variant"`
-		Upgrade   **struct {
-			SkipPreUpgrade *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
-		} `ic:"upgrade,variant"`
-	} `ic:"mode" json:"mode"`
+	Mode                  CanisterInstallMode `ic:"mode" json:"mode"`
+	CanisterId            CanisterId          `ic:"canister_id" json:"canister_id"`
+	WasmModule            WasmModule          `ic:"wasm_module" json:"wasm_module"`
+	Arg                   []byte              `ic:"arg" json:"arg"`
+	SenderCanisterVersion *uint64             `ic:"sender_canister_version,omitempty" json:"sender_canister_version,omitempty"`
+}
+
+type ListCanisterSnapshotsArgs struct {
+	CanisterId CanisterId `ic:"canister_id" json:"canister_id"`
+}
+
+type ListCanisterSnapshotsResult = []Snapshot
+
+type LoadCanisterSnapshotArgs struct {
 	CanisterId            CanisterId `ic:"canister_id" json:"canister_id"`
-	WasmModule            WasmModule `ic:"wasm_module" json:"wasm_module"`
-	Arg                   []byte     `ic:"arg" json:"arg"`
+	SnapshotId            SnapshotId `ic:"snapshot_id" json:"snapshot_id"`
 	SenderCanisterVersion *uint64    `ic:"sender_canister_version,omitempty" json:"sender_canister_version,omitempty"`
+}
+
+type LogVisibility struct {
+	Controllers    *idl.Null              `ic:"controllers,variant"`
+	Public         *idl.Null              `ic:"public,variant"`
+	AllowedViewers *[]principal.Principal `ic:"allowed_viewers,variant"`
 }
 
 type MillisatoshiPerByte = uint64
 
 type NodeMetrics struct {
-	NodeId                principal.Principal `ic:"node_id" json:"node_id"`
-	NumBlocksTotal        uint64              `ic:"num_blocks_total" json:"num_blocks_total"`
-	NumBlockFailuresTotal uint64              `ic:"num_block_failures_total" json:"num_block_failures_total"`
+	NodeId                 principal.Principal `ic:"node_id" json:"node_id"`
+	NumBlocksProposedTotal uint64              `ic:"num_blocks_proposed_total" json:"num_blocks_proposed_total"`
+	NumBlockFailuresTotal  uint64              `ic:"num_block_failures_total" json:"num_block_failures_total"`
 }
 
 type NodeMetricsHistoryArgs struct {
@@ -955,6 +1166,25 @@ type RawRandResult = []byte
 
 type Satoshi = uint64
 
+type SchnorrAlgorithm struct {
+	Bip340secp256k1 *idl.Null `ic:"bip340secp256k1,variant"`
+	Ed25519         *idl.Null `ic:"ed25519,variant"`
+}
+
+type SchnorrPublicKeyArgs struct {
+	CanisterId     *CanisterId `ic:"canister_id,omitempty" json:"canister_id,omitempty"`
+	DerivationPath [][]byte    `ic:"derivation_path" json:"derivation_path"`
+	KeyId          struct {
+		Algorithm SchnorrAlgorithm `ic:"algorithm" json:"algorithm"`
+		Name      string           `ic:"name" json:"name"`
+	} `ic:"key_id" json:"key_id"`
+}
+
+type SchnorrPublicKeyResult struct {
+	PublicKey []byte `ic:"public_key" json:"public_key"`
+	ChainCode []byte `ic:"chain_code" json:"chain_code"`
+}
+
 type SignWithEcdsaArgs struct {
 	MessageHash    []byte   `ic:"message_hash" json:"message_hash"`
 	DerivationPath [][]byte `ic:"derivation_path" json:"derivation_path"`
@@ -967,6 +1197,27 @@ type SignWithEcdsaArgs struct {
 type SignWithEcdsaResult struct {
 	Signature []byte `ic:"signature" json:"signature"`
 }
+
+type SignWithSchnorrArgs struct {
+	Message        []byte   `ic:"message" json:"message"`
+	DerivationPath [][]byte `ic:"derivation_path" json:"derivation_path"`
+	KeyId          struct {
+		Algorithm SchnorrAlgorithm `ic:"algorithm" json:"algorithm"`
+		Name      string           `ic:"name" json:"name"`
+	} `ic:"key_id" json:"key_id"`
+}
+
+type SignWithSchnorrResult struct {
+	Signature []byte `ic:"signature" json:"signature"`
+}
+
+type Snapshot struct {
+	Id               SnapshotId `ic:"id" json:"id"`
+	TakenAtTimestamp uint64     `ic:"taken_at_timestamp" json:"taken_at_timestamp"`
+	TotalSize        uint64     `ic:"total_size" json:"total_size"`
+}
+
+type SnapshotId = []byte
 
 type StartCanisterArgs struct {
 	CanisterId CanisterId `ic:"canister_id" json:"canister_id"`
@@ -981,6 +1232,21 @@ type StoredChunksArgs struct {
 }
 
 type StoredChunksResult = []ChunkHash
+
+type SubnetInfoArgs struct {
+	SubnetId principal.Principal `ic:"subnet_id" json:"subnet_id"`
+}
+
+type SubnetInfoResult struct {
+	ReplicaVersion string `ic:"replica_version" json:"replica_version"`
+}
+
+type TakeCanisterSnapshotArgs struct {
+	CanisterId      CanisterId  `ic:"canister_id" json:"canister_id"`
+	ReplaceSnapshot *SnapshotId `ic:"replace_snapshot,omitempty" json:"replace_snapshot,omitempty"`
+}
+
+type TakeCanisterSnapshotResult = Snapshot
 
 type UninstallCodeArgs struct {
 	CanisterId            CanisterId `ic:"canister_id" json:"canister_id"`

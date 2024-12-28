@@ -2,12 +2,6 @@ package pocketic_test
 
 import (
 	"fmt"
-	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/ic"
-	ic0 "github.com/aviate-labs/agent-go/ic/ic"
-	"github.com/aviate-labs/agent-go/pocketic"
-	"github.com/aviate-labs/agent-go/principal"
 	"net/url"
 	"os"
 	"os/exec"
@@ -16,6 +10,12 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/aviate-labs/agent-go/ic"
+	"github.com/aviate-labs/agent-go/pocketic"
+	"github.com/aviate-labs/agent-go/principal"
 )
 
 func TestConcurrentCalls(t *testing.T) {
@@ -83,7 +83,7 @@ func TestHttpGateway(t *testing.T) {
 		FetchRootKey: true,
 		Logger:       new(testLogger),
 	}
-	mgmtAgent, err := ic0.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agentConfig)
+	mgmtAgent, err := ic.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agentConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,8 +96,8 @@ func TestHttpGateway(t *testing.T) {
 		}
 	}
 
-	var result ic0.ProvisionalCreateCanisterWithCyclesResult
-	createCall, err := mgmtAgent.ProvisionalCreateCanisterWithCyclesCall(ic0.ProvisionalCreateCanisterWithCyclesArgs{})
+	var result ic.ProvisionalCreateCanisterWithCyclesResult
+	createCall, err := mgmtAgent.ProvisionalCreateCanisterWithCyclesCall(ic.ProvisionalCreateCanisterWithCyclesArgs{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,14 +106,8 @@ func TestHttpGateway(t *testing.T) {
 	}
 
 	wasmModule := compileMotoko(t, "testdata/main.mo", "testdata/main.wasm")
-	if err := mgmtAgent.InstallCode(ic0.InstallCodeArgs{
-		Mode: struct {
-			Install   *idl.Null `ic:"install,variant"`
-			Reinstall *idl.Null `ic:"reinstall,variant"`
-			Upgrade   **struct {
-				SkipPreUpgrade *bool `ic:"skip_pre_upgrade,omitempty" json:"skip_pre_upgrade,omitempty"`
-			} `ic:"upgrade,variant"`
-		}{
+	if err := mgmtAgent.InstallCode(ic.InstallCodeArgs{
+		Mode: ic.CanisterInstallMode{
 			Install: new(idl.Null),
 		},
 		CanisterId: result.CanisterId,

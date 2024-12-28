@@ -8,13 +8,16 @@ import (
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/ic"
-	ic0 "github.com/aviate-labs/agent-go/ic/ic"
-	"github.com/aviate-labs/agent-go/ic/icpledger"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
 )
 
 var _ = new(testLogger)
+
+var (
+	LEDGER_PRINCIPAL   = principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+	REGISTRY_PRINCIPAL = principal.MustDecode("rwlgt-iiaaa-aaaaa-aaaaa-cai")
+)
 
 func Example_anonymous_query() {
 	a, _ := agent.New(agent.DefaultConfig)
@@ -24,7 +27,7 @@ func Example_anonymous_query() {
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
 	}
-	_ = a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{
+	_ = a.Query(LEDGER_PRINCIPAL, "account_balance_dfx", []any{
 		Account{"9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d"},
 	}, []any{&balance})
 	fmt.Println(balance.E8S)
@@ -42,7 +45,7 @@ func Example_json() {
 	fmt.Println(balance.E8S)
 
 	a, _ := agent.New(agent.DefaultConfig)
-	if err := a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{struct {
+	if err := a.Query(LEDGER_PRINCIPAL, "account_balance_dfx", []any{struct {
 		Account string `json:"account"`
 	}{
 		Account: "9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d",
@@ -106,7 +109,7 @@ func TestAgent_Call(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	n, err := a.ReadStateCertificate(ic.REGISTRY_PRINCIPAL, [][]hashtree.Label{{hashtree.Label("subnet")}})
+	n, err := a.ReadStateCertificate(REGISTRY_PRINCIPAL, [][]hashtree.Label{{hashtree.Label("subnet")}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,12 +122,12 @@ func TestAgent_Call(t *testing.T) {
 }
 
 func TestAgent_Call_provisionalTopUpCanister(t *testing.T) {
-	a, err := ic0.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
+	a, err := ic.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := a.ProvisionalTopUpCanister(ic0.ProvisionalTopUpCanisterArgs{
-		CanisterId: ic.LEDGER_PRINCIPAL,
+	if err := a.ProvisionalTopUpCanister(ic.ProvisionalTopUpCanisterArgs{
+		CanisterId: LEDGER_PRINCIPAL,
 	}); err == nil {
 		t.Fatal()
 	}
@@ -144,7 +147,7 @@ func TestAgent_Query_Ed25519(t *testing.T) {
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
 	}
-	if err := a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{
+	if err := a.Query(LEDGER_PRINCIPAL, "account_balance_dfx", []any{
 		Account{"9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d"},
 	}, []any{&balance}); err != nil {
 		t.Fatal(err)
@@ -165,22 +168,9 @@ func TestAgent_Query_Secp256k1(t *testing.T) {
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
 	}
-	if err := a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{
+	if err := a.Query(LEDGER_PRINCIPAL, "account_balance_dfx", []any{
 		Account{"9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d"},
 	}, []any{&balance}); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestICPLedger_queryBlocks(t *testing.T) {
-	a, err := icpledger.NewAgent(ic.LEDGER_PRINCIPAL, agent.DefaultConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := a.QueryBlocks(icpledger.GetBlocksArgs{
-		Start:  1,  // Start from the first block.
-		Length: 10, // Get the last 10 blocks.
-	}); err != nil {
 		t.Fatal(err)
 	}
 }
