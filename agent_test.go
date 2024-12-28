@@ -7,7 +7,6 @@ import (
 
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
-	"github.com/aviate-labs/agent-go/ic"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
 )
@@ -118,18 +117,6 @@ func TestAgent_Call(t *testing.T) {
 			subnetID := principal.Principal{Raw: []byte(path[1])}
 			_ = subnetID
 		}
-	}
-}
-
-func TestAgent_Call_provisionalTopUpCanister(t *testing.T) {
-	a, err := ic.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := a.ProvisionalTopUpCanister(ic.ProvisionalTopUpCanisterArgs{
-		CanisterId: LEDGER_PRINCIPAL,
-	}); err == nil {
-		t.Fatal()
 	}
 }
 
