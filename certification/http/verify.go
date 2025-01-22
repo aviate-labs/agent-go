@@ -5,13 +5,14 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
-	"github.com/aviate-labs/agent-go/certification"
 	"math/big"
 	"net/url"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/aviate-labs/agent-go/certification"
 
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/certification/http/certexp"
@@ -221,6 +222,7 @@ func (a *Agent) verify(req *Request, resp *Response, certificateHeader *Certific
 	if certificateExpression == "" {
 		return fmt.Errorf("no certification expression found")
 	}
+	fmt.Println(certificateExpression)
 	certExpr, err := certexp.ParseCertificateExpression(certificateExpression)
 	if err != nil {
 		return err

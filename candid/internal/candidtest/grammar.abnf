@@ -1,0 +1,68 @@
+TestData = 1*(Comment / Test / EndLine)
+
+Comment      = ("/*" Ws MultiComment Ws "*/") 
+             / ("//" [CommentText]) EndLine
+CommentText  = *(%x00-09 / %x0B-0C / %x0E-D7FF / %xE000-10FFFF)
+MultiComment  = *(%x00-29 / %x2B-10FFFF / (%x2A (%x00-2E / %x30-10FFFF)) / EndLine)
+
+Ws      = *(" " / %x09 / EndLine)
+EndLine = %x0A / %x0D / (%x0D %x0A)
+
+Test         = "assert " Input Ws (TestGoodTmpl / TestBadTmpl / TestTest) [" " Description] ";"
+TestGoodTmpl = ":" Ws TestGood
+TestGood     = ValuesBr
+TestBadTmpl  = "!:" Ws TestBad
+TestBad      = ValuesBr
+TestTest     = "==" Ws Input Ws ":" Ws ValuesBr
+ValuesBr     = "()" / "(" Values *(", " Values) ")"
+Values       = Null / Bool / Nat / Int / Float / Text / Reserved / Empty / Opt
+
+Null  = "null"
+Bool  = "bool"
+Nat   = "nat" [Base]
+Int   = "int" [Base]
+Float = "float" Base
+Base  = 1*digit
+Text  = "text"
+Reserved = "reserved"
+Empty    = "empty"
+Opt      = "opt " Values
+
+Input         = BlobInputTmpl / TextInputTmpl
+TextInputTmpl = %x22 TextInput %x22
+TextInput     = String
+BlobInputTmpl = "blob " %x22 BlobInput %x22
+BlobInput     = String
+
+Description = %x22 String %x22 ; "
+
+String = *Char
+
+Char    = Utf
+        / ESC 2*2hex
+        / ESC escape
+        / "\u{" HexNum "}"
+HexNum  = hex *(["_"] hex)
+
+Utf       = ascii / UtfEnc
+UtfEnc    = %xC2-DF utfcont
+          / %xE0 %xA0-BF utfcont
+          / %xED %x80-9F utfcont
+          / %xE1-EC 2*2utfcont
+          / %xEE-EF 2*2utfcont
+          / %xF0 %x90-BF 2*2utfcont
+          / %xF4 %x80-8F 2*2utfcont
+          / %xF1-F3 3*3utfcont
+utfcont   = %x80-BF
+
+ascii    = %x20-21 / %x23-5B / %x5D-7E
+escape   = "n" / "r" / "t"
+          / ESC
+          / %x22 ; "
+          / %x27 ; '
+
+letter  = %x41-5A / %x61-7A ; A-Z / a-z
+digit   = %x30-39 ; 0-9
+hex     = digit / %x41-46 / %x61-66 ; A-F / a-f
+
+ESC  = %x5C ; \

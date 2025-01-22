@@ -8,9 +8,9 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
-var LEDGER_PRINCIPAL = principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
-
 const MaxBlocksPerRequest = 2000
+
+var LEDGER_PRINCIPAL = principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 
 type BlockIndex uint64
 

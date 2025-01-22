@@ -11,12 +11,12 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
-var _ = new(testLogger)
-
 var (
 	LEDGER_PRINCIPAL   = principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	REGISTRY_PRINCIPAL = principal.MustDecode("rwlgt-iiaaa-aaaaa-aaaaa-cai")
 )
+
+var _ = new(testLogger)
 
 func Example_anonymous_query() {
 	a, _ := agent.New(agent.DefaultConfig)

@@ -1,0 +1,13 @@
+Value = "default_certification(" WS ValidationArgs WS ")"
+ValidationArgs = "ValidationArgs{" WS ( NoCertification / ( "certification:" Certification ) ) WS "}"
+NoCertification = "no_certification:" WS "Empty{}"
+Certification = "Certification{" WS ( NoRequestCertification / ( "request_certification:" RequestCertification ) ) WS "," WS "response_certification:" WS ResponseCertification WS "}"
+NoRequestCertification = "no_request_certification:" WS "Empty{}"
+RequestCertification = "RequestCertification{" WS "certified_request_headers:" WS StringList WS "," WS "certified_query_parameters:" WS StringList WS "}"
+ResponseCertification = "ResponseCertification{" WS ResponseCertificationT WS ResponseHeaderList WS "}"
+ResponseCertificationT = "response_header_exclusions:" / "certified_response_headers:"
+ResponseHeaderList = "ResponseHeaderList{" WS "headers:" WS StringList WS "}"
+Char = %x00-09 / %x0B-21 / %x23-10FFFF
+String = %x22 *Char %x22
+StringList = "[" WS *(String WS) "]"
+WS = *" "

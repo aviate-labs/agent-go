@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/cmd/goic/internal/cmd"
 	"github.com/aviate-labs/agent-go/gen"
 	"github.com/aviate-labs/agent-go/principal"
-	"os"
 )
 
 var root = cmd.NewCommandFork(
@@ -94,7 +95,7 @@ var root = cmd.NewCommandFork(
 				}
 
 				_, indirect := options["indirect"]
-				return writeDID(canisterName, packageName, path, rawDID, indirect)
+				return writeDID(canisterName, packageName, path, []rune(string(rawDID)), indirect)
 			},
 		),
 		cmd.NewCommand(
@@ -138,7 +139,7 @@ var root = cmd.NewCommandFork(
 				}
 
 				_, indirect := options["indirect"]
-				return writeDID(canisterName, packageName, path, rawDID, indirect)
+				return writeDID(canisterName, packageName, path, []rune(string(rawDID)), indirect)
 			},
 		),
 	),
@@ -166,7 +167,7 @@ func main() {
 	}
 }
 
-func writeDID(canisterName, packageName, outputPath string, rawDID []byte, indirect bool) error {
+func writeDID(canisterName, packageName, outputPath string, rawDID []rune, indirect bool) error {
 	g, err := gen.NewGenerator("", canisterName, packageName, rawDID)
 	if err != nil {
 		return err

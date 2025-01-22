@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"github.com/aviate-labs/agent-go/candid"
-	"github.com/aviate-labs/agent-go/candid/did"
 	"io"
 	"io/fs"
 	"strings"
 	"text/template"
+
+	"github.com/aviate-labs/agent-go/candid"
+	"github.com/aviate-labs/agent-go/candid/did"
 )
 
 const (
@@ -79,7 +80,7 @@ type Generator struct {
 }
 
 // NewGenerator creates a new generator for the given service description.
-func NewGenerator(agentName, canisterName, packageName string, rawDID []byte) (*Generator, error) {
+func NewGenerator(agentName, canisterName, packageName string, rawDID []rune) (*Generator, error) {
 	desc, err := candid.ParseDID(rawDID)
 	if err != nil {
 		return nil, err
