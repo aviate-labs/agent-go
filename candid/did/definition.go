@@ -3,7 +3,7 @@ package did
 import (
 	"fmt"
 
-	"github.com/di-wu/parser/ast"
+	"github.com/0x51-dev/upeg/parser"
 )
 
 // Definition represents an imports or type definition.
@@ -29,13 +29,14 @@ type Type struct {
 	Data Data
 }
 
-func convertType(n *ast.Node) Type {
+func convertType(n *parser.Node) Type {
+	cs := n.Children()
 	var (
-		id   = n.FirstChild
-		data = n.LastChild
+		id   = cs[0]
+		data = cs[len(cs)-1]
 	)
 	return Type{
-		Id:   id.Value,
+		Id:   id.Value(),
 		Data: convertData(data),
 	}
 }

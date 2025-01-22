@@ -20,8 +20,8 @@ test-cover:
 	go tool cover -html=coverage.out
 
 gen:
-	cd candid && go generate
-	cd pocketic && go generate
+	cd candid/internal && go generate
+	cd certification/http/certexp && go generate
 	cd clients/ledger && go generate
 	cd clients/registry && go generate
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/di-wu/parser/ast"
+	"github.com/0x51-dev/upeg/parser"
 )
 
 // Argument describes the argument types of a Field.
@@ -15,15 +15,17 @@ type Argument struct {
 	Data Data
 }
 
-func convertArgument(n *ast.Node) Argument {
-	data := convertData(n.LastChild)
+func convertArgument(n *parser.Node) Argument {
+	cs := n.Children()
+	data := convertData(cs[len(cs)-1])
 	if len(n.Children()) == 1 {
 		return Argument{
 			Data: data,
 		}
 	}
+	name := cs[0].Value()
 	return Argument{
-		Name: &n.FirstChild.Value,
+		Name: &name,
 		Data: data,
 	}
 }
@@ -47,7 +49,7 @@ type Func struct {
 	Annotation *FuncAnnotation
 }
 
-func convertFunc(n *ast.Node) Func {
+func convertFunc(n *parser.Node) Func {
 	var f Func
 	for i, n := range n.Children() {
 		switch i {
@@ -56,7 +58,7 @@ func convertFunc(n *ast.Node) Func {
 		case 1:
 			f.ResTypes = convertTuple(n)
 		case 2:
-			ann := FuncAnnotation(n.Value)
+			ann := FuncAnnotation(n.Value())
 			f.Annotation = &ann
 		default:
 			panic(n)
@@ -89,7 +91,7 @@ const (
 // Tuple represents one or more arguments.
 type Tuple []Argument
 
-func convertTuple(n *ast.Node) Tuple {
+func convertTuple(n *parser.Node) Tuple {
 	var tuple Tuple
 	for _, n := range n.Children() {
 		tuple = append(tuple, convertArgument(n))

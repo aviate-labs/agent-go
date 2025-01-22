@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/0x51-dev/upeg/parser"
 	"github.com/aviate-labs/agent-go/candid/internal/candid"
-	"github.com/di-wu/parser/ast"
 )
 
-func convertNat(n *ast.Node) *big.Int {
-	switch n := strings.ReplaceAll(n.Value, "_", ""); {
+func convertNat(n *parser.Node) *big.Int {
+	switch n := strings.ReplaceAll(n.Value(), "_", ""); {
 	case strings.HasPrefix(n, "0x"):
 		n = strings.TrimPrefix(n, "0x")
 		i, _ := strconv.ParseInt(n, 16, 64)
@@ -36,22 +36,22 @@ type Data interface {
 	fmt.Stringer
 }
 
-func convertData(n *ast.Node) Data {
-	switch n.Type {
-	case candid.BlobT:
+func convertData(n *parser.Node) Data {
+	switch n.Name {
+	case candid.Blob.Name:
 		return Blob{}
-	case candid.OptT:
+	case candid.Opt.Name:
 		return Optional{
-			Data: convertData(n.FirstChild),
+			Data: convertData(n.Children()[0]),
 		}
-	case candid.VecT:
+	case candid.Vec.Name:
 		return Vector{
-			Data: convertData(n.FirstChild),
+			Data: convertData(n.Children()[0]),
 		}
-	case candid.RecordT:
+	case candid.Record.Name:
 		var record Record
 		for _, n := range n.Children() {
-			if n.Type == candid.CommentTextT {
+			if n.Name == candid.CommentText.Name {
 				continue
 			}
 			record = append(
@@ -60,10 +60,10 @@ func convertData(n *ast.Node) Data {
 			)
 		}
 		return record
-	case candid.VariantT:
+	case candid.Variant.Name:
 		var variant Variant
 		for _, n := range n.Children() {
-			if n.Type == candid.CommentTextT {
+			if n.Name == candid.CommentText.Name {
 				continue
 			}
 			variant = append(
@@ -72,18 +72,18 @@ func convertData(n *ast.Node) Data {
 			)
 		}
 		return variant
-	case candid.FuncT:
-		return convertFunc(n.FirstChild)
-	case candid.ServiceT:
-		return convertService(n.FirstChild)
-	case candid.PrincipalT:
+	case candid.Func.Name:
+		return convertFunc(n.Children()[0])
+	case candid.Service.Name:
+		return convertService(n.Children()[0])
+	case candid.Principal.Name:
 		return Principal{}
-	case candid.PrimTypeT:
-		return Primitive(n.Value)
-	case candid.IdT:
-		return DataId(n.Value)
+	case candid.PrimType.Name:
+		return Primitive(n.Value())
+	case candid.Id.Name:
+		return DataId(n.Value())
 	default:
-		panic(n)
+		panic(n.Name)
 	}
 }
 
@@ -113,23 +113,25 @@ type Field struct {
 	NameData *string
 }
 
-func convertField(n *ast.Node) Field {
+func convertField(n *parser.Node) Field {
 	var field Field
 	if len(n.Children()) != 1 {
-		switch n := n.FirstChild; n.Type {
-		case candid.NatT:
+		switch n := n.Children()[0]; n.Name {
+		case candid.Nat.Name:
 			field.Nat = convertNat(n)
-		case candid.TextT, candid.IdT:
-			field.Name = &n.Value
+		case candid.Text.Name, candid.Id.Name:
+			v := n.Value()
+			field.Name = &v
 		default:
 			panic(n)
 		}
 	}
-	switch n := n.LastChild; n.Type {
-	case candid.NatT:
+	switch n := n.Children()[0]; n.Name {
+	case candid.Nat.Name:
 		field.NatData = convertNat(n)
-	case candid.IdT:
-		field.NameData = &n.Value
+	case candid.Id.Name:
+		v := n.Value()
+		field.NameData = &v
 	default:
 		data := convertData(n)
 		field.Data = &data

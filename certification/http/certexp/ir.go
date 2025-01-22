@@ -2,21 +2,20 @@ package certexp
 
 import (
 	"fmt"
-	"github.com/di-wu/parser"
-	"github.com/di-wu/parser/ast"
-	"github.com/di-wu/parser/op"
+
+	"github.com/0x51-dev/upeg/parser"
 )
 
-func parseStringList(n *ast.Node) []string {
-	if n.Type != ListT {
+func parseStringList(n *parser.Node) []string {
+	if n.Name != StringList.Name {
 		return nil
 	}
 	var s []string
 	for _, n := range n.Children() {
-		if n.Type != StringT {
+		if n.Name != String.Name {
 			continue
 		}
-		s = append(s, n.Value)
+		s = append(s, n.Value())
 	}
 	return s
 }
@@ -26,28 +25,27 @@ type CertificateExpression struct {
 }
 
 func ParseCertificateExpression(expression string) (*CertificateExpression, error) {
-	p, err := ast.New([]byte(expression))
+	p, err := parser.New([]rune(expression))
 	if err != nil {
 		return nil, err
 	}
-	n, err := p.Expect(op.And{Value, parser.EOD})
+	n, err := p.ParseEOF(Value)
 	if err != nil {
 		return nil, err
 	}
-	n = n.Children()[0]
-	if n.Type == NoCertificationT {
+	if n.Name == NoCertification.Name {
 		return &CertificateExpression{}, nil
 	}
 	exp := CertificateExpression{
 		Certification: &CertificateExpressionCertification{},
 	}
-	if n := n.Children()[0]; n.Type == RequestCertificationT {
+	if n := n.Children()[0]; n.Name == RequestCertification.Name {
 		exp.Certification.RequestCertification = &CertificateExpressionRequestCertification{
 			CertifiedRequestHeaders:  parseStringList(n.Children()[0]),
 			CertifiedQueryParameters: parseStringList(n.Children()[1]),
 		}
 	}
-	switch t := n.Children()[1].Value; t {
+	switch t := n.Children()[1].Value(); t {
 	case "response_header_exclusions:":
 		exp.Certification.ResponseCertification.ResponseHeaderExclusions = parseStringList(n.Children()[2])
 	case "certified_response_headers:":

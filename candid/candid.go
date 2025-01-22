@@ -9,8 +9,6 @@ import (
 	"github.com/aviate-labs/agent-go/candid/internal/candid"
 	"github.com/aviate-labs/agent-go/candid/internal/candidvalue"
 	"github.com/aviate-labs/agent-go/principal"
-	"github.com/di-wu/parser"
-	"github.com/di-wu/parser/ast"
 )
 
 // DecodeValueString decodes the given value into a candid string.
@@ -47,15 +45,12 @@ func DecodeValuesString(types []idl.Type, values []any) (string, error) {
 
 // EncodeValueString encodes the given candid string into a byte slice.
 func EncodeValueString(value string) ([]byte, error) {
-	p, err := ast.New([]byte(value))
+	p, err := candidvalue.NewParser([]rune(value))
 	if err != nil {
 		return nil, err
 	}
-	n, err := candidvalue.Values(p)
+	n, err := p.ParseEOF(candidvalue.Values)
 	if err != nil {
-		return nil, err
-	}
-	if _, err := p.Expect(parser.EOD); err != nil {
 		return nil, err
 	}
 	types, args, err := did.ConvertValues(n)
@@ -66,16 +61,13 @@ func EncodeValueString(value string) ([]byte, error) {
 }
 
 // ParseDID parses the given raw .did files and returns the Program that is defined in it.
-func ParseDID(raw []byte) (did.Description, error) {
-	p, err := ast.New(raw)
+func ParseDID(raw []rune) (did.Description, error) {
+	p, err := candid.NewParser(raw)
 	if err != nil {
 		return did.Description{}, err
 	}
-	n, err := candid.Prog(p)
+	n, err := p.ParseEOF(candid.Prog)
 	if err != nil {
-		return did.Description{}, err
-	}
-	if _, err := p.Expect(parser.EOD); err != nil {
 		return did.Description{}, err
 	}
 	return did.ConvertDescription(n), nil

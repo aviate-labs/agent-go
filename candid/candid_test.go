@@ -27,7 +27,7 @@ func ExampleEncodeValueString_blob() {
 
 func ExampleParseDID() {
 	raw, _ := os.ReadFile("testdata/counter.did")
-	p, _ := candid.ParseDID(raw)
+	p, _ := candid.ParseDID([]rune(string(raw)))
 	fmt.Println(p)
 	// Output:
 	// service : {
@@ -169,7 +169,7 @@ func TestEncodeValue(t *testing.T) {
 
 func TestParseDID(t *testing.T) {
 	raw, _ := os.ReadFile("internal/candid/testdata/ic.did")
-	if _, err := candid.ParseDID(raw); err != nil {
+	if _, err := candid.ParseDID([]rune(string(raw))); err != nil {
 		t.Error(err)
 	}
 }

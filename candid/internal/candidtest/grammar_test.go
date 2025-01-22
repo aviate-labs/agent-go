@@ -5,17 +5,18 @@ import (
 	"testing"
 
 	"github.com/aviate-labs/agent-go/candid/internal/candidtest"
-	"github.com/di-wu/parser"
-	"github.com/di-wu/parser/ast"
 )
 
 func TestData(t *testing.T) {
-	rawDid, _ := os.ReadFile("../../idl/testdata/prim.test.did")
-	p, _ := ast.New(rawDid)
-	if _, err := candidtest.TestData(p); err != nil {
+	rawDid, err := os.ReadFile("../../idl/testdata/prim.test.did")
+	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := p.Expect(parser.EOD); err != nil {
-		t.Error(err)
+	p, err := candidtest.NewParser([]rune(string(rawDid)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := p.ParseEOF(candidtest.TestData); err != nil {
+		t.Fatal(err)
 	}
 }

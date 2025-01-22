@@ -1,12 +1,9 @@
 package candidvalue_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/aviate-labs/agent-go/candid/internal/candidvalue"
-	"github.com/di-wu/parser"
-	"github.com/di-wu/parser/ast"
 )
 
 func TestValues(t *testing.T) {
@@ -45,16 +42,12 @@ func TestValues(t *testing.T) {
 		"vec{}",
 		"vec{ 0; 1; 2 }",
 	} {
-		p, err := ast.New([]byte(vs))
+		p, err := candidvalue.NewParser([]rune(vs))
 		if err != nil {
 			t.Fatal(err)
 		}
-		if _, err := candidvalue.Values(p); err != nil {
-			fmt.Println(vs)
+		if _, err := p.ParseEOF(candidvalue.Values); err != nil {
 			t.Fatal(err)
-		}
-		if _, err := p.Expect(parser.EOD); err != nil {
-			t.Error(err)
 		}
 	}
 }

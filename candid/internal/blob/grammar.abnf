@@ -1,0 +1,3 @@
+Blob  = 1*(Alpha / "\" Hex)
+Alpha = 1*(%x41-5A / %x61-7A) ; A-Z / a-z
+Hex   = 2*2(%x30-39 / %x41-46 / %x61-66) ; 0-9 / A-F / a-f
