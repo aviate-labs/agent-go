@@ -115,8 +115,9 @@ type Field struct {
 
 func convertField(n *parser.Node) Field {
 	var field Field
-	if len(n.Children()) != 1 {
-		switch n := n.Children()[0]; n.Name {
+	cs := n.Children()
+	if len(cs) != 1 {
+		switch n := cs[0]; n.Name {
 		case candid.Nat.Name:
 			field.Nat = convertNat(n)
 		case candid.Text.Name, candid.Id.Name:
@@ -126,7 +127,7 @@ func convertField(n *parser.Node) Field {
 			panic(n)
 		}
 	}
-	switch n := n.Children()[0]; n.Name {
+	switch n := cs[len(cs)-1]; n.Name {
 	case candid.Nat.Name:
 		field.NatData = convertNat(n)
 	case candid.Id.Name:
