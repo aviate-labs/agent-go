@@ -120,6 +120,58 @@ func TestAgent_Call(t *testing.T) {
 	}
 }
 
+func TestAgent_Query_Callback(t *testing.T) {
+	a, err := agent.New(agent.DefaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ledgerCanisterID := principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+
+	type GetBlocksArgs struct {
+		Start  uint64 `ic:"start" json:"start"`
+		Length uint64 `ic:"length" json:"length"`
+	}
+
+	type QueryArchiveFn struct {
+		/* TODO! */
+	}
+
+	type ArchivedBlocksRange struct {
+		Start    uint64         `ic:"start" json:"start"`
+		Length   uint64         `ic:"length" json:"length"`
+		Callback QueryArchiveFn `ic:"callback" json:"callback"`
+	}
+
+	type QueryBlocksResponse struct {
+		ChainLength     uint64                `ic:"chain_length" json:"chain_length"`
+		Certificate     *[]byte               `ic:"certificate,omitempty" json:"certificate,omitempty"`
+		Blocks          []any                 `ic:"blocks" json:"blocks"`
+		FirstBlockIndex uint64                `ic:"first_block_index" json:"first_block_index"`
+		ArchivedBlocks  []ArchivedBlocksRange `ic:"archived_blocks" json:"archived_blocks"`
+	}
+
+	req, err := a.CreateCandidAPIRequest(
+		agent.RequestTypeQuery,
+		ledgerCanisterID,
+		"query_blocks",
+		GetBlocksArgs{
+			Start:  123,
+			Length: 1,
+		},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out QueryBlocksResponse
+	if err := req.Query([]any{&out}, false); err != nil {
+		t.Error(err)
+	}
+	archive := out.ArchivedBlocks[0]
+	if archive.Start != 123 || archive.Length != 1 {
+		t.Error(archive)
+	}
+}
+
 func TestAgent_Query_Ed25519(t *testing.T) {
 	id, err := identity.NewRandomEd25519Identity()
 	if err != nil {

@@ -7,9 +7,8 @@ import (
 	"testing"
 
 	"github.com/0x51-dev/upeg/parser"
-	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/internal/blob"
-	"github.com/aviate-labs/agent-go/candid/internal/candidtest"
+	"github.com/aviate-labs/agent-go/candid"
+	"github.com/aviate-labs/agent-go/candid/internal/ctest"
 )
 
 func TestTypeDefinitionTable(t *testing.T) {
@@ -17,18 +16,18 @@ func TestTypeDefinitionTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := candidtest.NewParser([]rune(string(rawDid)))
+	p, err := ctest.NewParser([]rune(string(rawDid)))
 	if err != nil {
 		t.Fatal(err)
 	}
-	n, err := p.ParseEOF(candidtest.TestData)
+	n, err := p.ParseEOF(ctest.TestData)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, n := range n.Children() {
 		switch n.Name {
-		case candidtest.CommentText.Name: // ignore
-		case candidtest.Test.Name:
+		case ctest.CommentText.Name: // ignore
+		case ctest.Test.Name:
 			var (
 				in   []byte
 				test *parser.Node
@@ -36,25 +35,25 @@ func TestTypeDefinitionTable(t *testing.T) {
 			)
 			for _, n := range n.Children() {
 				switch n.Name {
-				case candidtest.BlobInput.Name:
+				case ctest.BlobInput.Name:
 					b, err := parseBlob(n)
 					if err != nil {
 						t.Fatal(err)
 					}
 					in = b
-				case candidtest.TestBad.Name,
-					candidtest.TestGood.Name,
-					candidtest.TestTest.Name:
+				case ctest.TestBad.Name,
+					ctest.TestGood.Name,
+					ctest.TestTest.Name:
 					test = n
-				case candidtest.Description.Name:
+				case ctest.Description.Name:
 					desc = n.Value()
 				default:
 					t.Fatal(n)
 				}
 			}
 			switch test.Name {
-			case candidtest.TestBad.Name:
-				ts, as, err := idl.Decode(in)
+			case ctest.TestBad.Name:
+				ts, as, err := candid.Decode(in)
 				if err == nil {
 					t.Errorf("%s: %v, %v", desc, ts, as)
 				}
@@ -66,27 +65,16 @@ func TestTypeDefinitionTable(t *testing.T) {
 }
 
 func parseBlob(n *parser.Node) ([]byte, error) {
-	if n.Name != candidtest.BlobInput.Name {
+	if n.Name != ctest.BlobInput.Name {
 		return nil, fmt.Errorf("invalid type: %s", n.Name)
-	}
-	if len(n.Value()) == 0 {
-		return []byte{}, nil
-	}
-	p, err := parser.New([]rune(n.Value()))
-	if err != nil {
-		return nil, err
-	}
-	b, err := p.ParseEOF(blob.Blob)
-	if err != nil {
-		return nil, err
 	}
 
 	var bs []byte
-	for _, n := range b.Children() {
+	for _, n := range n.Children() {
 		switch n.Name {
-		case blob.Alpha.Name:
+		case ctest.BlobAlpha.Name:
 			bs = append(bs, []byte(n.Value())...)
-		case blob.Hex.Name:
+		case ctest.BlobHex.Name:
 			h, err := hex.DecodeString(n.Value())
 			if err != nil {
 				return nil, err

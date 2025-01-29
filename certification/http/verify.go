@@ -222,7 +222,6 @@ func (a *Agent) verify(req *Request, resp *Response, certificateHeader *Certific
 	if certificateExpression == "" {
 		return fmt.Errorf("no certification expression found")
 	}
-	fmt.Println(certificateExpression)
 	certExpr, err := certexp.ParseCertificateExpression(certificateExpression)
 	if err != nil {
 		return err

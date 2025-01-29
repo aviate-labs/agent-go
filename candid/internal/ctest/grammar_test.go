@@ -1,10 +1,11 @@
-package candidtest_test
+package ctest_test
 
 import (
+	"bytes"
 	"os"
 	"testing"
 
-	"github.com/aviate-labs/agent-go/candid/internal/candidtest"
+	"github.com/aviate-labs/agent-go/candid/internal/ctest"
 )
 
 func TestData(t *testing.T) {
@@ -12,11 +13,11 @@ func TestData(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := candidtest.NewParser([]rune(string(rawDid)))
+	p, err := ctest.NewParser(bytes.Runes(rawDid))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := p.ParseEOF(candidtest.TestData); err != nil {
+	if _, err := p.ParseEOF(ctest.TestData); err != nil {
 		t.Fatal(err)
 	}
 }

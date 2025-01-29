@@ -1,9 +1,9 @@
-package candidvalue_test
+package cvalue_test
 
 import (
 	"testing"
 
-	"github.com/aviate-labs/agent-go/candid/internal/candidvalue"
+	"github.com/aviate-labs/agent-go/candid/internal/cvalue"
 )
 
 func TestValues(t *testing.T) {
@@ -42,11 +42,11 @@ func TestValues(t *testing.T) {
 		"vec{}",
 		"vec{ 0; 1; 2 }",
 	} {
-		p, err := candidvalue.NewParser([]rune(vs))
+		p, err := cvalue.NewParser([]rune(vs))
 		if err != nil {
 			t.Fatal(err)
 		}
-		if _, err := p.ParseEOF(candidvalue.Values); err != nil {
+		if _, err := p.ParseEOF(cvalue.Values); err != nil {
 			t.Fatal(err)
 		}
 	}

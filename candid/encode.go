@@ -1,18 +1,20 @@
-package idl
+package candid
 
 import (
 	"fmt"
-	"github.com/aviate-labs/leb128"
 	"math/big"
+
+	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/aviate-labs/leb128"
 )
 
-func Encode(argumentTypes []Type, arguments []any) ([]byte, error) {
+func Encode(argumentTypes []idl.Type, arguments []any) ([]byte, error) {
 	if len(arguments) < len(argumentTypes) {
 		return nil, fmt.Errorf("invalid number of arguments")
 	}
 
 	// T
-	tdt := &TypeDefinitionTable{
+	tdt := &idl.TypeDefinitionTable{
 		Indexes: make(map[string]int),
 	}
 	for _, t := range argumentTypes {
@@ -68,9 +70,9 @@ func Encode(argumentTypes []Type, arguments []any) ([]byte, error) {
 }
 
 func Marshal(args []any) ([]byte, error) {
-	var types []Type
+	var types []idl.Type
 	for _, a := range args {
-		t, err := TypeOf(a)
+		t, err := idl.TypeOf(a)
 		if err != nil {
 			return nil, err
 		}

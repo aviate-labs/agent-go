@@ -28,7 +28,7 @@ func encodeTypes(ts []Type, tdt *TypeDefinitionTable) ([]byte, error) {
 
 type FunctionParameter struct {
 	Type  Type
-	index int64
+	Index int64
 }
 
 type FunctionType struct {
@@ -57,7 +57,7 @@ func (f FunctionType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 		}
 	}
 
-	id, err := leb128.EncodeSigned(big.NewInt(funcType))
+	id, err := leb128.EncodeSigned(FuncOpCode.BigInt())
 	if err != nil {
 		return err
 	}
@@ -145,7 +145,7 @@ func (f FunctionType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 func (f FunctionType) EncodeValue(v any) ([]byte, error) {
 	pm, ok := v.(PrincipalMethod)
 	if !ok {
-		return nil, NewEncodeValueError(v, funcType)
+		return nil, NewEncodeValueError(v, FuncOpCode)
 	}
 	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(pm.Principal.Raw))))
 	if err != nil {

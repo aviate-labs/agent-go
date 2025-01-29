@@ -1,50 +1,17 @@
-package idl
+package candid
 
 import (
 	"bytes"
 	"fmt"
 	"reflect"
 
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/leb128"
 )
 
-func Unmarshal(data []byte, values []any) error {
-	ts, vs, err := Decode(data)
-	if err != nil {
-		return err
-	}
-	if len(ts) != len(vs) {
-		return fmt.Errorf("unequal data types and value lengths: %d %d", len(ts), len(vs))
-	}
-
-	if len(vs) != len(values) {
-		return fmt.Errorf("unequal value lengths: %d %d", len(vs), len(values))
-	}
-
-	for i, v := range values {
-		if err := ts[i].UnmarshalGo(vs[i], v); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func checkIsPtr(_v any) (reflect.Value, bool) {
-	v := reflect.ValueOf(_v)
-	if v.Kind() != reflect.Ptr {
-		return v, false
-	}
-	v = v.Elem()
-	if v.Kind() == reflect.Interface {
-		v = v.Elem()
-	}
-	return v, true
-}
-
-func Decode(bs []byte) ([]Type, []any, error) {
+func Decode(bs []byte) ([]idl.Type, []any, error) {
 	if len(bs) == 0 {
-		return nil, nil, &FormatError{
+		return nil, nil, &idl.FormatError{
 			Description: "empty",
 		}
 	}
@@ -58,18 +25,18 @@ func Decode(bs []byte) ([]Type, []any, error) {
 			return nil, nil, err
 		}
 		if n < 4 {
-			return nil, nil, &FormatError{
+			return nil, nil, &idl.FormatError{
 				Description: "no magic bytes",
 			}
 		}
 		if !bytes.Equal(magic, []byte{'D', 'I', 'D', 'L'}) {
-			return nil, nil, &FormatError{
+			return nil, nil, &idl.FormatError{
 				Description: "wrong magic bytes",
 			}
 		}
 	}
 
-	var tds []Type
+	var tds []idl.Type
 	{ // T
 		tdtl, err := leb128.DecodeUnsigned(r)
 		if err != nil {
@@ -82,18 +49,19 @@ func Decode(bs []byte) ([]Type, []any, error) {
 			if err != nil {
 				return nil, nil, err
 			}
-			switch tid.Int64() {
-			case optType:
+			switch o := idl.OpCode(tid.Int64()); o {
+			case idl.OptOpCode:
 				tid, err := leb128.DecodeSigned(r)
 				if err != nil {
 					return nil, nil, err
 				}
-				f := func(tdt []Type) (Type, error) {
-					v, err := getType(tid.Int64(), tdt)
+				o := idl.OpCode(tid.Int64())
+				f := func(tdt []idl.Type) (idl.Type, error) {
+					v, err := o.GetType(tdt)
 					if err != nil {
 						return nil, err
 					}
-					return &OptionalType{v}, nil
+					return &idl.OptionalType{Type: v}, nil
 				}
 				if v, err := f(tds); err == nil {
 					tds = append(tds, v)
@@ -104,17 +72,18 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					})
 					tds = append(tds, nil)
 				}
-			case vecType:
+			case idl.VecOpCode:
 				tid, err := leb128.DecodeSigned(r)
 				if err != nil {
 					return nil, nil, err
 				}
-				f := func(tdt []Type) (Type, error) {
-					v, err := getType(tid.Int64(), tdt)
+				o := idl.OpCode(tid.Int64())
+				f := func(tdt []idl.Type) (idl.Type, error) {
+					v, err := o.GetType(tdt)
 					if err != nil {
 						return nil, err
 					}
-					return &VectorType{v}, nil
+					return &idl.VectorType{Type: v}, nil
 				}
 				if v, err := f(tds); err == nil {
 					tds = append(tds, v)
@@ -125,12 +94,12 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					})
 					tds = append(tds, nil)
 				}
-			case recType:
+			case idl.RecOpCode:
 				l, err := leb128.DecodeUnsigned(r)
 				if err != nil {
 					return nil, nil, err
 				}
-				var fields []FieldType
+				var fields []idl.FieldType
 				for i := 0; i < int(l.Int64()); i++ {
 					h, err := leb128.DecodeUnsigned(r)
 					if err != nil {
@@ -140,25 +109,25 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					if err != nil {
 						return nil, nil, err
 					}
-					if v, err := getType(tid.Int64(), tds); err != nil {
-						fields = append(fields, FieldType{
+					if v, err := o.GetType(tds); err != nil {
+						fields = append(fields, idl.FieldType{
 							Name:  h.String(),
-							index: tid.Int64(),
+							Index: tid.Int64(),
 						})
 					} else {
-						fields = append(fields, FieldType{
+						fields = append(fields, idl.FieldType{
 							Name: h.String(),
 							Type: v,
 						})
 					}
 				}
-				tds = append(tds, &RecordType{Fields: fields})
-			case varType:
+				tds = append(tds, &idl.RecordType{Fields: fields})
+			case idl.VarOpCode:
 				l, err := leb128.DecodeUnsigned(r)
 				if err != nil {
 					return nil, nil, err
 				}
-				var fields []FieldType
+				var fields []idl.FieldType
 				for i := 0; i < int(l.Int64()); i++ {
 					h, err := leb128.DecodeUnsigned(r)
 					if err != nil {
@@ -168,36 +137,38 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					if err != nil {
 						return nil, nil, err
 					}
-					if v, err := getType(tid.Int64(), tds); err != nil {
-						fields = append(fields, FieldType{
+					o := idl.OpCode(tid.Int64())
+					if v, err := o.GetType(tds); err != nil {
+						fields = append(fields, idl.FieldType{
 							Name:  h.String(),
-							index: tid.Int64(),
+							Index: tid.Int64(),
 						})
 					} else {
-						fields = append(fields, FieldType{
+						fields = append(fields, idl.FieldType{
 							Name: h.String(),
 							Type: v,
 						})
 					}
 				}
-				tds = append(tds, &VariantType{Fields: fields})
-			case funcType:
+				tds = append(tds, &idl.VariantType{Fields: fields})
+			case idl.FuncOpCode:
 				la, err := leb128.DecodeUnsigned(r)
 				if err != nil {
 					return nil, nil, err
 				}
-				var args []FunctionParameter
+				var args []idl.FunctionParameter
 				for i := 0; i < int(la.Int64()); i++ {
 					tid, err = leb128.DecodeSigned(r)
 					if err != nil {
 						return nil, nil, err
 					}
-					if v, err := getType(tid.Int64(), tds); err != nil {
-						args = append(args, FunctionParameter{
-							index: tid.Int64(),
+					o := idl.OpCode(tid.Int64())
+					if v, err := o.GetType(tds); err != nil {
+						args = append(args, idl.FunctionParameter{
+							Index: tid.Int64(),
 						})
 					} else {
-						args = append(args, FunctionParameter{
+						args = append(args, idl.FunctionParameter{
 							Type: v,
 						})
 					}
@@ -206,18 +177,19 @@ func Decode(bs []byte) ([]Type, []any, error) {
 				if err != nil {
 					return nil, nil, err
 				}
-				var rets []FunctionParameter
+				var rets []idl.FunctionParameter
 				for i := 0; i < int(lr.Int64()); i++ {
 					tid, err = leb128.DecodeSigned(r)
 					if err != nil {
 						return nil, nil, err
 					}
-					if v, err := getType(tid.Int64(), tds); err != nil {
-						rets = append(rets, FunctionParameter{
-							index: tid.Int64(),
+					o := idl.OpCode(tid.Int64())
+					if v, err := o.GetType(tds); err != nil {
+						rets = append(rets, idl.FunctionParameter{
+							Index: tid.Int64(),
 						})
 					} else {
-						rets = append(rets, FunctionParameter{
+						rets = append(rets, idl.FunctionParameter{
 							Type: v,
 						})
 					}
@@ -234,17 +206,17 @@ func Decode(bs []byte) ([]Type, []any, error) {
 				if len(ann) != 0 {
 					anns = append(anns, string(ann))
 				}
-				tds = append(tds, &FunctionType{
+				tds = append(tds, &idl.FunctionType{
 					ArgumentParameters: args,
 					ReturnParameters:   rets,
 					Annotations:        anns,
 				})
-			case serviceType:
+			case idl.ServiceOpCode:
 				l, err := leb128.DecodeUnsigned(r)
 				if err != nil {
 					return nil, nil, err
 				}
-				var methods []Method
+				var methods []idl.Method
 				for i := 0; i < int(l.Int64()); i++ {
 					lm, err := leb128.DecodeUnsigned(r)
 					if err != nil {
@@ -263,21 +235,22 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					if err != nil {
 						return nil, nil, err
 					}
-					v, err := getType(tid.Int64(), tds)
+					o := idl.OpCode(tid.Int64())
+					v, err := o.GetType(tds)
 					if err != nil {
 						return nil, nil, err
 					}
-					f, ok := v.(*FunctionType)
+					f, ok := v.(*idl.FunctionType)
 					if !ok {
 						return nil, nil, fmt.Errorf("invalid method type: %s", reflect.TypeOf(v))
 					}
-					methods = append(methods, Method{
+					methods = append(methods, idl.Method{
 						Name: string(name),
 						Func: f,
 					})
 				}
-				tds = append(tds, &Service{
-					methods: methods,
+				tds = append(tds, &idl.Service{
+					Methods: methods,
 				})
 			}
 		}
@@ -299,7 +272,7 @@ func Decode(bs []byte) ([]Type, []any, error) {
 
 		for i, tb := range tds {
 			switch t := tb.(type) {
-			case *VariantType:
+			case *idl.VariantType:
 				resolved := true
 				for _, f := range t.Fields {
 					if f.Type == nil {
@@ -310,12 +283,13 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					continue
 				}
 
-				f := func(tds []Type) (Type, error) {
+				f := func(tds []idl.Type) (idl.Type, error) {
 					for i, f := range t.Fields {
 						if f.Type != nil {
 							continue
 						}
-						v, err := getType(f.index, tds)
+						o := idl.OpCode(f.Index)
+						v, err := o.GetType(tds)
 						if err != nil {
 							return nil, err
 						}
@@ -329,7 +303,7 @@ func Decode(bs []byte) ([]Type, []any, error) {
 						f:     f,
 					})
 				}
-			case *RecordType:
+			case *idl.RecordType:
 				resolved := true
 				for _, f := range t.Fields {
 					if f.Type == nil {
@@ -340,12 +314,13 @@ func Decode(bs []byte) ([]Type, []any, error) {
 					continue
 				}
 
-				f := func(tds []Type) (Type, error) {
+				f := func(tds []idl.Type) (idl.Type, error) {
 					for i, f := range t.Fields {
 						if f.Type != nil {
 							continue
 						}
-						v, err := getType(f.index, tds)
+						o := idl.OpCode(f.Index)
+						v, err := o.GetType(tds)
 						if err != nil {
 							return nil, err
 						}
@@ -359,7 +334,7 @@ func Decode(bs []byte) ([]Type, []any, error) {
 						f:     f,
 					})
 				}
-			case *FunctionType:
+			case *idl.FunctionType:
 				resolved := true
 				for _, f := range t.ArgumentParameters {
 					if f.Type == nil {
@@ -374,12 +349,13 @@ func Decode(bs []byte) ([]Type, []any, error) {
 				if resolved {
 					continue
 				}
-				f := func(tds []Type) (Type, error) {
+				f := func(tds []idl.Type) (idl.Type, error) {
 					for i, f := range t.ArgumentParameters {
 						if f.Type != nil {
 							continue
 						}
-						v, err := getType(f.index, tds)
+						o := idl.OpCode(f.Index)
+						v, err := o.GetType(tds)
 						if err != nil {
 							return nil, err
 						}
@@ -389,7 +365,8 @@ func Decode(bs []byte) ([]Type, []any, error) {
 						if f.Type != nil {
 							continue
 						}
-						v, err := getType(f.index, tds)
+						o := idl.OpCode(f.Index)
+						v, err := o.GetType(tds)
 						if err != nil {
 							return nil, err
 						}
@@ -412,14 +389,15 @@ func Decode(bs []byte) ([]Type, []any, error) {
 		return nil, nil, err
 	}
 
-	var ts []Type
+	var ts []idl.Type
 	{ // I
 		for i := 0; i < int(tsl.Int64()); i++ {
 			tid, err := leb128.DecodeSigned(r)
 			if err != nil {
 				return nil, nil, err
 			}
-			t, err := getType(tid.Int64(), tds)
+			o := idl.OpCode(tid.Int64())
+			t, err := o.GetType(tds)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -444,11 +422,33 @@ func Decode(bs []byte) ([]Type, []any, error) {
 	return ts, vs, nil
 }
 
+func Unmarshal(data []byte, values []any) error {
+	ts, vs, err := Decode(data)
+	if err != nil {
+		return err
+	}
+	if len(ts) != len(vs) {
+		return fmt.Errorf("unequal data types and value lengths: %d %d", len(ts), len(vs))
+	}
+
+	if len(vs) != len(values) {
+		return fmt.Errorf("unequal value lengths: %d %d", len(vs), len(values))
+	}
+
+	for i, v := range values {
+		if err := ts[i].UnmarshalGo(vs[i], v); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 type delayType struct {
 	// index is the index of the type in the type list.
 	index int
 	// f is a function that takes the type list and returns the resolved type.
-	f func(tdt []Type) (Type, error)
+	f func(tdt []idl.Type) (idl.Type, error)
 }
 
 // typeCache is a cache of types that are not yet fully decoded.

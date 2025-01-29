@@ -38,14 +38,14 @@ func (TextType) Decode(r *bytes.Reader) (any, error) {
 
 // EncodeType encodes the type into a byte slice.
 func (TextType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
-	return leb128.EncodeSigned(big.NewInt(textType))
+	return leb128.EncodeSigned(TextOpCode.BigInt())
 }
 
 // EncodeValue encodes the value into a byte slice.
 func (TextType) EncodeValue(v any) ([]byte, error) {
 	v_, ok := v.(string)
 	if !ok {
-		return nil, NewEncodeValueError(v, textType)
+		return nil, NewEncodeValueError(v, TextOpCode)
 	}
 	bs, err := leb128.EncodeUnsigned(big.NewInt(int64(len(v_))))
 	if err != nil {

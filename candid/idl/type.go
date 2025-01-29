@@ -3,77 +3,141 @@ package idl
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 )
+
+type OpCode int64
 
 var (
-	nullType      int64 = -1  // 0x7f
-	boolType      int64 = -2  // 0x7e
-	natType       int64 = -3  // 0x7d
-	intType       int64 = -4  // 0x7c
-	natXType      int64 = -5  // 0x7b-0x78
-	intXType      int64 = -9  // 0x77-0x73
-	floatXType    int64 = -13 // 0x72
-	textType      int64 = -15 // 0x71
-	reservedType  int64 = -16 // 0x70
-	emptyType     int64 = -17 // 0x6f
-	optType       int64 = -18 // 0x6e
-	vecType       int64 = -19 // 0x6d
-	recType       int64 = -20 // 0x6c
-	varType       int64 = -21 // 0x6b
-	funcType      int64 = -22 // 0x6a
-	serviceType   int64 = -23 // 0x69
-	principalType int64 = -24 // 0x68
+	NullOpCode      OpCode = -1  // 0x7f
+	BoolOpCode      OpCode = -2  // 0x7e
+	NatOpCode       OpCode = -3  // 0x7d
+	IntOpCode       OpCode = -4  // 0x7c
+	NatXOpCode      OpCode = -5  // 0x7b-0x78
+	IntXOpCode      OpCode = -9  // 0x77-0x73
+	FloatXOpCode    OpCode = -13 // 0x72
+	TextOpCode      OpCode = -15 // 0x71
+	ReservedOpCode  OpCode = -16 // 0x70
+	EmptyOpCode     OpCode = -17 // 0x6f
+	OptOpCode       OpCode = -18 // 0x6e
+	VecOpCode       OpCode = -19 // 0x6d
+	RecOpCode       OpCode = -20 // 0x6c
+	VarOpCode       OpCode = -21 // 0x6b
+	FuncOpCode      OpCode = -22 // 0x6a
+	ServiceOpCode   OpCode = -23 // 0x69
+	PrincipalOpCode OpCode = -24 // 0x68
 )
 
-func idlString(typ int64) string {
-	switch typ {
-	case nullType:
+func (o OpCode) BigInt() *big.Int {
+	return big.NewInt(int64(o))
+}
+
+func (o OpCode) GetType(tds []Type) (Type, error) {
+	if o >= 0 {
+		if int(o) >= len(tds) || tds[o] == nil {
+			return nil, fmt.Errorf("type index out of range: %d", o)
+		}
+		return tds[o], nil
+	}
+
+	switch o {
+	case NullOpCode:
+		return new(NullType), nil
+	case BoolOpCode:
+		return new(BoolType), nil
+	case NatOpCode:
+		return new(NatType), nil
+	case IntOpCode:
+		return new(IntType), nil
+	case NatXOpCode:
+		return Nat8Type(), nil
+	case NatXOpCode - 1:
+		return Nat16Type(), nil
+	case NatXOpCode - 2:
+		return Nat32Type(), nil
+	case NatXOpCode - 3:
+		return Nat64Type(), nil
+	case IntXOpCode:
+		return Int8Type(), nil
+	case IntXOpCode - 1:
+		return Int16Type(), nil
+	case IntXOpCode - 2:
+		return Int32Type(), nil
+	case IntXOpCode - 3:
+		return Int64Type(), nil
+	case FloatXOpCode:
+		return Float32Type(), nil
+	case FloatXOpCode - 1:
+		return Float64Type(), nil
+	case TextOpCode:
+		return new(TextType), nil
+	case ReservedOpCode:
+		return new(ReservedType), nil
+	case EmptyOpCode:
+		return new(EmptyType), nil
+	case PrincipalOpCode:
+		return new(PrincipalType), nil
+	default:
+		if o < -24 {
+			return nil, &FormatError{
+				Description: "type: out of range",
+			}
+		}
+		return nil, &FormatError{
+			Description: "type: not primitive",
+		}
+	}
+}
+
+func (o OpCode) String() string {
+	switch o {
+	case NullOpCode:
 		return "null"
-	case boolType:
+	case BoolOpCode:
 		return "bool"
-	case natType:
+	case NatOpCode:
 		return "nat"
-	case intType:
+	case IntOpCode:
 		return "int"
-	case natXType:
+	case NatXOpCode:
 		return "nat8"
-	case natXType - 1:
+	case NatXOpCode - 1:
 		return "nat16"
-	case natXType - 2:
+	case NatXOpCode - 2:
 		return "nat32"
-	case natXType - 3:
+	case NatXOpCode - 3:
 		return "nat64"
-	case intXType:
+	case IntXOpCode:
 		return "int8"
-	case intXType - 1:
+	case IntXOpCode - 1:
 		return "int16"
-	case intXType - 2:
+	case IntXOpCode - 2:
 		return "int32"
-	case intXType - 3:
+	case IntXOpCode - 3:
 		return "int64"
-	case floatXType:
+	case FloatXOpCode:
 		return "float32"
-	case floatXType - 1:
+	case FloatXOpCode - 1:
 		return "float64"
-	case textType:
+	case TextOpCode:
 		return "text"
-	case reservedType:
+	case ReservedOpCode:
 		return "reserved"
-	case emptyType:
+	case EmptyOpCode:
 		return "empty"
-	case optType:
+	case OptOpCode:
 		return "opt"
-	case vecType:
+	case VecOpCode:
 		return "vec"
-	case recType:
+	case RecOpCode:
 		return "rec"
-	case varType:
+	case VecOpCode:
 		return "var"
-	case funcType:
+	case FuncOpCode:
 		return "func"
-	case serviceType:
+	case ServiceOpCode:
 		return "service"
-	case principalType:
+	case PrincipalOpCode:
 		return "principal"
 	default:
 		return "unknown"
@@ -101,63 +165,6 @@ type Type interface {
 	UnmarshalGo(raw any, v any) error
 
 	fmt.Stringer
-}
-
-func getType(t int64, tds []Type) (Type, error) {
-	if t >= 0 {
-		if int(t) >= len(tds) || tds[t] == nil {
-			return nil, fmt.Errorf("type index out of range: %d", t)
-		}
-		return tds[t], nil
-	}
-
-	switch t {
-	case nullType:
-		return new(NullType), nil
-	case boolType:
-		return new(BoolType), nil
-	case natType:
-		return new(NatType), nil
-	case intType:
-		return new(IntType), nil
-	case natXType:
-		return Nat8Type(), nil
-	case natXType - 1:
-		return Nat16Type(), nil
-	case natXType - 2:
-		return Nat32Type(), nil
-	case natXType - 3:
-		return Nat64Type(), nil
-	case intXType:
-		return Int8Type(), nil
-	case intXType - 1:
-		return Int16Type(), nil
-	case intXType - 2:
-		return Int32Type(), nil
-	case intXType - 3:
-		return Int64Type(), nil
-	case floatXType:
-		return Float32Type(), nil
-	case floatXType - 1:
-		return Float64Type(), nil
-	case textType:
-		return new(TextType), nil
-	case reservedType:
-		return new(ReservedType), nil
-	case emptyType:
-		return new(EmptyType), nil
-	case principalType:
-		return new(PrincipalType), nil
-	default:
-		if t < -24 {
-			return nil, &FormatError{
-				Description: "type: out of range",
-			}
-		}
-		return nil, &FormatError{
-			Description: "type: not primitive",
-		}
-	}
 }
 
 type primType struct{}

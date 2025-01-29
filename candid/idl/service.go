@@ -17,40 +17,40 @@ type Method struct {
 }
 
 type Service struct {
-	methods []Method
+	Methods []Method
 }
 
 func NewServiceType(methods map[string]*FunctionType) *Service {
 	var service Service
 	for k, v := range methods {
-		service.methods = append(service.methods, Method{
+		service.Methods = append(service.Methods, Method{
 			Name: k,
 			Func: v,
 		})
 	}
-	sort.Slice(service.methods, func(i, j int) bool {
-		return Hash(service.methods[i].Name).Cmp(Hash(service.methods[j].Name)) < 0
+	sort.Slice(service.Methods, func(i, j int) bool {
+		return Hash(service.Methods[i].Name).Cmp(Hash(service.Methods[j].Name)) < 0
 	})
 	return &service
 }
 
 func (s Service) AddTypeDefinition(tdt *TypeDefinitionTable) error {
-	for _, f := range s.methods {
+	for _, f := range s.Methods {
 		if err := f.Func.AddTypeDefinition(tdt); err != nil {
 			return err
 		}
 	}
 
-	id, err := leb128.EncodeSigned(big.NewInt(serviceType))
+	id, err := leb128.EncodeSigned(ServiceOpCode.BigInt())
 	if err != nil {
 		return err
 	}
-	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(s.methods))))
+	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(s.Methods))))
 	if err != nil {
 		return err
 	}
 	var vs []byte
-	for _, f := range s.methods {
+	for _, f := range s.Methods {
 		id := []byte(f.Name)
 		l, err := leb128.EncodeUnsigned(big.NewInt(int64(len((id)))))
 		if err != nil {
@@ -104,7 +104,7 @@ func (s Service) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 func (s Service) EncodeValue(v any) ([]byte, error) {
 	p, ok := v.(principal.Principal)
 	if !ok {
-		return nil, NewEncodeValueError(v, serviceType)
+		return nil, NewEncodeValueError(v, ServiceOpCode)
 	}
 	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(p.Raw))))
 	if err != nil {
@@ -115,7 +115,7 @@ func (s Service) EncodeValue(v any) ([]byte, error) {
 
 func (s Service) String() string {
 	var methods []string
-	for _, m := range s.methods {
+	for _, m := range s.Methods {
 		methods = append(methods, fmt.Sprintf("%s:%s", m.Name, m.Func.String()))
 	}
 	return fmt.Sprintf("service {%s}", strings.Join(methods, "; "))

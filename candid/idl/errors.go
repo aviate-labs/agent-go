@@ -1,8 +1,6 @@
 package idl
 
-import (
-	"fmt"
-)
+import "fmt"
 
 type DecodeError struct {
 	Types       TupleType
@@ -14,19 +12,19 @@ func (e DecodeError) Error() string {
 }
 
 type EncodeValueError struct {
-	Expected int64
+	Expected OpCode
 	Value    any
 }
 
-func NewEncodeValueError(v any, e int64) *EncodeValueError {
+func NewEncodeValueError(v any, o OpCode) *EncodeValueError {
 	return &EncodeValueError{
-		Expected: e,
+		Expected: o,
 		Value:    v,
 	}
 }
 
 func (e EncodeValueError) Error() string {
-	return fmt.Sprintf("invalid type %v (%T), expected type %s", e.Value, e.Value, idlString(e.Expected))
+	return fmt.Sprintf("invalid type %v (%T), expected type %s", e.Value, e.Value, e.Expected)
 }
 
 type FormatError struct {

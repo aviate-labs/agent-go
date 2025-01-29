@@ -1,5 +1,7 @@
+; Entry Point
 TestData = 1*(Comment / Test / EndLine)
 
+; Comments
 Comment      = ("/*" Ws MultiComment Ws "*/") 
              / ("//" [CommentText]) EndLine
 CommentText  = *(%x00-09 / %x0B-0C / %x0E-D7FF / %xE000-10FFFF)
@@ -8,11 +10,17 @@ MultiComment  = *(%x00-29 / %x2B-10FFFF / (%x2A (%x00-2E / %x30-10FFFF)) / EndLi
 Ws      = *(" " / %x09 / EndLine)
 EndLine = %x0A / %x0D / (%x0D %x0A)
 
-Test         = "assert " Input Ws (TestGoodTmpl / TestBadTmpl / TestTest) [" " Description] ";"
+Test         = "assert " Input Ws (TestGoodTmpl / TestBadTmpl / TestTest) [1*" " Description] ";"
+
+; A Candid service description, with valid candid syntax. Implementations should be able to parse them.
 TestGoodTmpl = ":" Ws TestGood
 TestGood     = ValuesBr
+
+; A Candid service description, with invalid candid syntax. Implementations should reject parsing them.
 TestBadTmpl  = "!:" Ws TestBad
 TestBad      = ValuesBr
+
+; A set of Candid tests, written in a grammar that extends the Candid type and value grammar.
 TestTest     = "==" Ws Input Ws ":" Ws ValuesBr
 ValuesBr     = "()" / "(" Values *(", " Values) ")"
 Values       = Null / Bool / Nat / Int / Float / Text / Reserved / Empty / Opt
@@ -31,38 +39,20 @@ Opt      = "opt " Values
 Input         = BlobInputTmpl / TextInputTmpl
 TextInputTmpl = %x22 TextInput %x22
 TextInput     = String
+
 BlobInputTmpl = "blob " %x22 BlobInput %x22
-BlobInput     = String
+BlobInput     = *(BlobAlpha / "\" BlobHex)
+BlobAlpha = 1*(%x41-5A / %x61-7A) ; A-Z / a-z
+BlobHex   = 2*2(%x30-39 / %x41-46 / %x61-66) ; 0-9 / A-F / a-f
 
 Description = %x22 String %x22 ; "
 
 String = *Char
 
-Char    = Utf
-        / ESC 2*2hex
-        / ESC escape
-        / "\u{" HexNum "}"
-HexNum  = hex *(["_"] hex)
+Char          = EscapedDQuote / UChar
+UChar         = %x20-21 / %x23-10FFFF  ; Any Unicode character except DQUOTE (")
+EscapedDQuote = %x5C %x22
 
-Utf       = ascii / UtfEnc
-UtfEnc    = %xC2-DF utfcont
-          / %xE0 %xA0-BF utfcont
-          / %xED %x80-9F utfcont
-          / %xE1-EC 2*2utfcont
-          / %xEE-EF 2*2utfcont
-          / %xF0 %x90-BF 2*2utfcont
-          / %xF4 %x80-8F 2*2utfcont
-          / %xF1-F3 3*3utfcont
-utfcont   = %x80-BF
-
-ascii    = %x20-21 / %x23-5B / %x5D-7E
-escape   = "n" / "r" / "t"
-          / ESC
-          / %x22 ; "
-          / %x27 ; '
-
-letter  = %x41-5A / %x61-7A ; A-Z / a-z
 digit   = %x30-39 ; 0-9
 hex     = digit / %x41-46 / %x61-66 ; A-F / a-f
 
-ESC  = %x5C ; \

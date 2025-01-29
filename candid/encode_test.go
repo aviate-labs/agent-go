@@ -1,13 +1,15 @@
-package idl
+package candid
 
 import (
 	"testing"
+
+	"github.com/aviate-labs/agent-go/candid/idl"
 )
 
 func TestEncode_issue7(t *testing.T) {
 	type ConsumerPermissionEnum = struct {
-		ReadOnly     *Null `ic:"ReadOnly,variant"`
-		ReadAndWrite *Null `ic:"ReadAndWrite,variant"`
+		ReadOnly     *idl.Null `ic:"ReadOnly,variant"`
+		ReadAndWrite *idl.Null `ic:"ReadAndWrite,variant"`
 	}
 
 	type SecretConsumer = struct {
@@ -19,7 +21,7 @@ func TestEncode_issue7(t *testing.T) {
 		[]SecretConsumer{
 			{
 				Name:           "test",
-				PermissionType: ConsumerPermissionEnum{ReadAndWrite: new(Null)},
+				PermissionType: ConsumerPermissionEnum{ReadAndWrite: new(idl.Null)},
 			},
 		},
 	})
@@ -34,8 +36,8 @@ func TestEncode_issue7(t *testing.T) {
 
 func TestVariantType_default(t *testing.T) {
 	type V = struct {
-		A *Null `ic:"A,variant"`
-		B *Null `ic:"B,variant"`
+		A *idl.Null `ic:"A,variant"`
+		B *idl.Null `ic:"B,variant"`
 	}
 	raw, err := Marshal([]any{
 		V{},
