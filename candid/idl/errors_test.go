@@ -6,7 +6,7 @@ import (
 
 func ExampleEncodeValueError() {
 	fmt.Println(EncodeValueError{
-		Expected: boolType,
+		Expected: BoolOpCode,
 		Value:    0,
 	}.Error())
 	// Output:

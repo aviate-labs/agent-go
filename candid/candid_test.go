@@ -182,12 +182,12 @@ func TestRecordSubtyping(t *testing.T) {
 	}
 	ONE := idl.NewNat(uint(1))
 	t.Run("missing field", func(t *testing.T) {
-		encoded, err := idl.Marshal([]any{T_{X: ONE, Y: &ONE}})
+		encoded, err := candid.Marshal([]any{T_{X: ONE, Y: &ONE}})
 		if err != nil {
 			t.Fatal(err)
 		}
 		var value T
-		if err := idl.Unmarshal(encoded, []any{&value}); err != nil {
+		if err := candid.Unmarshal(encoded, []any{&value}); err != nil {
 			t.Fatal(err)
 		}
 		if value.X.BigInt().Int64() != 1 {
@@ -195,12 +195,12 @@ func TestRecordSubtyping(t *testing.T) {
 		}
 	})
 	t.Run("extra field", func(t *testing.T) {
-		encoded, err := idl.Marshal([]any{T{X: ONE}})
+		encoded, err := candid.Marshal([]any{T{X: ONE}})
 		if err != nil {
 			t.Fatal(err)
 		}
 		var value T_
-		if err := idl.Unmarshal(encoded, []any{&value}); err != nil {
+		if err := candid.Unmarshal(encoded, []any{&value}); err != nil {
 			t.Fatal(err)
 		}
 		if value.X.BigInt().Int64() != 1 {

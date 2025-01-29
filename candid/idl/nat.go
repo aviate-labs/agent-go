@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/aviate-labs/leb128"
 	"math/big"
+
+	"github.com/aviate-labs/leb128"
 )
 
 func anyToUint16(v any) (uint16, bool) {
@@ -233,14 +234,14 @@ func (n NatType) Decode(r *bytes.Reader) (any, error) {
 // EncodeType returns the leb128 encoding of the NatType.
 func (n NatType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 	if n.size == 0 {
-		return leb128.EncodeSigned(big.NewInt(natType))
+		return leb128.EncodeSigned(NatOpCode.BigInt())
 	}
-	natXType := new(big.Int).Set(big.NewInt(natXType))
-	natXType = natXType.Add(
-		natXType,
+	natXOptCode := NatXOpCode.BigInt()
+	natXOptCode = natXOptCode.Add(
+		natXOptCode,
 		big.NewInt(3-int64(log2(n.size*8))),
 	)
-	return leb128.EncodeSigned(natXType)
+	return leb128.EncodeSigned(natXOptCode)
 }
 
 // EncodeValue encodes an nat value.
@@ -287,7 +288,7 @@ func (n NatType) EncodeValue(v any) ([]byte, error) {
 		}
 		return []byte{v}, nil
 	default:
-		return nil, NewEncodeValueError(v, natType)
+		return nil, NewEncodeValueError(v, NatOpCode)
 	}
 }
 

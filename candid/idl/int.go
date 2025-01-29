@@ -251,14 +251,14 @@ func (n IntType) Decode(r *bytes.Reader) (any, error) {
 // EncodeType returns the leb128 encoding of the IntType.
 func (n IntType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 	if n.size == 0 {
-		return leb128.EncodeSigned(big.NewInt(intType))
+		return leb128.EncodeSigned(IntOpCode.BigInt())
 	}
-	intXType := new(big.Int).Set(big.NewInt(intXType))
-	intXType = intXType.Add(
-		intXType,
+	intXOptCode := IntXOpCode.BigInt()
+	intXOptCode = intXOptCode.Add(
+		intXOptCode,
 		big.NewInt(3-int64(log2(n.size*8))),
 	)
-	return leb128.EncodeSigned(intXType)
+	return leb128.EncodeSigned(intXOptCode)
 }
 
 // EncodeValue encodes an int value.
@@ -296,7 +296,7 @@ func (n IntType) EncodeValue(v any) ([]byte, error) {
 		}
 		return writeInt(big.NewInt(int64(v)), 1), nil
 	default:
-		return nil, NewEncodeValueError(v, intType)
+		return nil, NewEncodeValueError(v, IntOpCode)
 	}
 }
 

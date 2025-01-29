@@ -7,12 +7,12 @@ import (
 
 	"github.com/0x51-dev/upeg/parser"
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/internal/candidvalue"
+	"github.com/aviate-labs/agent-go/candid/internal/cvalue"
 )
 
 func ConvertValues(n *parser.Node) ([]idl.Type, []any, error) {
 	switch n.Name {
-	case candidvalue.BoolValue.Name:
+	case cvalue.BoolValue.Name:
 		switch n.Value() {
 		case "true":
 			return []idl.Type{new(idl.BoolType)}, []any{true}, nil
@@ -21,21 +21,21 @@ func ConvertValues(n *parser.Node) ([]idl.Type, []any, error) {
 		default:
 			panic(n)
 		}
-	case candidvalue.Null.Name:
+	case cvalue.Null.Name:
 		return []idl.Type{new(idl.NullType)}, []any{nil}, nil
-	case candidvalue.Num.Name:
+	case cvalue.Num.Name:
 		typ, arg, err := convertNum(n)
 		if err != nil {
 			return nil, nil, err
 		}
 		return []idl.Type{typ}, []any{arg}, nil
-	case candidvalue.OptValue.Name:
+	case cvalue.OptValue.Name:
 		types, args, err := ConvertValues(n.Children()[0])
 		if err != nil {
 			return nil, nil, err
 		}
 		return []idl.Type{idl.NewOptionalType(types[0])}, []any{args[0]}, nil
-	case candidvalue.Record.Name:
+	case cvalue.Record.Name:
 		if len(n.Children()) == 0 {
 			return []idl.Type{idl.NewRecordType(nil)}, []any{nil}, nil
 		}
@@ -52,11 +52,11 @@ func ConvertValues(n *parser.Node) ([]idl.Type, []any, error) {
 			args[id] = arg[0]
 		}
 		return []idl.Type{idl.NewRecordType(types)}, []any{args}, nil
-	case candidvalue.Text.Name:
+	case cvalue.Text.Name:
 		n := n.Children()[0]
 		s := strings.TrimPrefix(strings.TrimSuffix(n.Value(), "\""), "\"")
 		return []idl.Type{new(idl.TextType)}, []any{s}, nil
-	case candidvalue.Values.Name:
+	case cvalue.Values.Name:
 		var (
 			types []idl.Type
 			args  []any
@@ -70,7 +70,7 @@ func ConvertValues(n *parser.Node) ([]idl.Type, []any, error) {
 			args = append(args, arg...)
 		}
 		return types, args, nil
-	case candidvalue.Variant.Name:
+	case cvalue.Variant.Name:
 		n := n.Children()
 		id := n[0].Value()
 		switch len(n) {
@@ -89,7 +89,7 @@ func ConvertValues(n *parser.Node) ([]idl.Type, []any, error) {
 		default:
 			panic(n)
 		}
-	case candidvalue.Vec.Name:
+	case cvalue.Vec.Name:
 		n := n.Children()
 		if len(n) == 0 {
 			return []idl.Type{idl.NewVectorType(new(idl.NullType))}, []any{[]any{}}, nil
@@ -105,7 +105,7 @@ func ConvertValues(n *parser.Node) ([]idl.Type, []any, error) {
 			args = append(args, arg[0])
 		}
 		return []idl.Type{idl.NewVectorType(types)}, []any{args}, nil
-	case candidvalue.Blob.Name:
+	case cvalue.Blob.Name:
 		rawBlob := strings.TrimPrefix(strings.TrimSuffix(n.Value(), "\""), "blob \"")
 		var blob []any
 		for _, c := range rawBlob {

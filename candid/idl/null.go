@@ -2,9 +2,9 @@ package idl
 
 import (
 	"bytes"
-	"github.com/aviate-labs/leb128"
-	"math/big"
 	"reflect"
+
+	"github.com/aviate-labs/leb128"
 )
 
 type Null struct{}
@@ -18,12 +18,12 @@ func (NullType) Decode(_ *bytes.Reader) (any, error) {
 }
 
 func (NullType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
-	return leb128.EncodeSigned(big.NewInt(nullType))
+	return leb128.EncodeSigned(NullOpCode.BigInt())
 }
 
 func (NullType) EncodeValue(v any) ([]byte, error) {
 	if _, ok := v.(Null); !ok && v != nil {
-		return nil, NewEncodeValueError(v, nullType)
+		return nil, NewEncodeValueError(v, NullOpCode)
 	}
 	return []byte{}, nil
 }

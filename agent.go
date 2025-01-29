@@ -11,7 +11,7 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/aviate-labs/agent-go/candid"
 	"github.com/aviate-labs/agent-go/certification"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
@@ -218,10 +218,10 @@ func (a Agent) Client() *Client {
 
 // CreateCandidAPIRequest creates a new api request to the given canister and method.
 func (a *Agent) CreateCandidAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, args ...any) (*CandidAPIRequest, error) {
-	return createAPIRequest[[]any, []any](
+	return createAPIRequest(
 		a,
-		idl.Marshal,
-		idl.Unmarshal,
+		candid.Marshal,
+		candid.Unmarshal,
 		typ,
 		canisterID,
 		effectiveCanisterID(canisterID, args),
@@ -232,7 +232,7 @@ func (a *Agent) CreateCandidAPIRequest(typ RequestType, canisterID principal.Pri
 
 // CreateProtoAPIRequest creates a new api request to the given canister and method.
 func (a *Agent) CreateProtoAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, message proto.Message) (*ProtoAPIRequest, error) {
-	return createAPIRequest[proto.Message, proto.Message](
+	return createAPIRequest(
 		a,
 		func(m proto.Message) ([]byte, error) {
 			raw, err := proto.Marshal(m)

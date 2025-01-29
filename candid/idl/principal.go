@@ -36,13 +36,13 @@ func (PrincipalType) Decode(r *bytes.Reader) (any, error) {
 }
 
 func (PrincipalType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
-	return leb128.EncodeSigned(big.NewInt(principalType))
+	return leb128.EncodeSigned(PrincipalOpCode.BigInt())
 }
 
 func (PrincipalType) EncodeValue(v any) ([]byte, error) {
 	v_, ok := v.(principal.Principal)
 	if !ok {
-		return nil, NewEncodeValueError(v, principalType)
+		return nil, NewEncodeValueError(v, PrincipalOpCode)
 	}
 	l, err := leb128.EncodeUnsigned(big.NewInt(int64(len(v_.Raw))))
 	if err != nil {

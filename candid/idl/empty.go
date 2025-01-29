@@ -3,7 +3,6 @@ package idl
 import (
 	"bytes"
 	"fmt"
-	"math/big"
 
 	"github.com/aviate-labs/leb128"
 )
@@ -23,7 +22,7 @@ func (EmptyType) Decode(*bytes.Reader) (any, error) {
 
 // EncodeType returns the leb128 encoding of the empty type.
 func (EmptyType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
-	return leb128.EncodeSigned(big.NewInt(emptyType))
+	return leb128.EncodeSigned(EmptyOpCode.BigInt())
 }
 
 // EncodeValue returns an empty byte slice.

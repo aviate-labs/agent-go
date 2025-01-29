@@ -852,12 +852,48 @@ var file_subnet_proto_rawDesc = []byte{
 	0x72, 0x6f, 0x74, 0x6f, 0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
+func file_subnet_proto_init() {
+	if File_subnet_proto != nil {
+		return
+	}
+	file_subnet_proto_msgTypes[0].OneofWrappers = []any{}
+	file_subnet_proto_msgTypes[25].OneofWrappers = []any{}
+	file_subnet_proto_msgTypes[26].OneofWrappers = []any{}
+	file_subnet_proto_msgTypes[28].OneofWrappers = []any{
+		(*MasterPublicKeyId_Ecdsa)(nil),
+		(*MasterPublicKeyId_Schnorr)(nil),
+	}
+	file_subnet_proto_msgTypes[29].OneofWrappers = []any{}
+	file_subnet_proto_msgTypes[30].OneofWrappers = []any{}
+	type x struct{}
+	out := protoimpl.TypeBuilder{
+		File: protoimpl.DescBuilder{
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: file_subnet_proto_rawDesc,
+			NumEnums:      6,
+			NumMessages:   31,
+			NumExtensions: 0,
+			NumServices:   0,
+		},
+		GoTypes:           file_subnet_proto_goTypes,
+		DependencyIndexes: file_subnet_proto_depIdxs,
+		EnumInfos:         file_subnet_proto_enumTypes,
+		MessageInfos:      file_subnet_proto_msgTypes,
+	}.Build()
+	File_subnet_proto = out.File
+	file_subnet_proto_rawDesc = nil
+	file_subnet_proto_goTypes = nil
+	file_subnet_proto_depIdxs = nil
+}
+
 func file_subnet_proto_rawDescGZIP() []byte {
 	file_subnet_proto_rawDescOnce.Do(func() {
 		file_subnet_proto_rawDescData = protoimpl.X.CompressGZIP(file_subnet_proto_rawDescData)
 	})
 	return file_subnet_proto_rawDescData
 }
+
+func init() { file_subnet_proto_init() }
 
 // An algorithm ID. This is used to specify the signature algorithm associated with a public key.
 type AlgorithmId int32
@@ -3291,9 +3327,7 @@ func (x *VerifiedIDkgDealing) GetSupportTuples() []*SignatureTuple {
 	}
 	return nil
 }
-
 func (*VerifiedIDkgDealing) ProtoMessage() {}
-
 func (x *VerifiedIDkgDealing) ProtoReflect() protoreflect.Message {
 	mi := &file_subnet_proto_msgTypes[11]
 	if x != nil {
@@ -3311,44 +3345,10 @@ func (x *VerifiedIDkgDealing) Reset() {
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
+
 func (x *VerifiedIDkgDealing) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 type isMasterPublicKeyId_KeyId interface {
 	isMasterPublicKeyId_KeyId()
-}
-
-func init() { file_subnet_proto_init() }
-func file_subnet_proto_init() {
-	if File_subnet_proto != nil {
-		return
-	}
-	file_subnet_proto_msgTypes[0].OneofWrappers = []any{}
-	file_subnet_proto_msgTypes[25].OneofWrappers = []any{}
-	file_subnet_proto_msgTypes[26].OneofWrappers = []any{}
-	file_subnet_proto_msgTypes[28].OneofWrappers = []any{
-		(*MasterPublicKeyId_Ecdsa)(nil),
-		(*MasterPublicKeyId_Schnorr)(nil),
-	}
-	file_subnet_proto_msgTypes[29].OneofWrappers = []any{}
-	file_subnet_proto_msgTypes[30].OneofWrappers = []any{}
-	type x struct{}
-	out := protoimpl.TypeBuilder{
-		File: protoimpl.DescBuilder{
-			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_subnet_proto_rawDesc,
-			NumEnums:      6,
-			NumMessages:   31,
-			NumExtensions: 0,
-			NumServices:   0,
-		},
-		GoTypes:           file_subnet_proto_goTypes,
-		DependencyIndexes: file_subnet_proto_depIdxs,
-		EnumInfos:         file_subnet_proto_enumTypes,
-		MessageInfos:      file_subnet_proto_msgTypes,
-	}.Build()
-	File_subnet_proto = out.File
-	file_subnet_proto_rawDesc = nil
-	file_subnet_proto_goTypes = nil
-	file_subnet_proto_depIdxs = nil
 }
