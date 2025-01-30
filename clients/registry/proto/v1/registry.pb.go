@@ -70,12 +70,38 @@ var file_registry_proto_rawDesc = []byte{
 	0x6f, 0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
+func file_registry_proto_init() {
+	if File_registry_proto != nil {
+		return
+	}
+	type x struct{}
+	out := protoimpl.TypeBuilder{
+		File: protoimpl.DescBuilder{
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: file_registry_proto_rawDesc,
+			NumEnums:      0,
+			NumMessages:   2,
+			NumExtensions: 0,
+			NumServices:   0,
+		},
+		GoTypes:           file_registry_proto_goTypes,
+		DependencyIndexes: file_registry_proto_depIdxs,
+		MessageInfos:      file_registry_proto_msgTypes,
+	}.Build()
+	File_registry_proto = out.File
+	file_registry_proto_rawDesc = nil
+	file_registry_proto_goTypes = nil
+	file_registry_proto_depIdxs = nil
+}
+
 func file_registry_proto_rawDescGZIP() []byte {
 	file_registry_proto_rawDescOnce.Do(func() {
 		file_registry_proto_rawDescData = protoimpl.X.CompressGZIP(file_registry_proto_rawDescData)
 	})
 	return file_registry_proto_rawDescData
 }
+
+func init() { file_registry_proto_init() }
 
 type ProtoRegistry struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -155,9 +181,7 @@ func (x *ProtoRegistryRecord) GetVersion() uint64 {
 	}
 	return 0
 }
-
 func (*ProtoRegistryRecord) ProtoMessage() {}
-
 func (x *ProtoRegistryRecord) ProtoReflect() protoreflect.Message {
 	mi := &file_registry_proto_msgTypes[1]
 	if x != nil {
@@ -169,6 +193,7 @@ func (x *ProtoRegistryRecord) ProtoReflect() protoreflect.Message {
 	}
 	return mi.MessageOf(x)
 }
+
 func (x *ProtoRegistryRecord) Reset() {
 	*x = ProtoRegistryRecord{}
 	mi := &file_registry_proto_msgTypes[1]
@@ -177,29 +202,4 @@ func (x *ProtoRegistryRecord) Reset() {
 }
 func (x *ProtoRegistryRecord) String() string {
 	return protoimpl.X.MessageStringOf(x)
-}
-
-func init() { file_registry_proto_init() }
-func file_registry_proto_init() {
-	if File_registry_proto != nil {
-		return
-	}
-	type x struct{}
-	out := protoimpl.TypeBuilder{
-		File: protoimpl.DescBuilder{
-			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_registry_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   2,
-			NumExtensions: 0,
-			NumServices:   0,
-		},
-		GoTypes:           file_registry_proto_goTypes,
-		DependencyIndexes: file_registry_proto_depIdxs,
-		MessageInfos:      file_registry_proto_msgTypes,
-	}.Build()
-	File_registry_proto = out.File
-	file_registry_proto_rawDesc = nil
-	file_registry_proto_goTypes = nil
-	file_registry_proto_depIdxs = nil
 }

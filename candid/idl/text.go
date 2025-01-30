@@ -30,9 +30,8 @@ func (TextType) Decode(r *bytes.Reader) (any, error) {
 		return nil, io.EOF
 	}
 	if !utf8.Valid(bs) {
-		return nil, fmt.Errorf("invalid utf8 text")
+		return nil, fmt.Errorf("invalid utf8 text: %s", string(bs))
 	}
-
 	return string(bs), nil
 }
 

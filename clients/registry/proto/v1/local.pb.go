@@ -105,12 +105,39 @@ var file_local_proto_rawDesc = []byte{
 	0x74, 0x6f, 0x2f, 0x76, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
+func file_local_proto_init() {
+	if File_local_proto != nil {
+		return
+	}
+	type x struct{}
+	out := protoimpl.TypeBuilder{
+		File: protoimpl.DescBuilder{
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: file_local_proto_rawDesc,
+			NumEnums:      1,
+			NumMessages:   4,
+			NumExtensions: 0,
+			NumServices:   0,
+		},
+		GoTypes:           file_local_proto_goTypes,
+		DependencyIndexes: file_local_proto_depIdxs,
+		EnumInfos:         file_local_proto_enumTypes,
+		MessageInfos:      file_local_proto_msgTypes,
+	}.Build()
+	File_local_proto = out.File
+	file_local_proto_rawDesc = nil
+	file_local_proto_goTypes = nil
+	file_local_proto_depIdxs = nil
+}
+
 func file_local_proto_rawDescGZIP() []byte {
 	file_local_proto_rawDescOnce.Do(func() {
 		file_local_proto_rawDescData = protoimpl.X.CompressGZIP(file_local_proto_rawDescData)
 	})
 	return file_local_proto_rawDescData
 }
+
+func init() { file_local_proto_init() }
 
 // The time when the last certified update was successfully received.
 type CertifiedTime struct {
@@ -336,7 +363,6 @@ const (
 func (MutationType) Descriptor() protoreflect.EnumDescriptor {
 	return file_local_proto_enumTypes[0].Descriptor()
 }
-
 func (x MutationType) Enum() *MutationType {
 	p := new(MutationType)
 	*p = x
@@ -350,35 +376,10 @@ func (MutationType) EnumDescriptor() ([]byte, []int) {
 func (x MutationType) Number() protoreflect.EnumNumber {
 	return protoreflect.EnumNumber(x)
 }
+
 func (x MutationType) String() string {
 	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
 }
 func (MutationType) Type() protoreflect.EnumType {
 	return &file_local_proto_enumTypes[0]
-}
-
-func init() { file_local_proto_init() }
-func file_local_proto_init() {
-	if File_local_proto != nil {
-		return
-	}
-	type x struct{}
-	out := protoimpl.TypeBuilder{
-		File: protoimpl.DescBuilder{
-			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_local_proto_rawDesc,
-			NumEnums:      1,
-			NumMessages:   4,
-			NumExtensions: 0,
-			NumServices:   0,
-		},
-		GoTypes:           file_local_proto_goTypes,
-		DependencyIndexes: file_local_proto_depIdxs,
-		EnumInfos:         file_local_proto_enumTypes,
-		MessageInfos:      file_local_proto_msgTypes,
-	}.Build()
-	File_local_proto = out.File
-	file_local_proto_rawDesc = nil
-	file_local_proto_goTypes = nil
-	file_local_proto_depIdxs = nil
 }

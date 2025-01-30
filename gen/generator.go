@@ -9,7 +9,6 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/aviate-labs/agent-go/candid"
 	"github.com/aviate-labs/agent-go/candid/did"
 )
 
@@ -81,7 +80,7 @@ type Generator struct {
 
 // NewGenerator creates a new generator for the given service description.
 func NewGenerator(agentName, canisterName, packageName string, rawDID []rune) (*Generator, error) {
-	desc, err := candid.ParseDID(rawDID)
+	desc, err := did.ParseDID(rawDID)
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +88,7 @@ func NewGenerator(agentName, canisterName, packageName string, rawDID []rune) (*
 		AgentName:          agentName,
 		CanisterName:       canisterName,
 		PackageName:        packageName,
-		ServiceDescription: desc,
+		ServiceDescription: *desc,
 	}, nil
 }
 
