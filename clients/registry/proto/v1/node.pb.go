@@ -142,6 +142,8 @@ func file_node_proto_rawDescGZIP() []byte {
 	return file_node_proto_rawDescData
 }
 
+func init() { file_node_proto_init() }
+
 // A connection endpoint.
 type ConnectionEndpoint struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
@@ -337,7 +339,6 @@ func (x *NodeRecord) GetXnet() *ConnectionEndpoint {
 	}
 	return nil
 }
-
 func (*NodeRecord) ProtoMessage() {}
 func (x *NodeRecord) ProtoReflect() protoreflect.Message {
 	mi := &file_node_proto_msgTypes[2]
@@ -350,14 +351,13 @@ func (x *NodeRecord) ProtoReflect() protoreflect.Message {
 	}
 	return mi.MessageOf(x)
 }
+
 func (x *NodeRecord) Reset() {
 	*x = NodeRecord{}
 	mi := &file_node_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
-
 func (x *NodeRecord) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
-func init() { file_node_proto_init() }

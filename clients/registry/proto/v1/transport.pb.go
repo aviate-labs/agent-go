@@ -300,12 +300,46 @@ var file_transport_proto_rawDesc = []byte{
 	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
+func file_transport_proto_init() {
+	if File_transport_proto != nil {
+		return
+	}
+	file_transport_proto_msgTypes[12].OneofWrappers = []any{
+		(*MixedHashTree_Empty)(nil),
+		(*MixedHashTree_Fork_)(nil),
+		(*MixedHashTree_Labeled_)(nil),
+		(*MixedHashTree_LeafData)(nil),
+		(*MixedHashTree_PrunedDigest)(nil),
+	}
+	type x struct{}
+	out := protoimpl.TypeBuilder{
+		File: protoimpl.DescBuilder{
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: file_transport_proto_rawDesc,
+			NumEnums:      2,
+			NumMessages:   16,
+			NumExtensions: 0,
+			NumServices:   0,
+		},
+		GoTypes:           file_transport_proto_goTypes,
+		DependencyIndexes: file_transport_proto_depIdxs,
+		EnumInfos:         file_transport_proto_enumTypes,
+		MessageInfos:      file_transport_proto_msgTypes,
+	}.Build()
+	File_transport_proto = out.File
+	file_transport_proto_rawDesc = nil
+	file_transport_proto_goTypes = nil
+	file_transport_proto_depIdxs = nil
+}
+
 func file_transport_proto_rawDescGZIP() []byte {
 	file_transport_proto_rawDescOnce.Do(func() {
 		file_transport_proto_rawDescData = protoimpl.X.CompressGZIP(file_transport_proto_rawDescData)
 	})
 	return file_transport_proto_rawDescData
 }
+
+func init() { file_transport_proto_init() }
 
 // Message encoding a response to any *_certified method call.
 type CertifiedResponse struct {
@@ -1382,9 +1416,7 @@ func (x *RegistryValue) GetVersion() uint64 {
 	}
 	return 0
 }
-
 func (*RegistryValue) ProtoMessage() {}
-
 func (x *RegistryValue) ProtoReflect() protoreflect.Message {
 	mi := &file_transport_proto_msgTypes[1]
 	if x != nil {
@@ -1402,42 +1434,11 @@ func (x *RegistryValue) Reset() {
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
+
 func (x *RegistryValue) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
-func init() { file_transport_proto_init() }
 
-func file_transport_proto_init() {
-	if File_transport_proto != nil {
-		return
-	}
-	file_transport_proto_msgTypes[12].OneofWrappers = []any{
-		(*MixedHashTree_Empty)(nil),
-		(*MixedHashTree_Fork_)(nil),
-		(*MixedHashTree_Labeled_)(nil),
-		(*MixedHashTree_LeafData)(nil),
-		(*MixedHashTree_PrunedDigest)(nil),
-	}
-	type x struct{}
-	out := protoimpl.TypeBuilder{
-		File: protoimpl.DescBuilder{
-			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_transport_proto_rawDesc,
-			NumEnums:      2,
-			NumMessages:   16,
-			NumExtensions: 0,
-			NumServices:   0,
-		},
-		GoTypes:           file_transport_proto_goTypes,
-		DependencyIndexes: file_transport_proto_depIdxs,
-		EnumInfos:         file_transport_proto_enumTypes,
-		MessageInfos:      file_transport_proto_msgTypes,
-	}.Build()
-	File_transport_proto = out.File
-	file_transport_proto_rawDesc = nil
-	file_transport_proto_goTypes = nil
-	file_transport_proto_depIdxs = nil
-}
 type isMixedHashTree_TreeEnum interface {
 	isMixedHashTree_TreeEnum()
 }

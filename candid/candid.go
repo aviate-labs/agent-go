@@ -6,7 +6,6 @@ import (
 
 	"github.com/aviate-labs/agent-go/candid/did"
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/internal/candid"
 	"github.com/aviate-labs/agent-go/candid/internal/cvalue"
 	"github.com/aviate-labs/agent-go/principal"
 )
@@ -58,19 +57,6 @@ func EncodeValueString(value string) ([]byte, error) {
 		return nil, err
 	}
 	return Encode(types, args)
-}
-
-// ParseDID parses the given raw .did files and returns the Program that is defined in it.
-func ParseDID(raw []rune) (did.Description, error) {
-	p, err := candid.NewParser(raw)
-	if err != nil {
-		return did.Description{}, err
-	}
-	n, err := p.ParseEOF(candid.Prog)
-	if err != nil {
-		return did.Description{}, err
-	}
-	return did.ConvertDescription(n), nil
 }
 
 func valueToString(typ idl.Type, value any) (string, error) {

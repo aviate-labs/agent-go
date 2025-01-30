@@ -28,7 +28,7 @@ func encodeTypes(ts []Type, tdt *TypeDefinitionTable) ([]byte, error) {
 
 type FunctionParameter struct {
 	Type  Type
-	Index int64
+	Index OpCode
 }
 
 type FunctionType struct {

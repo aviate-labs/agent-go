@@ -164,7 +164,7 @@ func TestAgent_Query_Callback(t *testing.T) {
 	}
 	var out QueryBlocksResponse
 	if err := req.Query([]any{&out}, false); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 	archive := out.ArchivedBlocks[0]
 	if archive.Start != 123 || archive.Length != 1 {

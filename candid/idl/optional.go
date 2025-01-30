@@ -55,7 +55,7 @@ func (o OptionalType) Decode(r *bytes.Reader) (any, error) {
 	case 0x01:
 		return o.Type.Decode(r)
 	default:
-		return nil, fmt.Errorf("invalid option value")
+		return nil, fmt.Errorf("invalid option value: %x", l)
 	}
 }
 
