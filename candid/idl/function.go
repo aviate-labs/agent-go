@@ -26,6 +26,11 @@ func encodeTypes(ts []Type, tdt *TypeDefinitionTable) ([]byte, error) {
 	return concat(l, vs), nil
 }
 
+type Function struct {
+	Types  FunctionType
+	Method PrincipalMethod
+}
+
 type FunctionParameter struct {
 	Type  Type
 	Index OpCode
@@ -120,7 +125,7 @@ func (f FunctionType) Decode(r *bytes.Reader) (any, error) {
 	}
 	m := make([]byte, ml.Int64())
 	{
-		n, err := r.Read(pid)
+		n, err := r.Read(m)
 		if err != nil {
 			return nil, err
 		}
@@ -143,7 +148,7 @@ func (f FunctionType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 }
 
 func (f FunctionType) EncodeValue(v any) ([]byte, error) {
-	pm, ok := v.(PrincipalMethod)
+	pm, ok := v.(*PrincipalMethod)
 	if !ok {
 		return nil, NewEncodeValueError(v, FuncOpCode)
 	}
@@ -174,8 +179,18 @@ func (f FunctionType) String() string {
 	return fmt.Sprintf("(%s) -> (%s)%s", strings.Join(args, ", "), strings.Join(rets, ", "), ann)
 }
 
-func (FunctionType) UnmarshalGo(raw any, _v any) error {
-	return nil // Unsupported.
+func (f FunctionType) UnmarshalGo(raw any, _v any) error {
+	pm, ok := raw.(*PrincipalMethod)
+	if !ok {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	v, ok := _v.(*Function)
+	if !ok {
+		return NewUnmarshalGoError(raw, _v)
+	}
+	v.Types = f
+	v.Method = *pm
+	return nil
 }
 
 type PrincipalMethod struct {

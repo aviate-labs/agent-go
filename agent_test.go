@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
@@ -60,7 +61,7 @@ func Example_json() {
 
 func Example_query_ed25519() {
 	id, _ := identity.NewRandomEd25519Identity()
-	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+	ledgerID := principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	a, _ := agent.New(agent.Config{Identity: id})
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
@@ -75,7 +76,7 @@ func Example_query_ed25519() {
 
 func Example_query_prime256v1() {
 	id, _ := identity.NewRandomPrime256v1Identity()
-	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+	ledgerID := principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	a, _ := agent.New(agent.Config{Identity: id})
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
@@ -90,7 +91,7 @@ func Example_query_prime256v1() {
 
 func Example_query_secp256k1() {
 	id, _ := identity.NewRandomSecp256k1Identity()
-	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+	ledgerID := principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	a, _ := agent.New(agent.Config{Identity: id})
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
@@ -117,58 +118,6 @@ func TestAgent_Call(t *testing.T) {
 			subnetID := principal.Principal{Raw: []byte(path[1])}
 			_ = subnetID
 		}
-	}
-}
-
-func TestAgent_Query_Callback(t *testing.T) {
-	a, err := agent.New(agent.DefaultConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ledgerCanisterID := principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
-
-	type GetBlocksArgs struct {
-		Start  uint64 `ic:"start" json:"start"`
-		Length uint64 `ic:"length" json:"length"`
-	}
-
-	type QueryArchiveFn struct {
-		/* TODO! */
-	}
-
-	type ArchivedBlocksRange struct {
-		Start    uint64         `ic:"start" json:"start"`
-		Length   uint64         `ic:"length" json:"length"`
-		Callback QueryArchiveFn `ic:"callback" json:"callback"`
-	}
-
-	type QueryBlocksResponse struct {
-		ChainLength     uint64                `ic:"chain_length" json:"chain_length"`
-		Certificate     *[]byte               `ic:"certificate,omitempty" json:"certificate,omitempty"`
-		Blocks          []any                 `ic:"blocks" json:"blocks"`
-		FirstBlockIndex uint64                `ic:"first_block_index" json:"first_block_index"`
-		ArchivedBlocks  []ArchivedBlocksRange `ic:"archived_blocks" json:"archived_blocks"`
-	}
-
-	req, err := a.CreateCandidAPIRequest(
-		agent.RequestTypeQuery,
-		ledgerCanisterID,
-		"query_blocks",
-		GetBlocksArgs{
-			Start:  123,
-			Length: 1,
-		},
-	)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var out QueryBlocksResponse
-	if err := req.Query([]any{&out}, false); err != nil {
-		t.Fatal(err)
-	}
-	archive := out.ArchivedBlocks[0]
-	if archive.Start != 123 || archive.Length != 1 {
-		t.Error(archive)
 	}
 }
 
@@ -211,6 +160,144 @@ func TestAgent_Query_Secp256k1(t *testing.T) {
 		Account{"9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d"},
 	}, []any{&balance}); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestAgent_Query_callback(t *testing.T) {
+	a, err := agent.New(agent.DefaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ledgerCanisterID := principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+
+	type GetBlocksArgs struct {
+		Start  uint64 `ic:"start" json:"start"`
+		Length uint64 `ic:"length" json:"length"`
+	}
+
+	type ArchivedBlocksRange struct {
+		Start    uint64       `ic:"start" json:"start"`
+		Length   uint64       `ic:"length" json:"length"`
+		Callback idl.Function `ic:"callback" json:"callback"`
+	}
+
+	type QueryBlocksResponse struct {
+		ChainLength     uint64                `ic:"chain_length" json:"chain_length"`
+		Certificate     *[]byte               `ic:"certificate,omitempty" json:"certificate,omitempty"`
+		Blocks          []any                 `ic:"blocks" json:"blocks"`
+		FirstBlockIndex uint64                `ic:"first_block_index" json:"first_block_index"`
+		ArchivedBlocks  []ArchivedBlocksRange `ic:"archived_blocks" json:"archived_blocks"`
+	}
+
+	args := GetBlocksArgs{
+		Start:  123,
+		Length: 1,
+	}
+	req, err := a.CreateCandidAPIRequest(
+		agent.RequestTypeQuery,
+		ledgerCanisterID,
+		"query_blocks",
+		args,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out QueryBlocksResponse
+	if err := req.Query([]any{&out}, false); err != nil {
+		t.Fatal(err)
+	}
+	archive := out.ArchivedBlocks[0]
+	if archive.Start != 123 || archive.Length != 1 {
+		t.Error(archive)
+	}
+	if !archive.Callback.Method.Principal.Equal(principal.MustDecode("qjdve-lqaaa-aaaaa-aaaeq-cai")) {
+		t.Error(archive.Callback.Method.Principal)
+	}
+	if archive.Callback.Method.Method != "get_blocks" {
+		t.Error(archive.Callback.Method.Method)
+	}
+
+	type Timestamp struct {
+		TimestampNanos uint64 `ic:"timestamp_nanos" json:"timestamp_nanos"`
+	}
+
+	type Tokens struct {
+		E8s uint64 `ic:"e8s" json:"e8s"`
+	}
+
+	type Operation struct {
+		Mint *struct {
+			To     []byte `ic:"to" json:"to"`
+			Amount Tokens `ic:"amount" json:"amount"`
+		} `ic:"Mint,variant"`
+		Burn *struct {
+			From    []byte  `ic:"from" json:"from"`
+			Spender *[]byte `ic:"spender,omitempty" json:"spender,omitempty"`
+			Amount  Tokens  `ic:"amount" json:"amount"`
+		} `ic:"Burn,variant"`
+		Transfer *struct {
+			From    []byte   `ic:"from" json:"from"`
+			To      []byte   `ic:"to" json:"to"`
+			Amount  Tokens   `ic:"amount" json:"amount"`
+			Fee     Tokens   `ic:"fee" json:"fee"`
+			Spender *[]uint8 `ic:"spender,omitempty" json:"spender,omitempty"`
+		} `ic:"Transfer,variant"`
+		Approve *struct {
+			From              []byte     `ic:"from" json:"from"`
+			Spender           []byte     `ic:"spender" json:"spender"`
+			AllowanceE8s      idl.Int    `ic:"allowance_e8s" json:"allowance_e8s"`
+			Allowance         Tokens     `ic:"allowance" json:"allowance"`
+			Fee               Tokens     `ic:"fee" json:"fee"`
+			ExpiresAt         *Timestamp `ic:"expires_at,omitempty" json:"expires_at,omitempty"`
+			ExpectedAllowance *Tokens    `ic:"expected_allowance,omitempty" json:"expected_allowance,omitempty"`
+		} `ic:"Approve,variant"`
+	}
+
+	type Transaction struct {
+		Memo          uint64     `ic:"memo" json:"memo"`
+		Icrc1Memo     *[]byte    `ic:"icrc1_memo,omitempty" json:"icrc1_memo,omitempty"`
+		Operation     *Operation `ic:"operation,omitempty" json:"operation,omitempty"`
+		CreatedAtTime Timestamp  `ic:"created_at_time" json:"created_at_time"`
+	}
+
+	type Block struct {
+		ParentHash  *[]byte     `ic:"parent_hash,omitempty" json:"parent_hash,omitempty"`
+		Transaction Transaction `ic:"transaction" json:"transaction"`
+		Timestamp   Timestamp   `ic:"timestamp" json:"timestamp"`
+	}
+
+	type BlockRange struct {
+		Blocks []Block `ic:"blocks" json:"blocks"`
+	}
+
+	type GetBlocksError struct {
+		BadFirstBlockIndex *struct {
+			RequestedIndex  uint64 `ic:"requested_index" json:"requested_index"`
+			FirstValidIndex uint64 `ic:"first_valid_index" json:"first_valid_index"`
+		} `ic:"BadFirstBlockIndex,variant"`
+		Other *struct {
+			ErrorCode    uint64 `ic:"error_code" json:"error_code"`
+			ErrorMessage string `ic:"error_message" json:"error_message"`
+		} `ic:"Other,variant"`
+	}
+
+	type GetBlocksResult struct {
+		Ok  *BlockRange     `ic:"Ok,variant"`
+		Err *GetBlocksError `ic:"Err,variant"`
+	}
+
+	var blocks GetBlocksResult
+	if err := a.Query(
+		archive.Callback.Method.Principal,
+		archive.Callback.Method.Method,
+		[]any{args},
+		[]any{&blocks},
+	); err != nil {
+		t.Error(err)
+	}
+
+	if len(blocks.Ok.Blocks) != 1 {
+		t.Error(blocks)
 	}
 }
 

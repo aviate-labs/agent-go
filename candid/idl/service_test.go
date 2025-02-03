@@ -6,7 +6,7 @@ import (
 )
 
 func ExampleService() {
-	p, _ := principal.Decode("w7x7r-cok77-xa")
+	p := principal.MustDecode("w7x7r-cok77-xa")
 	test(
 		[]idl.Type{idl.NewServiceType(
 			map[string]*idl.FunctionType{

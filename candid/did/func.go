@@ -86,6 +86,10 @@ const (
 	// it does not alter the state of its canister, and that it can be invoked
 	// using the cheaper “query call” mechanism.
 	AnnQuery FuncAnnotation = "query"
+	// AnnCompositeQuery is a special query function that has IC-specific
+	// features (and limitations). Eventually, query and composite_query
+	// functions will become the same thing.
+	AnnCompositeQuery FuncAnnotation = "composite_query"
 )
 
 // Tuple represents one or more arguments.
