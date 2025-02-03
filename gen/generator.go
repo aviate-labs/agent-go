@@ -180,7 +180,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 	case did.DataId:
 		return funcName(prefix, string(t))
 	case did.Func:
-		return "struct { /* NOT SUPPORTED */ }"
+		return "idl.Function"
 	case did.Optional:
 		return fmt.Sprintf("*%s", g.dataToString(prefix, t.Data))
 	case did.Primitive:

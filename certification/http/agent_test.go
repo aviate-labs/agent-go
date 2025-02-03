@@ -11,7 +11,7 @@ import (
 )
 
 func TestAgent_HttpRequest(t *testing.T) {
-	canisterId, _ := principal.Decode("rdmx6-jaaaa-aaaaa-aaadq-cai")
+	canisterId := principal.MustDecode("rdmx6-jaaaa-aaaaa-aaadq-cai")
 	a, err := http.NewAgent(canisterId, agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)
@@ -73,7 +73,7 @@ func TestCalculateRequestHash(t *testing.T) {
 }
 
 func TestResponse_Verify_V1(t *testing.T) {
-	canisterId, _ := principal.Decode("rdmx6-jaaaa-aaaaa-aaadq-cai")
+	canisterId := principal.MustDecode("rdmx6-jaaaa-aaaaa-aaadq-cai")
 	a, err := http.NewAgent(canisterId, agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)
@@ -97,7 +97,7 @@ func TestResponse_Verify_V1(t *testing.T) {
 }
 
 func TestResponse_Verify_V2(t *testing.T) {
-	canisterId, _ := principal.Decode("rdmx6-jaaaa-aaaaa-aaadq-cai")
+	canisterId := principal.MustDecode("rdmx6-jaaaa-aaaaa-aaadq-cai")
 	a, err := http.NewAgent(canisterId, agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)

@@ -13,7 +13,7 @@ import (
 var LEDGER_PRINCIPAL = principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 
 func ExampleDecode() {
-	p, _ := principal.Decode("em77e-bvlzu-aq")
+	p := principal.MustDecode("em77e-bvlzu-aq")
 	fmt.Printf("%x", p.Raw)
 	// Output:
 	// abcd01

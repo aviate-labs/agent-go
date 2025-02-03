@@ -6,7 +6,6 @@ import (
 )
 
 func ExampleFunctionType() {
-	p, _ := principal.Decode("w7x7r-cok77-xa")
 	test_(
 		[]idl.Type{
 			idl.NewFunctionType(
@@ -16,8 +15,8 @@ func ExampleFunctionType() {
 			),
 		},
 		[]any{
-			idl.PrincipalMethod{
-				Principal: p,
+			&idl.PrincipalMethod{
+				Principal: principal.MustDecode("w7x7r-cok77-xa"),
 				Method:    "foo",
 			},
 		},
