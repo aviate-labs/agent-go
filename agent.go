@@ -62,6 +62,19 @@ func effectiveCanisterID(canisterID principal.Principal, args []any) principal.P
 	}
 }
 
+func handleStatus(path []hashtree.Label, certificate *certification.Certificate) ([]byte, hashtree.Node, error) {
+	status, err := certificate.Tree.Lookup(append(path, hashtree.Label("status"))...)
+	var lookupError hashtree.LookupError
+	if errors.As(err, &lookupError) && lookupError.Type == hashtree.LookupResultAbsent {
+		// The status might not be available immediately, since the request is still being processed.
+		return nil, nil, nil
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+	return status, certificate.Tree.Root, nil
+}
+
 func newNonce() ([]byte, error) {
 	/* Read 10 bytes of random data, which is smaller than the max allowed by the IC (32 bytes)
 	 * and should still be enough from a practical point of view. */
@@ -320,19 +333,6 @@ func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]b
 	return handleStatus(path, certificate)
 }
 
-func handleStatus(path []hashtree.Label, certificate *certification.Certificate) ([]byte, hashtree.Node, error) {
-	status, err := certificate.Tree.Lookup(append(path, hashtree.Label("status"))...)
-	var lookupError hashtree.LookupError
-	if errors.As(err, &lookupError) && lookupError.Type == hashtree.LookupResultAbsent {
-		// The status might not be available immediately, since the request is still being processed.
-		return nil, nil, nil
-	}
-	if err != nil {
-		return nil, nil, err
-	}
-	return status, certificate.Tree.Root, nil
-}
-
 // Sender returns the principal that is sending the requests.
 func (a Agent) Sender() principal.Principal {
 	return a.identity.Sender()
@@ -362,6 +362,12 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, erro
 			if len(data) != 0 {
 				path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
 				switch string(data) {
+				case "replied":
+					replied, err := hashtree.Lookup(node, append(path, hashtree.Label("reply"))...)
+					if err != nil {
+						return nil, fmt.Errorf("no reply found")
+					}
+					return replied, nil
 				case "rejected":
 					tree := hashtree.NewHashTree(node)
 					code, err := tree.Lookup(append(path, hashtree.Label("reject_code"))...)
@@ -373,12 +379,6 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, erro
 						return nil, err
 					}
 					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(code), string(message))
-				case "replied":
-					replied, err := hashtree.Lookup(node, append(path, hashtree.Label("reply"))...)
-					if err != nil {
-						return nil, fmt.Errorf("no reply found")
-					}
-					return replied, nil
 				}
 			}
 		case <-timer.C:

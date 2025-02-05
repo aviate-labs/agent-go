@@ -1,8 +1,6 @@
 package agent
 
 import (
-	"fmt"
-
 	"github.com/aviate-labs/agent-go/certification"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/principal"
@@ -22,11 +20,28 @@ func (c APIRequest[_, Out]) CallAndWait(out Out) error {
 		if err := cbor.Unmarshal(rawCertificate, &certificate); err != nil {
 			return err
 		}
-		raw, err := hashtree.Lookup(certificate.Tree.Root, hashtree.Label("request_status"), c.requestID[:], hashtree.Label("reply"))
-		if err != nil {
-			return fmt.Errorf("no reply found")
+		path := []hashtree.Label{hashtree.Label("request_status"), c.requestID[:]}
+		if raw, err := certificate.Tree.Lookup(append(path, hashtree.Label("reply"))...); err == nil {
+			return c.unmarshal(raw, out)
 		}
-		return c.unmarshal(raw, out)
+
+		rejectCode, err := certificate.Tree.Lookup(append(path, hashtree.Label("reject_code"))...)
+		if err != nil {
+			return err
+		}
+		message, err := certificate.Tree.Lookup(append(path, hashtree.Label("reject_message"))...)
+		if err != nil {
+			return err
+		}
+		errorCode, err := certificate.Tree.Lookup(append(path, hashtree.Label("error_code"))...)
+		if err != nil {
+			return err
+		}
+		return preprocessingError{
+			RejectCode: uint64FromBytes(rejectCode),
+			Message:    string(message),
+			ErrorCode:  string(errorCode),
+		}
 	}
 
 	raw, err := c.a.poll(c.effectiveCanisterID, c.requestID)
