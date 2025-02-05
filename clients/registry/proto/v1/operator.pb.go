@@ -83,12 +83,39 @@ var file_operator_proto_rawDesc = []byte{
 	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
+func file_operator_proto_init() {
+	if File_operator_proto != nil {
+		return
+	}
+	file_operator_proto_msgTypes[0].OneofWrappers = []any{}
+	type x struct{}
+	out := protoimpl.TypeBuilder{
+		File: protoimpl.DescBuilder{
+			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
+			RawDescriptor: file_operator_proto_rawDesc,
+			NumEnums:      0,
+			NumMessages:   3,
+			NumExtensions: 0,
+			NumServices:   0,
+		},
+		GoTypes:           file_operator_proto_goTypes,
+		DependencyIndexes: file_operator_proto_depIdxs,
+		MessageInfos:      file_operator_proto_msgTypes,
+	}.Build()
+	File_operator_proto = out.File
+	file_operator_proto_rawDesc = nil
+	file_operator_proto_goTypes = nil
+	file_operator_proto_depIdxs = nil
+}
+
 func file_operator_proto_rawDescGZIP() []byte {
 	file_operator_proto_rawDescOnce.Do(func() {
 		file_operator_proto_rawDescData = protoimpl.X.CompressGZIP(file_operator_proto_rawDescData)
 	})
 	return file_operator_proto_rawDescData
 }
+
+func init() { file_operator_proto_init() }
 
 // A record for a node operator. Each node operator is associated with a
 // unique principal id, a.k.a. NOID.
@@ -208,9 +235,7 @@ func (x *RemoveNodeOperatorsPayload) GetNodeOperatorsToRemove() [][]byte {
 	}
 	return nil
 }
-
 func (*RemoveNodeOperatorsPayload) ProtoMessage() {}
-
 func (x *RemoveNodeOperatorsPayload) ProtoReflect() protoreflect.Message {
 	mi := &file_operator_proto_msgTypes[1]
 	if x != nil {
@@ -222,6 +247,7 @@ func (x *RemoveNodeOperatorsPayload) ProtoReflect() protoreflect.Message {
 	}
 	return mi.MessageOf(x)
 }
+
 func (x *RemoveNodeOperatorsPayload) Reset() {
 	*x = RemoveNodeOperatorsPayload{}
 	mi := &file_operator_proto_msgTypes[1]
@@ -230,30 +256,4 @@ func (x *RemoveNodeOperatorsPayload) Reset() {
 }
 func (x *RemoveNodeOperatorsPayload) String() string {
 	return protoimpl.X.MessageStringOf(x)
-}
-
-func init() { file_operator_proto_init() }
-func file_operator_proto_init() {
-	if File_operator_proto != nil {
-		return
-	}
-	file_operator_proto_msgTypes[0].OneofWrappers = []any{}
-	type x struct{}
-	out := protoimpl.TypeBuilder{
-		File: protoimpl.DescBuilder{
-			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_operator_proto_rawDesc,
-			NumEnums:      0,
-			NumMessages:   3,
-			NumExtensions: 0,
-			NumServices:   0,
-		},
-		GoTypes:           file_operator_proto_goTypes,
-		DependencyIndexes: file_operator_proto_depIdxs,
-		MessageInfos:      file_operator_proto_msgTypes,
-	}.Build()
-	File_operator_proto = out.File
-	file_operator_proto_rawDesc = nil
-	file_operator_proto_goTypes = nil
-	file_operator_proto_depIdxs = nil
 }

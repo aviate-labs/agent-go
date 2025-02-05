@@ -13,32 +13,30 @@ import (
 	"github.com/fxamacker/cbor/v2"
 )
 
+// ic0 is the old (default) host for the Internet Computer.
+// var ic0, _ = url.Parse("https://ic0.app/")
+
+// icp0 is the default host for the Internet Computer.
+var icp0, _ = url.Parse("https://icp0.io/")
+
 // Client is a client for the IC agent.
 type Client struct {
-	client http.Client
-	config ClientConfig
+	client *http.Client
+	host   *url.URL
 	logger Logger
 }
 
 // NewClient creates a new client based on the given configuration.
-func NewClient(cfg ClientConfig) Client {
-	return Client{
-		client: http.Client{},
-		config: cfg,
+func NewClient(options ...ClientOption) Client {
+	c := Client{
+		client: http.DefaultClient,
+		host:   icp0,
 		logger: new(NoopLogger),
 	}
-}
-
-// NewClientWithLogger creates a new client based on the given configuration and logger.
-func NewClientWithLogger(cfg ClientConfig, logger Logger) Client {
-	if logger == nil {
-		logger = new(NoopLogger)
+	for _, o := range options {
+		o(&c)
 	}
-	return Client{
-		client: http.Client{},
-		config: cfg,
-		logger: logger,
-	}
+	return c
 }
 
 func (c Client) Call(ctx context.Context, canisterID principal.Principal, data []byte) ([]byte, error) {
@@ -52,16 +50,20 @@ func (c Client) Call(ctx context.Context, canisterID principal.Principal, data [
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusAccepted:
 		return io.ReadAll(resp.Body)
 	case http.StatusOK:
-		body, _ := io.ReadAll(resp.Body)
-		var err preprocessingError
-		if err := cbor.Unmarshal(body, &err); err != nil {
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
 			return nil, err
 		}
-		return nil, fmt.Errorf("(%d) %s: %s", err.RejectCode, err.Message, err.ErrorCode)
+		var pErr preprocessingError
+		if err := cbor.Unmarshal(body, &pErr); err != nil {
+			return nil, err
+		}
+		return nil, pErr
 	default:
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("(%d) %s: %s", resp.StatusCode, resp.Status, body)
@@ -96,6 +98,7 @@ func (c Client) get(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	return io.ReadAll(resp.Body)
 }
 
@@ -119,11 +122,15 @@ func (c Client) post(ctx context.Context, path string, canisterID principal.Prin
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return io.ReadAll(resp.Body)
 	default:
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
 		return nil, fmt.Errorf("(%d) %s: %s", resp.StatusCode, resp.Status, body)
 	}
 }
@@ -139,24 +146,43 @@ func (c Client) postSubnet(ctx context.Context, path string, subnetID principal.
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return io.ReadAll(resp.Body)
 	default:
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
 		return nil, fmt.Errorf("(%d) %s: %s", resp.StatusCode, resp.Status, body)
 	}
 }
 
 func (c Client) url(p string) string {
-	u := *c.config.Host
+	u := *c.host
 	u.Path = path.Join(u.Path, p)
 	return u.String()
 }
 
-// ClientConfig is the configuration for a client.
-type ClientConfig struct {
-	Host *url.URL
+type ClientOption func(c *Client)
+
+func WithHostURL(host *url.URL) ClientOption {
+	return func(c *Client) {
+		c.host = host
+	}
+}
+
+func WithHttpClient(client *http.Client) ClientOption {
+	return func(c *Client) {
+		c.client = client
+	}
+}
+
+func WithLogger(logger Logger) ClientOption {
+	return func(c *Client) {
+		c.logger = logger
+	}
 }
 
 type preprocessingError struct {
@@ -166,4 +192,8 @@ type preprocessingError struct {
 	Message string `cbor:"reject_message"`
 	// An optional implementation-specific textual error code.
 	ErrorCode string `cbor:"error_code"`
+}
+
+func (e preprocessingError) Error() string {
+	return fmt.Sprintf("(%d) %s: %s", e.RejectCode, e.Message, e.ErrorCode)
 }
