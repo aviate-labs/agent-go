@@ -165,7 +165,10 @@ func New(cfg Config) (*Agent, error) {
 		id = cfg.Identity
 	}
 	client := NewClient(cfg.ClientConfig...)
-	rootKey, _ := hex.DecodeString(certification.RootKey)
+	rootKey, err := hex.DecodeString(certification.RootKey)
+	if err != nil {
+		return nil, err
+	}
 	if cfg.FetchRootKey {
 		status, err := client.Status()
 		if err != nil {
@@ -314,9 +317,10 @@ func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]b
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := certification.VerifyCertificate(*certificate, ecID, a.rootKey); err != nil {
-		return nil, nil, err
-	}
+	return handleStatus(path, certificate)
+}
+
+func handleStatus(path []hashtree.Label, certificate *certification.Certificate) ([]byte, hashtree.Node, error) {
 	status, err := certificate.Tree.Lookup(append(path, hashtree.Label("status"))...)
 	var lookupError hashtree.LookupError
 	if errors.As(err, &lookupError) && lookupError.Type == hashtree.LookupResultAbsent {

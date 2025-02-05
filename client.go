@@ -40,7 +40,7 @@ func NewClient(options ...ClientOption) Client {
 }
 
 func (c Client) Call(ctx context.Context, canisterID principal.Principal, data []byte) ([]byte, error) {
-	u := c.url(fmt.Sprintf("/api/v2/canister/%s/call", canisterID.Encode()))
+	u := c.url(fmt.Sprintf("/api/v3/canister/%s/call", canisterID.Encode()))
 	c.logger.Printf("[CLIENT] CALL %s", u)
 	req, err := c.newRequest(ctx, "POST", u, bytes.NewBuffer(data))
 	if err != nil {
@@ -53,19 +53,38 @@ func (c Client) Call(ctx context.Context, canisterID principal.Principal, data [
 	defer resp.Body.Close()
 	switch resp.StatusCode {
 	case http.StatusAccepted:
-		return io.ReadAll(resp.Body)
+		return nil, nil
 	case http.StatusOK:
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, err
 		}
-		var pErr preprocessingError
-		if err := cbor.Unmarshal(body, &pErr); err != nil {
+		var status struct {
+			Status string `cbor:"status"`
+		}
+		if err := cbor.Unmarshal(body, &status); err != nil {
 			return nil, err
 		}
-		return nil, pErr
+		switch status.Status {
+		case "replied":
+			var certificate struct {
+				Certificate []byte `cbor:"certificate"`
+			}
+			return certificate.Certificate, cbor.Unmarshal(body, &certificate)
+		case "non_replicated_rejection":
+			var pErr preprocessingError
+			if err := cbor.Unmarshal(body, &pErr); err != nil {
+				return nil, err
+			}
+			return nil, pErr
+		default:
+			return nil, fmt.Errorf("unknown status: %s", status)
+		}
 	default:
-		body, _ := io.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return nil, err
+		}
 		return nil, fmt.Errorf("(%d) %s: %s", resp.StatusCode, resp.Status, body)
 	}
 }
