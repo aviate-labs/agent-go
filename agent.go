@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"net/url"
 	"reflect"
 	"time"
 
@@ -22,12 +21,6 @@ import (
 
 // DefaultConfig is the default configuration for an Agent.
 var DefaultConfig = Config{}
-
-// ic0 is the old (default) host for the Internet Computer.
-// var ic0, _ = url.Parse("https://ic0.app/")
-
-// icp0 is the default host for the Internet Computer.
-var icp0, _ = url.Parse("https://icp0.io/")
 
 func effectiveCanisterID(canisterID principal.Principal, args []any) principal.Principal {
 	// If the canisterID is not aaaaa-aa (encoded as empty byte array), return it.
@@ -171,17 +164,7 @@ func New(cfg Config) (*Agent, error) {
 	if cfg.Identity != nil {
 		id = cfg.Identity
 	}
-	var logger Logger = new(NoopLogger)
-	if cfg.Logger != nil {
-		logger = cfg.Logger
-	}
-	ccfg := ClientConfig{
-		Host: icp0,
-	}
-	if cfg.ClientConfig != nil {
-		ccfg = *cfg.ClientConfig
-	}
-	client := NewClientWithLogger(ccfg, logger)
+	client := NewClient(cfg.ClientConfig...)
 	rootKey, _ := hex.DecodeString(certification.RootKey)
 	if cfg.FetchRootKey {
 		status, err := client.Status()
@@ -204,7 +187,7 @@ func New(cfg Config) (*Agent, error) {
 		identity:         id,
 		ingressExpiry:    cfg.IngressExpiry,
 		rootKey:          rootKey,
-		logger:           logger,
+		logger:           client.logger,
 		delay:            delay,
 		timeout:          timeout,
 		verifySignatures: !cfg.DisableSignedQueryVerification,
@@ -501,7 +484,7 @@ type Config struct {
 	// The default is set to 5 minutes.
 	IngressExpiry time.Duration
 	// ClientConfig is the configuration for the underlying Client.
-	ClientConfig *ClientConfig
+	ClientConfig []ClientOption
 	// FetchRootKey determines whether the root key should be fetched from the IC.
 	FetchRootKey bool
 	// Logger is the logger used by the Agent.

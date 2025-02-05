@@ -8,6 +8,7 @@ import (
 	"io/fs"
 	"strings"
 	"text/template"
+	"unicode"
 
 	"github.com/aviate-labs/agent-go/candid/did"
 )
@@ -83,6 +84,9 @@ func NewGenerator(agentName, canisterName, packageName string, rawDID []rune) (*
 	desc, err := did.ParseDID(rawDID)
 	if err != nil {
 		return nil, err
+	}
+	if rs := []rune(agentName); unicode.IsLower(rs[0]) {
+		agentName = strings.ToUpper(agentName[:1]) + agentName[1:]
 	}
 	return &Generator{
 		AgentName:          agentName,
