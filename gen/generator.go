@@ -85,7 +85,7 @@ func NewGenerator(agentName, canisterName, packageName string, rawDID []rune) (*
 	if err != nil {
 		return nil, err
 	}
-	if rs := []rune(agentName); unicode.IsLower(rs[0]) {
+	if rs := []rune(agentName); len(rs) != 0 && unicode.IsLower(rs[0]) {
 		agentName = strings.ToUpper(agentName[:1]) + agentName[1:]
 	}
 	return &Generator{
