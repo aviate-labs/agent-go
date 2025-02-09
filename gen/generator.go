@@ -314,7 +314,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 		}
 		var record string
 		for _, r := range records {
-			record += fmt.Sprintf("\t%-*s *%-*s `ic:\"%s,variant\"`\n", sizeName, r.name, sizeType, r.typ, r.originalName)
+			record += fmt.Sprintf("\t%-*s *%-*s `ic:\"%s,variant\" json:\"%s,omitempty\"`\n", sizeName, r.name, sizeType, r.typ, r.originalName, r.originalName)
 		}
 		return fmt.Sprintf("struct {\n%s}", record)
 	case did.Vector:
