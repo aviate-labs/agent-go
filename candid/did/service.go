@@ -3,8 +3,8 @@ package did
 import (
 	"fmt"
 
+	"github.com/0x51-dev/upeg/parser"
 	"github.com/aviate-labs/agent-go/candid/internal/candid"
-	"github.com/di-wu/parser/ast"
 )
 
 // Method is a public method of a service.
@@ -50,27 +50,29 @@ type Service struct {
 	MethodId *string
 }
 
-func convertService(n *ast.Node) Service {
+func convertService(n *parser.Node) Service {
 	var actor Service
 	for _, n := range n.Children() {
-		switch n.Type {
-		case candid.IdT:
-			id := n.Value
+		switch n.Name {
+		case candid.Id.Name:
+			id := n.Value()
 			if actor.ID == nil {
 				actor.ID = &id
 				continue
 			}
 			actor.MethodId = &id
-		case candid.TupTypeT:
-		case candid.ActorTypeT:
+		case candid.TupType.Name:
+		case candid.ActorType.Name:
 			for _, n := range n.Children() {
-				if n.Type == candid.CommentTextT {
+				if n.Name == candid.CommentText.Name {
 					continue
 				}
 
-				name := n.FirstChild.Value
-				switch n := n.LastChild; n.Type {
-				case candid.FuncTypeT:
+				cs := n.Children()
+
+				name := cs[0].Value()
+				switch n := cs[len(cs)-1]; n.Name {
+				case candid.FuncType.Name:
 					f := convertFunc(n)
 					actor.Methods = append(
 						actor.Methods,
@@ -79,8 +81,8 @@ func convertService(n *ast.Node) Service {
 							Func: &f,
 						},
 					)
-				case candid.IdT, candid.TextT:
-					id := n.Value
+				case candid.Id.Name, candid.Text.Name:
+					id := n.Value()
 					actor.Methods = append(
 						actor.Methods,
 						Method{

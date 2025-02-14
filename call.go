@@ -1,27 +1,49 @@
 package agent
 
 import (
+	"github.com/aviate-labs/agent-go/certification"
+	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/principal"
+	"github.com/fxamacker/cbor/v2"
 	"google.golang.org/protobuf/proto"
 )
 
-// Call calls a method on a canister, it does not wait for the result.
-func (c APIRequest[_, _]) Call() error {
-	c.a.logger.Printf("[AGENT] CALL %s %s (%x)", c.effectiveCanisterID, c.methodName, c.requestID)
-	_, err := c.a.call(c.effectiveCanisterID, c.data)
-	return err
-}
-
 // CallAndWait calls a method on a canister and waits for the result.
 func (c APIRequest[_, Out]) CallAndWait(out Out) error {
-	if err := c.Call(); err != nil {
+	c.a.logger.Printf("[AGENT] CALL %s %s (%x)", c.effectiveCanisterID, c.methodName, c.requestID)
+	rawCertificate, err := c.a.call(c.effectiveCanisterID, c.data)
+	if err != nil {
 		return err
 	}
-	return c.Wait(out)
-}
+	if len(rawCertificate) != 0 {
+		var certificate certification.Certificate
+		if err := cbor.Unmarshal(rawCertificate, &certificate); err != nil {
+			return err
+		}
+		path := []hashtree.Label{hashtree.Label("request_status"), c.requestID[:]}
+		if raw, err := certificate.Tree.Lookup(append(path, hashtree.Label("reply"))...); err == nil {
+			return c.unmarshal(raw, out)
+		}
 
-// Wait waits for the result of the Call and unmarshals it into the given values.
-func (c APIRequest[_, Out]) Wait(out Out) error {
+		rejectCode, err := certificate.Tree.Lookup(append(path, hashtree.Label("reject_code"))...)
+		if err != nil {
+			return err
+		}
+		message, err := certificate.Tree.Lookup(append(path, hashtree.Label("reject_message"))...)
+		if err != nil {
+			return err
+		}
+		errorCode, err := certificate.Tree.Lookup(append(path, hashtree.Label("error_code"))...)
+		if err != nil {
+			return err
+		}
+		return preprocessingError{
+			RejectCode: uint64FromBytes(rejectCode),
+			Message:    string(message),
+			ErrorCode:  string(errorCode),
+		}
+	}
+
 	raw, err := c.a.poll(c.effectiveCanisterID, c.requestID)
 	if err != nil {
 		return err

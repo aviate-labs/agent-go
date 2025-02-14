@@ -3,9 +3,10 @@ package idl
 import (
 	"bytes"
 	"fmt"
-	"github.com/aviate-labs/leb128"
 	"math/big"
 	"reflect"
+
+	"github.com/aviate-labs/leb128"
 )
 
 func Ptr[a any](v a) *a {
@@ -30,7 +31,7 @@ func (o OptionalType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 		return err
 	}
 
-	id, err := leb128.EncodeSigned(big.NewInt(optType))
+	id, err := leb128.EncodeSigned(OptOpCode.BigInt())
 	if err != nil {
 		return err
 	}
@@ -54,7 +55,7 @@ func (o OptionalType) Decode(r *bytes.Reader) (any, error) {
 	case 0x01:
 		return o.Type.Decode(r)
 	default:
-		return nil, fmt.Errorf("invalid option value")
+		return nil, fmt.Errorf("invalid option value: %x", l)
 	}
 }
 

@@ -1,0 +1,66 @@
+Values   = "(" Sp [Value *(Sp "," Sp Value)] Sp ")" / Value
+Value    = OptValue / Num / Bool / Null / Text / Record / Variant / Principal / Vec / Blob
+OptValue = "opt" Spp (Num / Bool / Null / Text / Record / Variant / Principal / Vec / Blob)
+
+Num      = NumValue [Sp ":" Sp NumType]
+NumValue = ["-"] digit *(["_"] digit) ["." [digit *(["_"] digit)]]
+NumType  = "nat8" / "nat16" / "nat32" / "nat64" / "nat"
+         / "int8" / "int16" / "int32" / "int64" / "int"
+         / "float32" / "float64"
+
+Bool      = BoolValue [Sp ":" Sp "bool"]
+BoolValue = ("true" / "false")
+
+Blob      = "blob" Spp %x22 *(2*2hex) %x22
+
+Null = "null"
+
+Principal  = "principal" Spp TextValue
+
+Text       = TextValue [Sp ":" Sp "text"]
+TextValue  = %x22 *Char %x22
+
+Record       = "record" Sp "{" Ws [RecordFields] Ws "}"
+RecordFields = RecordField Sp *(";" Ws RecordField Sp) [";"]
+RecordField  = Id Sp "=" Sp Value
+
+Variant      = "variant" Sp "{" Ws VariantField Ws "}"
+VariantField = Id [Sp "=" Sp Value] [";"]
+
+Vec       = "vec" Sp "{" Ws [VecFields] Ws "}"
+VecFields = Value Sp *(";" Ws Value Sp) [";"]
+
+Id = (letter / "_") *(letter / digit / "_")
+
+Sp   = *" "
+Spp  = " " Sp
+Ws   = *(" " / %x09 / %x0A / (%x0D %x0A) / %x0D)
+
+Char    = Utf
+        / ESC 2*2hex
+        / ESC escape
+        / "\u{" HexNum "}"
+HexNum  = hex *(["_"] hex)
+
+Utf       = ascii / UtfEnc
+UtfEnc    = %xC2-DF utfcont
+          / %xE0 %xA0-BF utfcont
+          / %xED %x80-9F utfcont
+          / %xE1-EC 2*2utfcont
+          / %xEE-EF 2*2utfcont
+          / %xF0 %x90-BF 2*2utfcont
+          / %xF4 %x80-8F 2*2utfcont
+          / %xF1-F3 3*3utfcont
+utfcont   = %x80-BF
+
+ascii    = %x20-21 / %x23-5B / %x5D-7E
+escape   = "n" / "r" / "t"
+          / ESC
+          / %x22 ; "
+          / %x27 ; '
+
+letter  = %x41-5A / %x61-7A ; A-Z / a-z
+digit   = %x30-39 ; 0-9
+hex     = digit / %x41-46 / %x61-66 ; A-F / a-f
+
+ESC  = %x5C ; \

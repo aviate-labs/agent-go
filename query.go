@@ -120,7 +120,11 @@ func (q APIRequest[In, Out]) Query(out Out, skipVerification bool) error {
 		}
 		return q.unmarshal(reply.Arg, out)
 	case "rejected":
-		return fmt.Errorf("(%d) %s: %s", resp.RejectCode, resp.ErrorCode, resp.RejectMsg)
+		return preprocessingError{
+			RejectCode: resp.RejectCode,
+			Message:    resp.RejectMsg,
+			ErrorCode:  resp.ErrorCode,
+		}
 	default:
 		panic("unreachable")
 	}

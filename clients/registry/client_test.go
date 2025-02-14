@@ -1,10 +1,29 @@
 package registry_test
 
 import (
-	"github.com/aviate-labs/agent-go/clients/registry"
 	"os"
 	"testing"
+
+	"github.com/aviate-labs/agent-go/clients/registry"
+	"github.com/aviate-labs/agent-go/principal"
 )
+
+func TestClient_GetNNSSubnetID(t *testing.T) {
+	checkEnabled(t)
+
+	c, err := registry.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	id, err := c.GetNNSSubnetID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !id.Equal(principal.MustDecode("tdb26-jop6k-aogll-7ltgs-eruif-6kk7m-qpktf-gdiqx-mxtrf-vb5e6-eqe")) {
+		t.Error(id)
+	}
+}
 
 func TestClient_GetNodeListSince(t *testing.T) {
 	checkEnabled(t)

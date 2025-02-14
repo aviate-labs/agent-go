@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"embed"
 	"fmt"
-	"github.com/aviate-labs/agent-go/candid"
-	"github.com/aviate-labs/agent-go/candid/did"
 	"io"
 	"io/fs"
 	"strings"
 	"text/template"
+	"unicode"
+
+	"github.com/aviate-labs/agent-go/candid/did"
 )
 
 const (
@@ -79,16 +80,19 @@ type Generator struct {
 }
 
 // NewGenerator creates a new generator for the given service description.
-func NewGenerator(agentName, canisterName, packageName string, rawDID []byte) (*Generator, error) {
-	desc, err := candid.ParseDID(rawDID)
+func NewGenerator(agentName, canisterName, packageName string, rawDID []rune) (*Generator, error) {
+	desc, err := did.ParseDID(rawDID)
 	if err != nil {
 		return nil, err
+	}
+	if rs := []rune(agentName); len(rs) != 0 && unicode.IsLower(rs[0]) {
+		agentName = strings.ToUpper(agentName[:1]) + agentName[1:]
 	}
 	return &Generator{
 		AgentName:          agentName,
 		CanisterName:       canisterName,
 		PackageName:        packageName,
-		ServiceDescription: desc,
+		ServiceDescription: *desc,
 	}, nil
 }
 
@@ -180,7 +184,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 	case did.DataId:
 		return funcName(prefix, string(t))
 	case did.Func:
-		return "struct { /* NOT SUPPORTED */ }"
+		return "idl.Function"
 	case did.Optional:
 		return fmt.Sprintf("*%s", g.dataToString(prefix, t.Data))
 	case did.Primitive:
@@ -310,7 +314,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 		}
 		var record string
 		for _, r := range records {
-			record += fmt.Sprintf("\t%-*s *%-*s `ic:\"%s,variant\"`\n", sizeName, r.name, sizeType, r.typ, r.originalName)
+			record += fmt.Sprintf("\t%-*s *%-*s `ic:\"%s,variant\" json:\"%s,omitempty\"`\n", sizeName, r.name, sizeType, r.typ, r.originalName, r.originalName)
 		}
 		return fmt.Sprintf("struct {\n%s}", record)
 	case did.Vector:

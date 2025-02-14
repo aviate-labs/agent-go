@@ -6,11 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/internal/blob"
-	"github.com/aviate-labs/agent-go/candid/internal/candidtest"
-	"github.com/di-wu/parser"
-	"github.com/di-wu/parser/ast"
+	"github.com/0x51-dev/upeg/parser"
+	"github.com/aviate-labs/agent-go/candid"
+	"github.com/aviate-labs/agent-go/candid/internal/ctest"
 )
 
 func TestTypeDefinitionTable(t *testing.T) {
@@ -18,47 +16,44 @@ func TestTypeDefinitionTable(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := ast.New(rawDid)
+	p, err := ctest.NewParser([]rune(string(rawDid)))
 	if err != nil {
 		t.Fatal(err)
 	}
-	n, err := candidtest.TestData(p)
+	n, err := p.ParseEOF(ctest.TestData)
 	if err != nil {
 		t.Fatal(err)
-	}
-	if _, err := p.Expect(parser.EOD); err != nil {
-		t.Error(err)
 	}
 	for _, n := range n.Children() {
-		switch n.Type {
-		case candidtest.CommentTextT: // ignore
-		case candidtest.TestT:
+		switch n.Name {
+		case ctest.CommentText.Name: // ignore
+		case ctest.Test.Name:
 			var (
 				in   []byte
-				test *ast.Node
+				test *parser.Node
 				desc string
 			)
 			for _, n := range n.Children() {
-				switch n.Type {
-				case candidtest.BlobInputT:
+				switch n.Name {
+				case ctest.BlobInput.Name:
 					b, err := parseBlob(n)
 					if err != nil {
 						t.Fatal(err)
 					}
 					in = b
-				case candidtest.TestBadT,
-					candidtest.TestGoodT,
-					candidtest.TestTestT:
+				case ctest.TestBad.Name,
+					ctest.TestGood.Name,
+					ctest.TestTest.Name:
 					test = n
-				case candidtest.DescriptionT:
-					desc = n.Value
+				case ctest.Description.Name:
+					desc = n.Value()
 				default:
 					t.Fatal(n)
 				}
 			}
-			switch test.Type {
-			case candidtest.TestBadT:
-				ts, as, err := idl.Decode(in)
+			switch test.Name {
+			case ctest.TestBad.Name:
+				ts, as, err := candid.Decode(in)
 				if err == nil {
 					t.Errorf("%s: %v, %v", desc, ts, as)
 				}
@@ -69,37 +64,24 @@ func TestTypeDefinitionTable(t *testing.T) {
 	}
 }
 
-func parseBlob(n *ast.Node) ([]byte, error) {
-	if n.Type != candidtest.BlobInputT {
-		return nil, fmt.Errorf("invalid type: %s", n.TypeString())
+func parseBlob(n *parser.Node) ([]byte, error) {
+	if n.Name != ctest.BlobInput.Name {
+		return nil, fmt.Errorf("invalid type: %s", n.Name)
 	}
-	if len(n.Value) == 0 {
-		return []byte{}, nil
-	}
-	p, err := ast.New([]byte(n.Value))
-	if err != nil {
-		return nil, err
-	}
-	b, err := blob.Blob(p)
-	if err != nil {
-		return nil, err
-	}
-	if _, err := p.Expect(parser.EOD); err != nil {
-		return nil, err
-	}
+
 	var bs []byte
-	for _, n := range b.Children() {
-		switch n.Type {
-		case blob.AlphaT:
-			bs = append(bs, []byte(n.Value)...)
-		case blob.HexT:
-			h, err := hex.DecodeString(n.Value)
+	for _, n := range n.Children() {
+		switch n.Name {
+		case ctest.BlobAlpha.Name:
+			bs = append(bs, []byte(n.Value())...)
+		case ctest.BlobHex.Name:
+			h, err := hex.DecodeString(n.Value())
 			if err != nil {
 				return nil, err
 			}
 			bs = append(bs, h...)
 		default:
-			return nil, fmt.Errorf("invalid type: %s", n.TypeString())
+			return nil, fmt.Errorf("invalid type: %s", n.Name)
 		}
 	}
 	return bs, nil

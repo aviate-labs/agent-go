@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"testing"
 
+	"github.com/aviate-labs/agent-go/candid"
 	"github.com/aviate-labs/agent-go/candid/idl"
 )
 
@@ -18,14 +19,14 @@ func TestHash(t *testing.T) {
 }
 
 func test(types []idl.Type, args []any) {
-	e, err := idl.Encode(types, args)
+	e, err := candid.Encode(types, args)
 	if err != nil {
 		fmt.Println("enc:", err)
 		return
 	}
 	fmt.Printf("%x\n", e)
 
-	ts, vs, err := idl.Decode(e)
+	ts, vs, err := candid.Decode(e)
 	if err != nil {
 		fmt.Println("dec:", err)
 		return
@@ -43,14 +44,14 @@ func test(types []idl.Type, args []any) {
 }
 
 func test_(types []idl.Type, args []any) {
-	e, err := idl.Encode(types, args)
+	e, err := candid.Encode(types, args)
 	if err != nil {
 		fmt.Println("enc:", err)
 		return
 	}
 	fmt.Printf("%x\n", e)
 
-	if _, _, err := idl.Decode(e); err != nil {
+	if _, _, err := candid.Decode(e); err != nil {
 		fmt.Println("dec:", err)
 		return
 	}

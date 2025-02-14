@@ -3,7 +3,6 @@ package idl
 import (
 	"bytes"
 	"fmt"
-	"math/big"
 
 	"github.com/aviate-labs/leb128"
 )
@@ -31,7 +30,7 @@ func (b BoolType) Decode(r *bytes.Reader) (any, error) {
 
 // EncodeType returns the leb128 encoding of the bool type.
 func (BoolType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
-	return leb128.EncodeSigned(big.NewInt(boolType))
+	return leb128.EncodeSigned(BoolOpCode.BigInt())
 }
 
 // EncodeValue encodes a bool value.
@@ -39,7 +38,7 @@ func (BoolType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
 func (BoolType) EncodeValue(v any) ([]byte, error) {
 	v_, ok := v.(bool)
 	if !ok {
-		return nil, NewEncodeValueError(v, boolType)
+		return nil, NewEncodeValueError(v, BoolOpCode)
 	}
 	if v_ {
 		return []byte{0x01}, nil

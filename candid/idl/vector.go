@@ -3,9 +3,10 @@ package idl
 import (
 	"bytes"
 	"fmt"
-	"github.com/aviate-labs/leb128"
 	"math/big"
 	"reflect"
+
+	"github.com/aviate-labs/leb128"
 )
 
 type VectorType struct {
@@ -23,7 +24,7 @@ func (vec VectorType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 		return err
 	}
 
-	id, err := leb128.EncodeSigned(big.NewInt(vecType))
+	id, err := leb128.EncodeSigned(VecOpCode.BigInt())
 	if err != nil {
 		return err
 	}
@@ -68,7 +69,7 @@ func (vec VectorType) EncodeValue(v any) ([]byte, error) {
 				vs_ = append(vs_, v_.Index(i).Interface())
 			}
 		} else {
-			return nil, NewEncodeValueError(v, vecType)
+			return nil, NewEncodeValueError(v, VecOpCode)
 		}
 	}
 	l, err := leb128.EncodeSigned(big.NewInt(int64(len(vs_))))

@@ -1,8 +1,9 @@
 package registry_test
 
 import (
-	"github.com/aviate-labs/agent-go/clients/registry"
 	"testing"
+
+	"github.com/aviate-labs/agent-go/clients/registry"
 )
 
 func TestDataProvider_GetLatestVersion(t *testing.T) {

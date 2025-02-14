@@ -3,7 +3,20 @@ package idl
 import (
 	"math"
 	"math/big"
+	"reflect"
 )
+
+func checkIsPtr(_v any) (reflect.Value, bool) {
+	v := reflect.ValueOf(_v)
+	if v.Kind() != reflect.Ptr {
+		return v, false
+	}
+	v = v.Elem()
+	if v.Kind() == reflect.Interface {
+		v = v.Elem()
+	}
+	return v, true
+}
 
 func concat(bs ...[]byte) []byte {
 	var c []byte

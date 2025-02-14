@@ -1,5 +1,0 @@
-# CANDID-BLOB (v0.1.0) github.com/aviate-labs/agent-go/candid/internal/blob
-
-Blob  <-- (Alpha / '\' Hex)+
-Alpha <-- ([A-Z] / [a-z])+
-Hex   <-- ([0-9] / [a-f] / [A-F]){2}

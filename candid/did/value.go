@@ -5,15 +5,15 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/0x51-dev/upeg/parser"
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/internal/candidvalue"
-	"github.com/di-wu/parser/ast"
+	"github.com/aviate-labs/agent-go/candid/internal/cvalue"
 )
 
-func ConvertValues(n *ast.Node) ([]idl.Type, []any, error) {
-	switch n.Type {
-	case candidvalue.BoolValueT:
-		switch n.Value {
+func ConvertValues(n *parser.Node) ([]idl.Type, []any, error) {
+	switch n.Name {
+	case cvalue.BoolValue.Name:
+		switch n.Value() {
 		case "true":
 			return []idl.Type{new(idl.BoolType)}, []any{true}, nil
 		case "false":
@@ -21,21 +21,21 @@ func ConvertValues(n *ast.Node) ([]idl.Type, []any, error) {
 		default:
 			panic(n)
 		}
-	case candidvalue.NullT:
+	case cvalue.Null.Name:
 		return []idl.Type{new(idl.NullType)}, []any{nil}, nil
-	case candidvalue.NumT:
+	case cvalue.Num.Name:
 		typ, arg, err := convertNum(n)
 		if err != nil {
 			return nil, nil, err
 		}
 		return []idl.Type{typ}, []any{arg}, nil
-	case candidvalue.OptValueT:
+	case cvalue.OptValue.Name:
 		types, args, err := ConvertValues(n.Children()[0])
 		if err != nil {
 			return nil, nil, err
 		}
 		return []idl.Type{idl.NewOptionalType(types[0])}, []any{args[0]}, nil
-	case candidvalue.RecordT:
+	case cvalue.Record.Name:
 		if len(n.Children()) == 0 {
 			return []idl.Type{idl.NewRecordType(nil)}, []any{nil}, nil
 		}
@@ -43,7 +43,7 @@ func ConvertValues(n *ast.Node) ([]idl.Type, []any, error) {
 		args := make(map[string]any)
 		for _, n := range n.Children() {
 			n := n.Children()
-			id := n[0].Value
+			id := n[0].Value()
 			typ, arg, err := ConvertValues(n[1])
 			if err != nil {
 				return nil, nil, err
@@ -52,11 +52,11 @@ func ConvertValues(n *ast.Node) ([]idl.Type, []any, error) {
 			args[id] = arg[0]
 		}
 		return []idl.Type{idl.NewRecordType(types)}, []any{args}, nil
-	case candidvalue.TextT:
+	case cvalue.Text.Name:
 		n := n.Children()[0]
-		s := strings.TrimPrefix(strings.TrimSuffix(n.Value, "\""), "\"")
+		s := strings.TrimPrefix(strings.TrimSuffix(n.Value(), "\""), "\"")
 		return []idl.Type{new(idl.TextType)}, []any{s}, nil
-	case candidvalue.ValuesT:
+	case cvalue.Values.Name:
 		var (
 			types []idl.Type
 			args  []any
@@ -70,9 +70,9 @@ func ConvertValues(n *ast.Node) ([]idl.Type, []any, error) {
 			args = append(args, arg...)
 		}
 		return types, args, nil
-	case candidvalue.VariantT:
+	case cvalue.Variant.Name:
 		n := n.Children()
-		id := n[0].Value
+		id := n[0].Value()
 		switch len(n) {
 		case 1:
 			typ := idl.NewVariantType(map[string]idl.Type{id: new(idl.NullType)})
@@ -89,7 +89,7 @@ func ConvertValues(n *ast.Node) ([]idl.Type, []any, error) {
 		default:
 			panic(n)
 		}
-	case candidvalue.VecT:
+	case cvalue.Vec.Name:
 		n := n.Children()
 		if len(n) == 0 {
 			return []idl.Type{idl.NewVectorType(new(idl.NullType))}, []any{[]any{}}, nil
@@ -105,8 +105,8 @@ func ConvertValues(n *ast.Node) ([]idl.Type, []any, error) {
 			args = append(args, arg[0])
 		}
 		return []idl.Type{idl.NewVectorType(types)}, []any{args}, nil
-	case candidvalue.BlobT:
-		rawBlob := strings.TrimPrefix(strings.TrimSuffix(n.Value, "\""), "blob \"")
+	case cvalue.Blob.Name:
+		rawBlob := strings.TrimPrefix(strings.TrimSuffix(n.Value(), "\""), "blob \"")
 		var blob []any
 		for _, c := range rawBlob {
 			blob = append(blob, byte(c))
@@ -117,14 +117,14 @@ func ConvertValues(n *ast.Node) ([]idl.Type, []any, error) {
 	}
 }
 
-func convertNum(n *ast.Node) (idl.Type, any, error) {
+func convertNum(n *parser.Node) (idl.Type, any, error) {
 	switch n := n.Children(); len(n) {
 	case 1:
 		n := n[0]
 
 		// float64
-		if strings.Contains(n.Value, ".") {
-			v := strings.ReplaceAll(n.Value, "_", "")
+		if strings.Contains(n.Value(), ".") {
+			v := strings.ReplaceAll(n.Value(), "_", "")
 			f, err := strconv.ParseFloat(v, 64)
 			if err != nil {
 				return nil, nil, err
@@ -133,20 +133,20 @@ func convertNum(n *ast.Node) (idl.Type, any, error) {
 		}
 
 		// int
-		v := strings.ReplaceAll(n.Value, "_", "")
+		v := strings.ReplaceAll(n.Value(), "_", "")
 		i, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
 			return nil, nil, err
 		}
 		return new(idl.IntType), idl.NewInt(i), nil
 	case 2:
-		vArg := n[0].Value
-		vType := n[1].Value
+		vArg := n[0].Value()
+		vType := n[1].Value()
 
 		// floats
 		if vType == "float32" || vType == "float64" {
 			v := strings.ReplaceAll(vArg, "_", "")
-			switch n := n[1]; n.Value {
+			switch n := n[1]; n.Value() {
 			case "float32":
 				f, err := strconv.ParseFloat(v, 32)
 				if err != nil {

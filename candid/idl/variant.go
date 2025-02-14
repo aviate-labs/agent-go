@@ -61,7 +61,7 @@ func (variant VariantType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 		}
 	}
 
-	id, err := leb128.EncodeSigned(big.NewInt(varType))
+	id, err := leb128.EncodeSigned(VarOpCode.BigInt())
 	if err != nil {
 		return err
 	}

@@ -2,13 +2,14 @@ package idl_test
 
 import (
 	"bytes"
+	"testing"
+
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/principal"
-	"testing"
 )
 
 func ExamplePrincipal() {
-	p, _ := principal.Decode("aaaaa-aa")
+	p := principal.MustDecode("aaaaa-aa")
 	test([]idl.Type{idl.NewOptionalType(new(idl.PrincipalType))}, []any{p})
 	// Output:
 	// 4449444c016e680100010100

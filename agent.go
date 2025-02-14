@@ -7,11 +7,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"net/url"
 	"reflect"
 	"time"
 
-	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/aviate-labs/agent-go/candid"
 	"github.com/aviate-labs/agent-go/certification"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
@@ -22,12 +21,6 @@ import (
 
 // DefaultConfig is the default configuration for an Agent.
 var DefaultConfig = Config{}
-
-// ic0 is the old (default) host for the Internet Computer.
-// var ic0, _ = url.Parse("https://ic0.app/")
-
-// icp0 is the default host for the Internet Computer.
-var icp0, _ = url.Parse("https://icp0.io/")
 
 func effectiveCanisterID(canisterID principal.Principal, args []any) principal.Principal {
 	// If the canisterID is not aaaaa-aa (encoded as empty byte array), return it.
@@ -67,6 +60,19 @@ func effectiveCanisterID(canisterID principal.Principal, args []any) principal.P
 	default:
 		return canisterID
 	}
+}
+
+func handleStatus(path []hashtree.Label, certificate *certification.Certificate) ([]byte, hashtree.Node, error) {
+	status, err := certificate.Tree.Lookup(append(path, hashtree.Label("status"))...)
+	var lookupError hashtree.LookupError
+	if errors.As(err, &lookupError) && lookupError.Type == hashtree.LookupResultAbsent {
+		// The status might not be available immediately, since the request is still being processed.
+		return nil, nil, nil
+	}
+	if err != nil {
+		return nil, nil, err
+	}
+	return status, certificate.Tree.Root, nil
 }
 
 func newNonce() ([]byte, error) {
@@ -171,18 +177,11 @@ func New(cfg Config) (*Agent, error) {
 	if cfg.Identity != nil {
 		id = cfg.Identity
 	}
-	var logger Logger = new(NoopLogger)
-	if cfg.Logger != nil {
-		logger = cfg.Logger
+	client := NewClient(cfg.ClientConfig...)
+	rootKey, err := hex.DecodeString(certification.RootKey)
+	if err != nil {
+		return nil, err
 	}
-	ccfg := ClientConfig{
-		Host: icp0,
-	}
-	if cfg.ClientConfig != nil {
-		ccfg = *cfg.ClientConfig
-	}
-	client := NewClientWithLogger(ccfg, logger)
-	rootKey, _ := hex.DecodeString(certification.RootKey)
 	if cfg.FetchRootKey {
 		status, err := client.Status()
 		if err != nil {
@@ -204,7 +203,7 @@ func New(cfg Config) (*Agent, error) {
 		identity:         id,
 		ingressExpiry:    cfg.IngressExpiry,
 		rootKey:          rootKey,
-		logger:           logger,
+		logger:           client.logger,
 		delay:            delay,
 		timeout:          timeout,
 		verifySignatures: !cfg.DisableSignedQueryVerification,
@@ -218,10 +217,10 @@ func (a Agent) Client() *Client {
 
 // CreateCandidAPIRequest creates a new api request to the given canister and method.
 func (a *Agent) CreateCandidAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, args ...any) (*CandidAPIRequest, error) {
-	return createAPIRequest[[]any, []any](
+	return createAPIRequest(
 		a,
-		idl.Marshal,
-		idl.Unmarshal,
+		candid.Marshal,
+		candid.Unmarshal,
 		typ,
 		canisterID,
 		effectiveCanisterID(canisterID, args),
@@ -232,7 +231,7 @@ func (a *Agent) CreateCandidAPIRequest(typ RequestType, canisterID principal.Pri
 
 // CreateProtoAPIRequest creates a new api request to the given canister and method.
 func (a *Agent) CreateProtoAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, message proto.Message) (*ProtoAPIRequest, error) {
-	return createAPIRequest[proto.Message, proto.Message](
+	return createAPIRequest(
 		a,
 		func(m proto.Message) ([]byte, error) {
 			raw, err := proto.Marshal(m)
@@ -331,19 +330,7 @@ func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]b
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := certification.VerifyCertificate(*certificate, ecID, a.rootKey); err != nil {
-		return nil, nil, err
-	}
-	status, err := certificate.Tree.Lookup(append(path, hashtree.Label("status"))...)
-	var lookupError hashtree.LookupError
-	if errors.As(err, &lookupError) && lookupError.Type == hashtree.LookupResultAbsent {
-		// The status might not be available immediately, since the request is still being processed.
-		return nil, nil, nil
-	}
-	if err != nil {
-		return nil, nil, err
-	}
-	return status, certificate.Tree.Root, nil
+	return handleStatus(path, certificate)
 }
 
 // Sender returns the principal that is sending the requests.
@@ -375,6 +362,12 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, erro
 			if len(data) != 0 {
 				path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
 				switch string(data) {
+				case "replied":
+					replied, err := hashtree.Lookup(node, append(path, hashtree.Label("reply"))...)
+					if err != nil {
+						return nil, fmt.Errorf("no reply found")
+					}
+					return replied, nil
 				case "rejected":
 					tree := hashtree.NewHashTree(node)
 					code, err := tree.Lookup(append(path, hashtree.Label("reject_code"))...)
@@ -386,12 +379,6 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, erro
 						return nil, err
 					}
 					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(code), string(message))
-				case "replied":
-					replied, err := hashtree.Lookup(node, append(path, hashtree.Label("reply"))...)
-					if err != nil {
-						return nil, fmt.Errorf("no reply found")
-					}
-					return replied, nil
 				}
 			}
 		case <-timer.C:
@@ -501,7 +488,7 @@ type Config struct {
 	// The default is set to 5 minutes.
 	IngressExpiry time.Duration
 	// ClientConfig is the configuration for the underlying Client.
-	ClientConfig *ClientConfig
+	ClientConfig []ClientOption
 	// FetchRootKey determines whether the root key should be fetched from the IC.
 	FetchRootKey bool
 	// Logger is the logger used by the Agent.

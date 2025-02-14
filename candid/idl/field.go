@@ -8,6 +8,6 @@ type FieldType struct {
 	// Type is the type of the field.
 	Type Type
 
-	// index is the index of the field in de type definition table.
-	index int64
+	// Index is the index of the field in de type definition table.
+	Index OpCode
 }

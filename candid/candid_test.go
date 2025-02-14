@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/aviate-labs/agent-go/candid"
+	"github.com/aviate-labs/agent-go/candid/did"
 	"github.com/aviate-labs/agent-go/candid/idl"
 )
 
@@ -27,7 +28,7 @@ func ExampleEncodeValueString_blob() {
 
 func ExampleParseDID() {
 	raw, _ := os.ReadFile("testdata/counter.did")
-	p, _ := candid.ParseDID(raw)
+	p, _ := did.ParseDID([]rune(string(raw)))
 	fmt.Println(p)
 	// Output:
 	// service : {
@@ -169,7 +170,45 @@ func TestEncodeValue(t *testing.T) {
 
 func TestParseDID(t *testing.T) {
 	raw, _ := os.ReadFile("internal/candid/testdata/ic.did")
-	if _, err := candid.ParseDID(raw); err != nil {
+	if _, err := did.ParseDID([]rune(string(raw))); err != nil {
 		t.Error(err)
 	}
+}
+
+func TestRecordSubtyping(t *testing.T) {
+	type T struct{ X idl.Nat }
+	type T_ struct {
+		X idl.Nat
+		Y *idl.Nat
+	}
+	ONE := idl.NewNat(uint(1))
+	t.Run("missing field", func(t *testing.T) {
+		encoded, err := candid.Marshal([]any{T_{X: ONE, Y: &ONE}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var value T
+		if err := candid.Unmarshal(encoded, []any{&value}); err != nil {
+			t.Fatal(err)
+		}
+		if value.X.BigInt().Int64() != 1 {
+			t.Error(value.X)
+		}
+	})
+	t.Run("extra field", func(t *testing.T) {
+		encoded, err := candid.Marshal([]any{T{X: ONE}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var value T_
+		if err := candid.Unmarshal(encoded, []any{&value}); err != nil {
+			t.Fatal(err)
+		}
+		if value.X.BigInt().Int64() != 1 {
+			t.Error(value.X)
+		}
+		if value.Y != nil {
+			t.Error(value.Y)
+		}
+	})
 }

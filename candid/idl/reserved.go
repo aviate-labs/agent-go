@@ -2,7 +2,6 @@ package idl
 
 import (
 	"bytes"
-	"math/big"
 
 	"github.com/aviate-labs/leb128"
 )
@@ -18,7 +17,7 @@ func (ReservedType) Decode(*bytes.Reader) (any, error) {
 }
 
 func (ReservedType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
-	return leb128.EncodeSigned(big.NewInt(reservedType))
+	return leb128.EncodeSigned(ReservedOpCode.BigInt())
 }
 
 func (ReservedType) EncodeValue(_ any) ([]byte, error) {

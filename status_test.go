@@ -7,12 +7,12 @@ import (
 	"github.com/aviate-labs/agent-go"
 )
 
-var ic0URL, _ = url.Parse("https://ic0.app/")
+var ic0URL, _ = url.Parse("https://icp-api.io")
 
 func ExampleClient_Status() {
-	c := agent.NewClient(agent.ClientConfig{Host: ic0URL})
+	c := agent.NewClient(agent.WithHostURL(ic0URL))
 	status, _ := c.Status()
-	fmt.Println(status.Version)
+	fmt.Printf("%x...%x\n", status.RootKey[:4], status.RootKey[len(status.RootKey)-4:])
 	// Output:
-	// 0.18.0
+	// 30818230...1a0baaae
 }

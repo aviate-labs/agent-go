@@ -56,7 +56,7 @@ func (record RecordType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 		}
 	}
 
-	id, err := leb128.EncodeSigned(big.NewInt(recType))
+	id, err := leb128.EncodeSigned(RecOpCode.BigInt())
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func (record RecordType) EncodeValue(v any) ([]byte, error) {
 	if !ok {
 		var err error
 		if fs, err = StructToMap(v); err != nil {
-			return nil, NewEncodeValueError(v, recType)
+			return nil, NewEncodeValueError(v, RecOpCode)
 		}
 	}
 	var vs_ []any
@@ -206,6 +206,9 @@ func (record RecordType) unmarshalStruct(raw map[string]any, _v reflect.Value) e
 	for _, f := range record.Fields {
 		v, ok := findField(f.Name)
 		if !ok {
+			if _, ok := f.Type.(*OptionalType); ok {
+				continue
+			}
 			return NewUnmarshalGoError(raw, _v.Interface())
 		}
 		v = v.Addr()

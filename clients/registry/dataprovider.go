@@ -4,16 +4,19 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/certification"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
-	"github.com/aviate-labs/agent-go/clients/registry/proto/v1"
-	"github.com/aviate-labs/agent-go/ic"
+	v1 "github.com/aviate-labs/agent-go/clients/registry/proto/v1"
+	"github.com/aviate-labs/agent-go/principal"
 	"github.com/aviate-labs/leb128"
 	"github.com/fxamacker/cbor/v2"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
+
+var REGISTRY_PRINCIPAL = principal.MustDecode("rwlgt-iiaaa-aaaaa-aaaaa-cai")
 
 type DataProvider struct {
 	a *agent.Agent
@@ -30,7 +33,7 @@ func NewDataProvider() (*DataProvider, error) {
 func (d DataProvider) GetCertifiedChangesSince(version uint64, publicKey []byte) ([]VersionedRecord, uint64, error) {
 	var resp v1.CertifiedResponse
 	if err := d.a.QueryProto(
-		ic.REGISTRY_PRINCIPAL,
+		REGISTRY_PRINCIPAL,
 		"get_certified_changes_since",
 		&v1.RegistryGetChangesSinceRequest{
 			Version: version,
@@ -102,7 +105,7 @@ func (d DataProvider) GetCertifiedChangesSince(version uint64, publicKey []byte)
 	digest := ht.Digest()
 	if err := certification.VerifyCertifiedData(
 		certificate,
-		ic.REGISTRY_PRINCIPAL,
+		REGISTRY_PRINCIPAL,
 		publicKey,
 		digest[:],
 	); err != nil {
@@ -116,7 +119,7 @@ func (d DataProvider) GetCertifiedChangesSince(version uint64, publicKey []byte)
 func (d DataProvider) GetChangesSince(version uint64) ([]*v1.RegistryDelta, uint64, error) {
 	var resp v1.RegistryGetChangesSinceResponse
 	if err := d.a.QueryProto(
-		ic.REGISTRY_PRINCIPAL,
+		REGISTRY_PRINCIPAL,
 		"get_changes_since",
 		&v1.RegistryGetChangesSinceRequest{
 			Version: version,
@@ -134,7 +137,7 @@ func (d DataProvider) GetChangesSince(version uint64) ([]*v1.RegistryDelta, uint
 func (d DataProvider) GetLatestVersion() (uint64, error) {
 	var resp v1.RegistryGetLatestVersionResponse
 	if err := d.a.QueryProto(
-		ic.REGISTRY_PRINCIPAL,
+		REGISTRY_PRINCIPAL,
 		"get_latest_version",
 		nil,
 		&resp,
@@ -153,7 +156,7 @@ func (d DataProvider) GetValue(key []byte, version *uint64) ([]byte, uint64, err
 	}
 	var resp v1.RegistryGetValueResponse
 	if err := d.a.QueryProto(
-		ic.REGISTRY_PRINCIPAL,
+		REGISTRY_PRINCIPAL,
 		"get_value",
 		&v1.RegistryGetValueRequest{
 			Key:     key,
@@ -177,7 +180,7 @@ func (d DataProvider) GetValueUpdate(key []byte, version *uint64) ([]byte, uint6
 	}
 	var resp v1.RegistryGetValueResponse
 	if err := d.a.CallProto(
-		ic.REGISTRY_PRINCIPAL,
+		REGISTRY_PRINCIPAL,
 		"get_value",
 		&v1.RegistryGetValueRequest{
 			Key:     key,

@@ -1,36 +1,58 @@
 package agent_test
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/url"
 	"testing"
 
 	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
-	"github.com/aviate-labs/agent-go/ic"
-	ic0 "github.com/aviate-labs/agent-go/ic/ic"
-	"github.com/aviate-labs/agent-go/ic/icpledger"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
 )
 
+var (
+	LEDGER_PRINCIPAL   = principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+	REGISTRY_PRINCIPAL = principal.MustDecode("rwlgt-iiaaa-aaaaa-aaaaa-cai")
+)
+
 var _ = new(testLogger)
 
-func Example_anonymous_query() {
+func Example_anonymous_call() {
 	a, _ := agent.New(agent.DefaultConfig)
-	type Account struct {
-		Account string `ic:"account"`
-	}
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
 	}
-	_ = a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{
-		Account{"9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d"},
+
+	accountID, _ := hex.DecodeString("9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d")
+	err := a.Call(LEDGER_PRINCIPAL, "account_balance", []any{
+		struct {
+			Account []byte `ic:"account"`
+		}{Account: accountID},
 	}, []any{&balance})
-	fmt.Println(balance.E8S)
+	fmt.Println(balance.E8S, err)
 	// Output:
-	// 0
+	// 0 <nil>
+}
+
+func Example_anonymous_query() {
+	a, _ := agent.New(agent.DefaultConfig)
+	var balance struct {
+		E8S uint64 `ic:"e8s"`
+	}
+
+	accountID, _ := hex.DecodeString("9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d")
+	err := a.Query(LEDGER_PRINCIPAL, "account_balance", []any{
+		struct {
+			Account []byte `ic:"account"`
+		}{Account: accountID},
+	}, []any{&balance})
+	fmt.Println(balance.E8S, err)
+	// Output:
+	// 0 <nil>
 }
 
 func Example_json() {
@@ -43,10 +65,11 @@ func Example_json() {
 	fmt.Println(balance.E8S)
 
 	a, _ := agent.New(agent.DefaultConfig)
-	if err := a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{struct {
-		Account string `json:"account"`
+	accountID, _ := hex.DecodeString("9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d")
+	if err := a.Query(LEDGER_PRINCIPAL, "account_balance", []any{struct {
+		Account []byte `json:"account"`
 	}{
-		Account: "9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d",
+		Account: accountID,
 	}}, []any{&balance}); err != nil {
 		fmt.Println(err)
 	}
@@ -59,13 +82,15 @@ func Example_json() {
 
 func Example_query_ed25519() {
 	id, _ := identity.NewRandomEd25519Identity()
-	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+	ledgerID := principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	a, _ := agent.New(agent.Config{Identity: id})
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
 	}
-	_ = a.Query(ledgerID, "account_balance_dfx", []any{map[string]any{
-		"account": "9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d",
+
+	accountID, _ := hex.DecodeString("9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d")
+	_ = a.Query(ledgerID, "account_balance", []any{map[string]any{
+		"account": accountID,
 	}}, []any{&balance})
 	fmt.Println(balance.E8S)
 	// Output:
@@ -74,13 +99,14 @@ func Example_query_ed25519() {
 
 func Example_query_prime256v1() {
 	id, _ := identity.NewRandomPrime256v1Identity()
-	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	a, _ := agent.New(agent.Config{Identity: id})
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
 	}
-	_ = a.Query(ledgerID, "account_balance_dfx", []any{map[string]any{
-		"account": "9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d",
+
+	accountID, _ := hex.DecodeString("9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d")
+	_ = a.Query(LEDGER_PRINCIPAL, "account_balance", []any{map[string]any{
+		"account": accountID,
 	}}, []any{&balance})
 	fmt.Println(balance.E8S)
 	// Output:
@@ -89,13 +115,14 @@ func Example_query_prime256v1() {
 
 func Example_query_secp256k1() {
 	id, _ := identity.NewRandomSecp256k1Identity()
-	ledgerID, _ := principal.Decode("ryjl3-tyaaa-aaaaa-aaaba-cai")
 	a, _ := agent.New(agent.Config{Identity: id})
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
 	}
-	_ = a.Query(ledgerID, "account_balance_dfx", []any{map[string]any{
-		"account": "9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d",
+
+	accountID, _ := hex.DecodeString("9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d")
+	_ = a.Query(LEDGER_PRINCIPAL, "account_balance", []any{map[string]any{
+		"account": accountID,
 	}}, []any{&balance})
 	fmt.Println(balance.E8S)
 	// Output:
@@ -107,7 +134,7 @@ func TestAgent_Call(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	n, err := a.ReadStateCertificate(ic.REGISTRY_PRINCIPAL, [][]hashtree.Label{{hashtree.Label("subnet")}})
+	n, err := a.ReadStateCertificate(REGISTRY_PRINCIPAL, [][]hashtree.Label{{hashtree.Label("subnet")}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,18 +146,6 @@ func TestAgent_Call(t *testing.T) {
 	}
 }
 
-func TestAgent_Call_provisionalTopUpCanister(t *testing.T) {
-	a, err := ic0.NewAgent(ic.MANAGEMENT_CANISTER_PRINCIPAL, agent.DefaultConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := a.ProvisionalTopUpCanister(ic0.ProvisionalTopUpCanisterArgs{
-		CanisterId: ic.LEDGER_PRINCIPAL,
-	}); err == nil {
-		t.Fatal()
-	}
-}
-
 func TestAgent_Query_Ed25519(t *testing.T) {
 	id, err := identity.NewRandomEd25519Identity()
 	if err != nil {
@@ -139,14 +154,15 @@ func TestAgent_Query_Ed25519(t *testing.T) {
 	a, _ := agent.New(agent.Config{
 		Identity: id,
 	})
-	type Account struct {
-		Account string `ic:"account"`
-	}
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
 	}
-	if err := a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{
-		Account{"9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d"},
+
+	accountID, _ := hex.DecodeString("9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d")
+	if err := a.Query(LEDGER_PRINCIPAL, "account_balance", []any{
+		struct {
+			Account []byte `ic:"account"`
+		}{Account: accountID},
 	}, []any{&balance}); err != nil {
 		t.Fatal(err)
 	}
@@ -160,29 +176,163 @@ func TestAgent_Query_Secp256k1(t *testing.T) {
 	a, _ := agent.New(agent.Config{
 		Identity: id,
 	})
-	type Account struct {
-		Account string `ic:"account"`
-	}
 	var balance struct {
 		E8S uint64 `ic:"e8s"`
 	}
-	if err := a.Query(ic.LEDGER_PRINCIPAL, "account_balance_dfx", []any{
-		Account{"9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d"},
+
+	accountID, _ := hex.DecodeString("9523dc824aa062dcd9c91b98f4594ff9c6af661ac96747daef2090b7fe87037d")
+	if err := a.Query(LEDGER_PRINCIPAL, "account_balance", []any{
+		struct {
+			Account []byte `ic:"account"`
+		}{Account: accountID},
 	}, []any{&balance}); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func TestICPLedger_queryBlocks(t *testing.T) {
-	a, err := icpledger.NewAgent(ic.LEDGER_PRINCIPAL, agent.DefaultConfig)
+func TestAgent_Query_callback(t *testing.T) {
+	a, err := agent.New(agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := a.QueryBlocks(icpledger.GetBlocksArgs{
-		Start:  1,  // Start from the first block.
-		Length: 10, // Get the last 10 blocks.
-	}); err != nil {
+
+	type GetBlocksArgs struct {
+		Start  uint64 `ic:"start" json:"start"`
+		Length uint64 `ic:"length" json:"length"`
+	}
+
+	type ArchivedBlocksRange struct {
+		Start    uint64       `ic:"start" json:"start"`
+		Length   uint64       `ic:"length" json:"length"`
+		Callback idl.Function `ic:"callback" json:"callback"`
+	}
+
+	type QueryBlocksResponse struct {
+		ChainLength     uint64                `ic:"chain_length" json:"chain_length"`
+		Certificate     *[]byte               `ic:"certificate,omitempty" json:"certificate,omitempty"`
+		Blocks          []any                 `ic:"blocks" json:"blocks"`
+		FirstBlockIndex uint64                `ic:"first_block_index" json:"first_block_index"`
+		ArchivedBlocks  []ArchivedBlocksRange `ic:"archived_blocks" json:"archived_blocks"`
+	}
+
+	args := GetBlocksArgs{
+		Start:  123,
+		Length: 1,
+	}
+	req, err := a.CreateCandidAPIRequest(
+		agent.RequestTypeQuery,
+		LEDGER_PRINCIPAL,
+		"query_blocks",
+		args,
+	)
+	if err != nil {
 		t.Fatal(err)
+	}
+	var out QueryBlocksResponse
+	if err := req.Query([]any{&out}, false); err != nil {
+		t.Fatal(err)
+	}
+	archive := out.ArchivedBlocks[0]
+	if archive.Start != 123 || archive.Length != 1 {
+		t.Error(archive)
+	}
+	if !archive.Callback.Method.Principal.Equal(principal.MustDecode("qjdve-lqaaa-aaaaa-aaaeq-cai")) {
+		t.Error(archive.Callback.Method.Principal)
+	}
+	if archive.Callback.Method.Method != "get_blocks" {
+		t.Error(archive.Callback.Method.Method)
+	}
+
+	type Timestamp struct {
+		TimestampNanos uint64 `ic:"timestamp_nanos" json:"timestamp_nanos"`
+	}
+
+	type Tokens struct {
+		E8s uint64 `ic:"e8s" json:"e8s"`
+	}
+
+	type Operation struct {
+		Mint *struct {
+			To     []byte `ic:"to" json:"to"`
+			Amount Tokens `ic:"amount" json:"amount"`
+		} `ic:"Mint,variant"`
+		Burn *struct {
+			From    []byte  `ic:"from" json:"from"`
+			Spender *[]byte `ic:"spender,omitempty" json:"spender,omitempty"`
+			Amount  Tokens  `ic:"amount" json:"amount"`
+		} `ic:"Burn,variant"`
+		Transfer *struct {
+			From    []byte   `ic:"from" json:"from"`
+			To      []byte   `ic:"to" json:"to"`
+			Amount  Tokens   `ic:"amount" json:"amount"`
+			Fee     Tokens   `ic:"fee" json:"fee"`
+			Spender *[]uint8 `ic:"spender,omitempty" json:"spender,omitempty"`
+		} `ic:"Transfer,variant"`
+		Approve *struct {
+			From              []byte     `ic:"from" json:"from"`
+			Spender           []byte     `ic:"spender" json:"spender"`
+			AllowanceE8s      idl.Int    `ic:"allowance_e8s" json:"allowance_e8s"`
+			Allowance         Tokens     `ic:"allowance" json:"allowance"`
+			Fee               Tokens     `ic:"fee" json:"fee"`
+			ExpiresAt         *Timestamp `ic:"expires_at,omitempty" json:"expires_at,omitempty"`
+			ExpectedAllowance *Tokens    `ic:"expected_allowance,omitempty" json:"expected_allowance,omitempty"`
+		} `ic:"Approve,variant"`
+	}
+
+	type Transaction struct {
+		Memo          uint64     `ic:"memo" json:"memo"`
+		Icrc1Memo     *[]byte    `ic:"icrc1_memo,omitempty" json:"icrc1_memo,omitempty"`
+		Operation     *Operation `ic:"operation,omitempty" json:"operation,omitempty"`
+		CreatedAtTime Timestamp  `ic:"created_at_time" json:"created_at_time"`
+	}
+
+	type Block struct {
+		ParentHash  *[]byte     `ic:"parent_hash,omitempty" json:"parent_hash,omitempty"`
+		Transaction Transaction `ic:"transaction" json:"transaction"`
+		Timestamp   Timestamp   `ic:"timestamp" json:"timestamp"`
+	}
+
+	type BlockRange struct {
+		Blocks []Block `ic:"blocks" json:"blocks"`
+	}
+
+	type GetBlocksError struct {
+		BadFirstBlockIndex *struct {
+			RequestedIndex  uint64 `ic:"requested_index" json:"requested_index"`
+			FirstValidIndex uint64 `ic:"first_valid_index" json:"first_valid_index"`
+		} `ic:"BadFirstBlockIndex,variant"`
+		Other *struct {
+			ErrorCode    uint64 `ic:"error_code" json:"error_code"`
+			ErrorMessage string `ic:"error_message" json:"error_message"`
+		} `ic:"Other,variant"`
+	}
+
+	type GetBlocksResult struct {
+		Ok  *BlockRange     `ic:"Ok,variant"`
+		Err *GetBlocksError `ic:"Err,variant"`
+	}
+
+	var blocks GetBlocksResult
+	if err := a.Query(
+		archive.Callback.Method.Principal,
+		archive.Callback.Method.Method,
+		[]any{args},
+		[]any{&blocks},
+	); err != nil {
+		t.Error(err)
+	}
+
+	if len(blocks.Ok.Blocks) != 1 {
+		t.Error(blocks)
+	}
+}
+
+func TestCall_invalid(t *testing.T) {
+	a, _ := agent.New(agent.DefaultConfig)
+	qErr := a.Query(LEDGER_PRINCIPAL, "account_balance", []any{}, []any{})
+	cErr := a.Call(LEDGER_PRINCIPAL, "account_balance", []any{}, []any{})
+	if qErr != cErr {
+		t.Error(qErr, cErr)
 	}
 }
 

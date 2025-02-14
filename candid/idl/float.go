@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/aviate-labs/leb128"
 	"math"
 	"math/big"
+
+	"github.com/aviate-labs/leb128"
 )
 
 func anyToFloat64(v any) (float64, bool) {
@@ -100,11 +101,11 @@ func (f FloatType) Decode(r *bytes.Reader) (any, error) {
 
 // EncodeType returns the leb128 encoding of the FloatType.
 func (f FloatType) EncodeType(_ *TypeDefinitionTable) ([]byte, error) {
-	floatXType := new(big.Int).Set(big.NewInt(floatXType))
+	FloatXOpCode := FloatXOpCode.BigInt()
 	if f.size == 8 {
-		floatXType.Add(floatXType, big.NewInt(-1))
+		FloatXOpCode.Add(FloatXOpCode, big.NewInt(-1))
 	}
-	return leb128.EncodeSigned(floatXType)
+	return leb128.EncodeSigned(FloatXOpCode)
 }
 
 // EncodeValue encodes a float value.
@@ -128,7 +129,7 @@ func (f FloatType) EncodeValue(v any) ([]byte, error) {
 		binary.LittleEndian.PutUint32(bs, math.Float32bits(v))
 		return bs, nil
 	default:
-		return nil, NewEncodeValueError(v, floatXType)
+		return nil, NewEncodeValueError(v, FloatXOpCode)
 	}
 }
 

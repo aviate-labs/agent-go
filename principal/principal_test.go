@@ -5,14 +5,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/aviate-labs/agent-go/ic"
 	"testing"
 
 	"github.com/aviate-labs/agent-go/principal"
 )
 
+var LEDGER_PRINCIPAL = principal.MustDecode("ryjl3-tyaaa-aaaaa-aaaba-cai")
+
 func ExampleDecode() {
-	p, _ := principal.Decode("em77e-bvlzu-aq")
+	p := principal.MustDecode("em77e-bvlzu-aq")
 	fmt.Printf("%x", p.Raw)
 	// Output:
 	// abcd01
@@ -27,7 +28,7 @@ func ExamplePrincipal() {
 }
 
 func TestPrincipal(t *testing.T) {
-	if !ic.LEDGER_PRINCIPAL.IsOpaque() {
+	if !LEDGER_PRINCIPAL.IsOpaque() {
 		t.Fatal("expected opaque principal")
 	}
 	if !principal.MustDecode("g27xm-fnyhk-uu73a-njpqd-hec7y-syhwe-bd45b-qm6yc-xikg5-cylqt-iae").IsSelfAuthenticating() {
