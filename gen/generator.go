@@ -11,6 +11,7 @@ import (
 	"unicode"
 
 	"github.com/aviate-labs/agent-go/candid/did"
+	"github.com/aviate-labs/agent-go/principal"
 )
 
 const (
@@ -72,6 +73,7 @@ type Generator struct {
 	AgentName          string
 	ModulePath         string
 	CanisterName       string
+	CanisterID         *principal.Principal
 	PackageName        string
 	ServiceDescription did.Description
 	usedIDL            bool
@@ -159,12 +161,14 @@ func (g *Generator) Generate() ([]byte, error) {
 	}
 	var tmpl bytes.Buffer
 	if err := t.Execute(&tmpl, agentArgs{
-		AgentName:    g.AgentName,
-		CanisterName: g.CanisterName,
-		PackageName:  g.PackageName,
-		UsedIDL:      g.usedIDL,
-		Definitions:  definitions,
-		Methods:      methods,
+		AgentName:      g.AgentName,
+		AgentNameUpper: strings.ToUpper(g.AgentName),
+		CanisterName:   g.CanisterName,
+		CanisterID:     g.CanisterID,
+		PackageName:    g.PackageName,
+		UsedIDL:        g.usedIDL,
+		Definitions:    definitions,
+		Methods:        methods,
 	}); err != nil {
 		return nil, err
 	}
@@ -174,6 +178,11 @@ func (g *Generator) Generate() ([]byte, error) {
 // Indirect sets the generator to generate indirect calls.
 func (g *Generator) Indirect() *Generator {
 	g.indirect = true
+	return g
+}
+
+func (g *Generator) WithCanisterID(canisterID *principal.Principal) *Generator {
+	g.CanisterID = canisterID
 	return g
 }
 
@@ -325,12 +334,14 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 }
 
 type agentArgs struct {
-	AgentName    string
-	CanisterName string
-	PackageName  string
-	UsedIDL      bool
-	Definitions  []agentArgsDefinition
-	Methods      []agentArgsMethod
+	AgentName      string
+	AgentNameUpper string
+	CanisterName   string
+	CanisterID     *principal.Principal
+	PackageName    string
+	UsedIDL        bool
+	Definitions    []agentArgsDefinition
+	Methods        []agentArgsMethod
 }
 
 type agentArgsDefinition struct {

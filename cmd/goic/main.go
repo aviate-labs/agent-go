@@ -72,6 +72,14 @@ var root = cmd.NewCommandFork(
 					HasValue: true,
 				},
 				{
+					Name:     "agentName",
+					HasValue: true,
+				},
+				{
+					Name:     "canisterID",
+					HasValue: true,
+				},
+				{
 					Name:     "indirect",
 					HasValue: false,
 				},
@@ -94,8 +102,22 @@ var root = cmd.NewCommandFork(
 					packageName = p
 				}
 
+				var agentName string
+				if a, ok := options["agentName"]; ok {
+					agentName = a
+				}
+
+				var canisterID *principal.Principal
+				if cID, ok := options["canisterID"]; ok {
+					p, err := principal.Decode(cID)
+					if err != nil {
+						return err
+					}
+					canisterID = &p
+				}
+
 				_, indirect := options["indirect"]
-				return writeDID(canisterName, packageName, path, []rune(string(rawDID)), indirect)
+				return writeDID(agentName, canisterName, canisterID, packageName, path, []rune(string(rawDID)), indirect)
 			},
 		),
 		cmd.NewCommand(
@@ -112,17 +134,21 @@ var root = cmd.NewCommandFork(
 					HasValue: true,
 				},
 				{
+					Name:     "agentName",
+					HasValue: true,
+				},
+				{
 					Name:     "indirect",
 					HasValue: false,
 				},
 			},
 			func(args []string, options map[string]string) error {
 				id := args[0]
-				canisterId, err := principal.Decode(id)
+				canisterID, err := principal.Decode(id)
 				if err != nil {
 					return err
 				}
-				rawDID, err := fetchDID(canisterId)
+				rawDID, err := fetchDID(canisterID)
 				if err != nil {
 					return err
 				}
@@ -138,8 +164,13 @@ var root = cmd.NewCommandFork(
 					packageName = p
 				}
 
+				var agentName string
+				if a, ok := options["agentName"]; ok {
+					agentName = a
+				}
+
 				_, indirect := options["indirect"]
-				return writeDID(canisterName, packageName, path, []rune(string(rawDID)), indirect)
+				return writeDID(agentName, canisterName, &canisterID, packageName, path, []rune(string(rawDID)), indirect)
 			},
 		),
 	),
@@ -167,13 +198,16 @@ func main() {
 	}
 }
 
-func writeDID(canisterName, packageName, outputPath string, rawDID []rune, indirect bool) error {
-	g, err := gen.NewGenerator("", canisterName, packageName, rawDID)
+func writeDID(agentName, canisterName string, canisterID *principal.Principal, packageName, outputPath string, rawDID []rune, indirect bool) error {
+	g, err := gen.NewGenerator(agentName, canisterName, packageName, rawDID)
 	if err != nil {
 		return err
 	}
 	if indirect {
 		g.Indirect()
+	}
+	if canisterID != nil {
+		g.WithCanisterID(canisterID)
 	}
 	raw, err := g.Generate()
 	if err != nil {

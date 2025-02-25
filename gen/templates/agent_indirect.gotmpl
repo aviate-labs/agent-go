@@ -7,6 +7,9 @@ import (
     "github.com/aviate-labs/agent-go/candid/idl"{{ end }}
     "github.com/aviate-labs/agent-go/principal"
 )
+{{- if .CanisterID }}
+
+var {{ if .AgentNameUpper }}{{ .AgentNameUpper }}_{{ end }}CANISTER_ID = principal.MustDecode("{{ .CanisterID.String }}"){{ end }}
 
 {{- range .Definitions }}
 
