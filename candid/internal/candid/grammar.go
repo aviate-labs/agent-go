@@ -7,30 +7,30 @@ import (
 )
 
 var (
-	Prog        = op.Capture{Name: "Prog", Value: op.And{op.Optional{Value: op.And{Ws, Def, op.ZeroOrMore{Value: op.And{';', Ws, Def}}}}, op.Optional{Value: ';'}, Ws, op.Optional{Value: op.And{Ws, Actor, op.ZeroOrMore{Value: op.And{';', Ws, Actor}}}}, op.Optional{Value: ';'}, Ws}}
+	Prog        = op.Capture{Name: "Prog", Value: op.And{op.Optional{Value: op.And{OWs, Def, op.ZeroOrMore{Value: op.And{';', OWs, Def}}}}, op.Optional{Value: ';'}, OWs, op.Optional{Value: op.And{OWs, Actor, op.ZeroOrMore{Value: op.And{';', OWs, Actor}}}}, op.Optional{Value: ';'}, OWs}}
 	Def         = op.Or{Type, Import}
-	Type        = op.Capture{Name: "Type", Value: op.And{"type", Sp, Id, Sp, '=', Sp, DataType}}
+	Type        = op.Capture{Name: "Type", Value: op.And{"type", Sp, Id, Sp, '=', OWs, DataType}}
 	Import      = op.Capture{Name: "Import", Value: op.And{"import", Sp, Text}}
-	Actor       = op.Capture{Name: "Actor", Value: op.And{"service", op.Optional{Value: Sp}, op.Optional{Value: op.And{Id, Sp}}, ':', Sp, op.Optional{Value: op.And{TupType, Sp, "->", Ws}}, op.Or{ActorType, Id}}}
-	ActorType   = op.Capture{Name: "ActorType", Value: op.And{'{', Ws, op.Optional{Value: op.And{MethType, op.ZeroOrMore{Value: op.And{';', Ws, MethType}}, op.Optional{Value: ';'}, Ws}}, '}'}}
-	MethType    = op.Capture{Name: "MethType", Value: op.And{Name, op.Optional{Value: Sp}, ':', Ws, op.Or{FuncType, Id}}}
-	FuncType    = op.Capture{Name: "FuncType", Value: op.And{TupType, op.Optional{Value: op.And{Sp, "->", Ws, TupType, op.Optional{Value: op.And{Sp, FuncAnn}}}}}}
+	Actor       = op.Capture{Name: "Actor", Value: op.And{"service", op.Optional{Value: op.And{Sp, Id}}, OSp, ':', Sp, op.Optional{Value: op.And{TupType, Sp, "->", OWs}}, op.Or{ActorType, Id}}}
+	ActorType   = op.Capture{Name: "ActorType", Value: op.And{'{', OWs, op.Optional{Value: op.And{MethType, op.ZeroOrMore{Value: op.And{';', OWs, MethType}}, op.Optional{Value: ';'}, OWs}}, '}'}}
+	MethType    = op.Capture{Name: "MethType", Value: op.And{Name, OSp, ':', OWs, op.Or{FuncType, Id}}}
+	FuncType    = op.Capture{Name: "FuncType", Value: op.And{TupType, op.Optional{Value: op.And{Sp, "->", OWs, TupType, op.Optional{Value: op.And{Sp, FuncAnn}}}}}}
 	FuncAnn     = op.Capture{Name: "FuncAnn", Value: op.Or{"oneway", "query"}}
-	TupType     = op.Capture{Name: "TupType", Value: op.Or{op.And{'(', Ws, op.Optional{Value: op.And{ArgType, op.ZeroOrMore{Value: op.And{',', Sp, ArgType}}, op.Optional{Value: op.And{',', Ws}}}}, Ws, ')'}, ArgType}}
-	ArgType     = op.Capture{Name: "ArgType", Value: op.And{op.Optional{Value: op.And{Name, op.Optional{Value: Sp}, ':', Sp}}, DataType}}
-	FieldType   = op.Capture{Name: "FieldType", Value: op.Or{op.And{op.Optional{Value: op.And{op.Or{Nat, Name}, op.Optional{Value: Sp}, ':', Sp}}, DataType}, Nat, Name}}
+	TupType     = op.Capture{Name: "TupType", Value: op.Or{op.And{'(', OWs, op.Optional{Value: op.And{ArgType, op.ZeroOrMore{Value: op.And{',', Sp, ArgType}}, op.Optional{Value: op.And{',', OWs}}}}, OWs, ')'}, ArgType}}
+	ArgType     = op.Capture{Name: "ArgType", Value: op.And{op.Optional{Value: op.And{Name, OSp, ':', Sp}}, DataType}}
+	FieldType   = op.Capture{Name: "FieldType", Value: op.Or{op.And{op.Optional{Value: op.And{op.Or{Nat, Name}, OSp, ':', OWs}}, DataType}, Nat, Name}}
 	DataType    = op.Or{ConsType, RefType, PrimType, Id}
 	PrimType    = op.Capture{Name: "PrimType", Value: op.Or{NumType, "bool", "text", "null", "reserved", "empty"}}
 	NumType     = op.Or{"nat8", "nat16", "nat32", "nat64", "nat", "int8", "int16", "int32", "int64", "int", "float32", "float64"}
 	ConsType    = op.Or{Blob, Opt, Vec, Record, Variant}
 	Blob        = op.Capture{Name: "Blob", Value: "blob"}
-	Opt         = op.Capture{Name: "Opt", Value: op.And{"opt", Sp, op.Reference{Name: "DataType"}}}
-	Vec         = op.Capture{Name: "Vec", Value: op.And{"vec", Sp, op.Reference{Name: "DataType"}}}
-	Record      = op.Capture{Name: "Record", Value: op.And{"record", op.Optional{Value: Sp}, '{', Ws, op.Optional{Value: Fields}, Ws, '}'}}
-	Variant     = op.Capture{Name: "Variant", Value: op.And{"variant", Sp, '{', Ws, op.Optional{Value: Fields}, Ws, '}'}}
-	Fields      = op.And{op.Reference{Name: "FieldType"}, op.ZeroOrMore{Value: op.And{';', Ws, op.Reference{Name: "FieldType"}}}, op.Optional{Value: ';'}}
+	Opt         = op.Capture{Name: "Opt", Value: op.And{"opt", Ws, op.Reference{Name: "DataType"}}}
+	Vec         = op.Capture{Name: "Vec", Value: op.And{"vec", Ws, op.Reference{Name: "DataType"}}}
+	Record      = op.Capture{Name: "Record", Value: op.And{"record", OSp, '{', OWs, op.Optional{Value: Fields}, OWs, '}'}}
+	Variant     = op.Capture{Name: "Variant", Value: op.And{"variant", OSp, '{', OWs, op.Optional{Value: Fields}, OWs, '}'}}
+	Fields      = op.And{op.Reference{Name: "FieldType"}, op.ZeroOrMore{Value: op.And{';', OWs, op.Reference{Name: "FieldType"}}}, op.Optional{Value: ';'}}
 	RefType     = op.Or{Func, Service, Principal}
-	Func        = op.Capture{Name: "Func", Value: op.And{"func", op.Optional{Value: Sp}, op.Reference{Name: "FuncType"}}}
+	Func        = op.Capture{Name: "Func", Value: op.And{"func", OSp, op.Reference{Name: "FuncType"}}}
 	Service     = op.Capture{Name: "Service", Value: op.And{"service", Sp, op.Reference{Name: "ActorType"}}}
 	Principal   = op.Capture{Name: "Principal", Value: "principal"}
 	Name        = op.Or{Id, Text}
@@ -51,7 +51,9 @@ var (
 	CommentText = op.Capture{Name: "CommentText", Value: op.ZeroOrMore{Value: op.Or{Ascii, rune(0x22), rune(0x27), rune(0x60)}}}
 	Comment     = op.And{"//", CommentText, Nl}
 	Nl          = op.Or{rune(0x0A), rune(0x0D), op.And{rune(0x0D), rune(0x0A)}}
-	Ws          = op.ZeroOrMore{Value: op.Or{Sp, rune(0x09), Comment, Nl}}
+	OWs         = op.ZeroOrMore{Value: op.Or{Sp, rune(0x09), Comment, Nl}}
+	Ws          = op.OneOrMore{Value: op.Or{Sp, rune(0x09), Comment, Nl}}
+	OSp         = op.ZeroOrMore{Value: ' '}
 	Sp          = op.OneOrMore{Value: ' '}
 	ESC         = rune(0x5C)
 )

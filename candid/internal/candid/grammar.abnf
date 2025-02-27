@@ -1,17 +1,17 @@
-Prog      = [Ws Def *(";" Ws Def)] [";"] Ws
-            [Ws Actor *(";" Ws Actor)] [";"] Ws
+Prog      = [OWs Def *(";" OWs Def)] [";"] OWs
+            [OWs Actor *(";" OWs Actor)] [";"] OWs
 Def       = Type / Import
-Type      = "type" Sp Id Sp "=" Sp DataType
+Type      = "type" Sp Id Sp "=" OWs DataType
 Import    = "import" Sp Text
-Actor     = "service" [Sp] [Id Sp] ":" Sp [TupType Sp "->" Ws] (ActorType / Id)
+Actor     = "service" [Sp Id] OSp ":" Sp [TupType Sp "->" OWs] (ActorType / Id)
 
-ActorType = "{" Ws [MethType *(";" Ws MethType) [";"] Ws] "}"
-MethType  = Name [Sp] ":" Ws (FuncType / Id)
-FuncType  = TupType [Sp "->" Ws TupType [Sp FuncAnn]]
+ActorType = "{" OWs [MethType *(";" OWs MethType) [";"] OWs] "}"
+MethType  = Name OSp ":" OWs (FuncType / Id)
+FuncType  = TupType [Sp "->" OWs TupType [Sp FuncAnn]]
 FuncAnn   = "oneway" / "query"
-TupType   = "(" Ws [ArgType *("," Sp ArgType) ["," Ws]] Ws ")" / ArgType
-ArgType   = [Name [Sp] ":" Sp] DataType
-FieldType = [(Nat / Name) [Sp] ":" Sp] DataType / Nat / Name
+TupType   = "(" OWs [ArgType *("," Sp ArgType) ["," OWs]] OWs ")" / ArgType
+ArgType   = [Name OSp ":" Sp] DataType
+FieldType = [(Nat / Name) OSp ":" OWs] DataType / Nat / Name
 DataType  = ConsType / RefType / PrimType / Id
 
 PrimType    = NumType
@@ -27,14 +27,14 @@ ConsType    = Blob
             / Variant
 
 Blob      = "blob"
-Opt       = "opt" Sp DataType
-Vec       = "vec" Sp DataType
-Record    = "record" [Sp] "{" Ws [Fields] Ws "}"
-Variant   = "variant" Sp "{" Ws [Fields] Ws "}"
-Fields    = FieldType *(";" Ws FieldType) [";"]
+Opt       = "opt" Ws DataType
+Vec       = "vec" Ws DataType
+Record    = "record" OSp "{" OWs [Fields] OWs "}"
+Variant   = "variant" OSp "{" OWs [Fields] OWs "}"
+Fields    = FieldType *(";" OWs FieldType) [";"]
 
 RefType   = Func / Service / Principal
-Func      = "func" [Sp] FuncType
+Func      = "func" OSp FuncType
 Service   = "service" Sp ActorType
 Principal = "principal"
 
@@ -75,6 +75,8 @@ CommentText = *(ascii / %x22 / %x27 / %x60) ; " ' `
 Comment     = "//" CommentText Nl
 
 Nl   = %x0A / %x0D / (%x0D %x0A)
-Ws   = *(Sp / %x09 / Comment / Nl)
+OWs   = *(Sp / %x09 / Comment / Nl)
+Ws   = 1*(Sp / %x09 / Comment / Nl)
+OSp  = *" "
 Sp   = 1*" "
 ESC  = %x5C ; \
