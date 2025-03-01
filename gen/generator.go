@@ -30,6 +30,9 @@ func funcName(prefix, name string) string {
 	}
 	var str string
 	for _, p := range strings.Split(name, "_") {
+		if len(p) == 0 {
+			continue
+		}
 		str += strings.ToUpper(string(p[0])) + p[1:]
 	}
 	if prefix != "" {

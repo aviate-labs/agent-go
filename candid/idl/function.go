@@ -116,7 +116,7 @@ func (f FunctionType) Decode(r *bytes.Reader) (any, error) {
 			return nil, err
 		}
 		if n != int(l.Int64()) {
-			return nil, fmt.Errorf("invalid principal id: %d", pid)
+			return nil, fmt.Errorf("invalid principal id: %s", principal.Principal{Raw: pid})
 		}
 	}
 	ml, err := leb128.DecodeUnsigned(r)
@@ -129,8 +129,8 @@ func (f FunctionType) Decode(r *bytes.Reader) (any, error) {
 		if err != nil {
 			return nil, err
 		}
-		if n != int(l.Int64()) {
-			return nil, fmt.Errorf("invalid method: %d", pid)
+		if n != int(ml.Int64()) {
+			return nil, fmt.Errorf("invalid method: %s", m)
 		}
 	}
 	return &PrincipalMethod{
