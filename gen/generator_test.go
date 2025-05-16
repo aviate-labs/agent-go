@@ -145,11 +145,11 @@ func ExampleNewGenerator_tags() {
 	// )
 	//
 	// type Resp struct {
-	// 	Field0 idl.Nat                                                `ic:"0,tuple" json:"0,tuple"`
+	// 	Field0 idl.Nat                                                `ic:"0,tuple" json:"0"`
 	// 	Field1 struct {
 	// 	Ok  *idl.Null `ic:"ok,variant" json:"ok,omitempty"`
 	// 	Err *idl.Null `ic:"err,variant" json:"err,omitempty"`
-	// } `ic:"1,tuple" json:"1,tuple"`
+	// } `ic:"1,tuple" json:"1"`
 	// }
 	//
 	// // TestAgent is a client for the "test" canister.

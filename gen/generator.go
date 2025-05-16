@@ -265,14 +265,15 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 		var record string
 		for _, r := range records {
 			tag := r.originalName
+			var tupleTag string
 			if tuple {
 				tag = strings.TrimPrefix(tag, "Field")
-				tag += `,tuple`
+				tupleTag = `,tuple`
 			}
 			if strings.HasPrefix(r.typ, "*") {
 				tag += ",omitempty" // optional value.
 			}
-			record += fmt.Sprintf("\t%-*s %-*s `ic:\"%s\" json:\"%s\"`\n", sizeName, r.name, sizeType, r.typ, tag, tag)
+			record += fmt.Sprintf("\t%-*s %-*s `ic:\"%s%s\" json:\"%s\"`\n", sizeName, r.name, sizeType, r.typ, tag, tupleTag, tag)
 		}
 		return fmt.Sprintf("struct {\n%s}", record)
 	case did.Variant:
