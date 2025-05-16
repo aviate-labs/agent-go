@@ -30,7 +30,7 @@ func Decode(bs []byte) ([]idl.Type, []any, error) {
 		}
 
 		var tc typeCache
-		for i := 0; i < int(tdtl.Int64()); i++ {
+		for range int(tdtl.Int64()) {
 			tid, err := leb128.DecodeSigned(r)
 			if err != nil {
 				return nil, nil, err

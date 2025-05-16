@@ -16,7 +16,7 @@ func StructToMap(value any) (map[string]any, error) {
 	switch v.Kind() {
 	case reflect.Struct:
 		m := make(map[string]any)
-		for i := 0; i < v.NumField(); i++ {
+		for i := range v.NumField() {
 			field := v.Type().Field(i)
 			if !field.IsExported() {
 				continue
@@ -32,7 +32,8 @@ func StructToMap(value any) (map[string]any, error) {
 }
 
 type RecordType struct {
-	Fields []FieldType
+	Fields  []FieldType
+	IsTuple bool
 }
 
 func NewRecordType(fields map[string]Type) *RecordType {
@@ -65,8 +66,14 @@ func (record RecordType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 		return err
 	}
 	var vs []byte
-	for _, f := range record.Fields {
-		l, err := leb128.EncodeUnsigned(Hash(f.Name))
+	for i, f := range record.Fields {
+		var h *big.Int
+		if record.IsTuple {
+			h = big.NewInt(int64(i))
+		} else {
+			h = Hash(f.Name)
+		}
+		l, err := leb128.EncodeUnsigned(h)
 		if err != nil {
 			return nil
 		}
@@ -116,8 +123,12 @@ func (record RecordType) EncodeValue(v any) ([]byte, error) {
 		}
 	}
 	var vs_ []any
-	for _, f := range record.Fields {
-		vs_ = append(vs_, fs[f.Name])
+	for i, f := range record.Fields {
+		if v, ok := fs[f.Name]; ok {
+			vs_ = append(vs_, v)
+			continue
+		}
+		vs_ = append(vs_, fs[fmt.Sprintf("%d", i)])
 	}
 	var vs []byte
 	for i, f := range record.Fields {
@@ -133,6 +144,10 @@ func (record RecordType) EncodeValue(v any) ([]byte, error) {
 func (record RecordType) String() string {
 	var s []string
 	for _, f := range record.Fields {
+		if f.Name == "" {
+			s = append(s, f.Type.String())
+			continue
+		}
 		s = append(s, fmt.Sprintf("%s:%s", f.Name, f.Type.String()))
 	}
 	return fmt.Sprintf("record {%s}", strings.Join(s, "; "))
@@ -150,7 +165,7 @@ func (record RecordType) UnmarshalGo(raw any, _v any) error {
 			m[k.String()] = rv.MapIndex(k).Interface()
 		}
 	case reflect.Struct:
-		for i := 0; i < rv.NumField(); i++ {
+		for i := range rv.NumField() {
 			f := rv.Type().Field(i)
 			tag := ParseTags(f)
 			m[tag.Name] = rv.Field(i).Interface()
@@ -194,7 +209,7 @@ func (record RecordType) unmarshalMap(raw map[string]any, _v *map[string]any) er
 func (record RecordType) unmarshalStruct(raw map[string]any, _v reflect.Value) error {
 	findField := func(name string) (reflect.Value, bool) {
 		name = lowerFirstCharacter(name)
-		for i := 0; i < _v.NumField(); i++ {
+		for i := range _v.NumField() {
 			f := _v.Type().Field(i)
 			tag := ParseTags(f)
 			if tag.Name == name || HashString(tag.Name) == name {

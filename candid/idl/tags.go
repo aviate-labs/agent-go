@@ -18,6 +18,7 @@ type Tag struct {
 	// Name is the name of the field in the struct.
 	Name        string
 	VariantType bool
+	TupleType   bool
 }
 
 func ParseTags(field reflect.StructField) Tag {
@@ -35,6 +36,8 @@ func ParseTags(field reflect.StructField) Tag {
 			switch option {
 			case "variant":
 				t.VariantType = true
+			case "tuple":
+				t.TupleType = true
 			default:
 				// ignore unknown options
 			}

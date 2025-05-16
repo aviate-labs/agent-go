@@ -15,7 +15,7 @@ func isVariantType(value any) bool {
 	v := reflect.ValueOf(value)
 	switch v.Kind() {
 	case reflect.Struct:
-		for i := 0; i < v.NumField(); i++ {
+		for i := range v.NumField() {
 			field := v.Type().Field(i)
 			if !field.IsExported() {
 				continue

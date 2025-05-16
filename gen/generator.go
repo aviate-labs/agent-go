@@ -267,6 +267,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 			tag := r.originalName
 			if tuple {
 				tag = strings.TrimPrefix(tag, "Field")
+				tag += `,tuple`
 			}
 			if strings.HasPrefix(r.typ, "*") {
 				tag += ",omitempty" // optional value.

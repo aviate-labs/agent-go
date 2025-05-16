@@ -16,7 +16,6 @@ package main
 
 import (
 	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/ic"
 	"log"
 )
 

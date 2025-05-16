@@ -191,8 +191,20 @@ func TypeOf(v any) (Type, error) {
 					fields[k] = typ
 				}
 				return NewVariantType(fields), nil
+			} else {
+				fields := make(map[string]Type)
+				for k, v := range m {
+					typ, err := TypeOf(v)
+					if err != nil {
+						return nil, err
+					}
+					fields[k] = typ
+				}
+				if isTupleType(v) {
+					return NewTupleType(fields), nil
+				}
+				return NewRecordType(fields), nil
 			}
-			return TypeOf(m)
 		case reflect.Ptr:
 			indirect := reflect.Indirect(reflect.ValueOf(v))
 			if !indirect.IsValid() {

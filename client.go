@@ -50,7 +50,9 @@ func (c Client) Call(ctx context.Context, canisterID principal.Principal, data [
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	switch resp.StatusCode {
 	case http.StatusAccepted:
 		return nil, nil
@@ -117,7 +119,9 @@ func (c Client) get(path string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	return io.ReadAll(resp.Body)
 }
 
@@ -141,7 +145,9 @@ func (c Client) post(ctx context.Context, path string, canisterID principal.Prin
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return io.ReadAll(resp.Body)
@@ -165,7 +171,9 @@ func (c Client) postSubnet(ctx context.Context, path string, subnetID principal.
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
 	switch resp.StatusCode {
 	case http.StatusOK:
 		return io.ReadAll(resp.Body)
