@@ -85,7 +85,7 @@ func writeInt(bi *big.Int, n int) []byte {
 
 func zeros(n int) []byte {
 	var z []byte
-	for i := 0; i < n; i++ {
+	for range n {
 		z = append(z, 0)
 	}
 	return z

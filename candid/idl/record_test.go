@@ -86,7 +86,7 @@ func TestRecordType_UnmarshalGo(t *testing.T) {
 
 		expectErr(t, rt.UnmarshalGo(make(map[string]idl.Null), &m))
 
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			if err := rt.UnmarshalGo(map[string]any{
 				"foo": "💩",
 				"bar": idl.NewInt(42),
@@ -157,7 +157,7 @@ func TestRecordType_UnmarshalGo(t *testing.T) {
 
 		expectErr(t, rt.UnmarshalGo(make(map[string]idl.Null), &s))
 
-		for i := 0; i < 3; i++ {
+		for range 3 {
 			if err := rt.UnmarshalGo(map[string]any{
 				"foo": "💩",
 				"bar": idl.NewInt(42),

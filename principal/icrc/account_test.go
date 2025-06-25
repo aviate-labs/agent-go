@@ -23,7 +23,7 @@ func ExampleAccount() {
 }
 
 func TestAccountIdentifier(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		a := icrc.Account{
 			Owner:      principal.Principal{},
 			SubAccount: &[32]byte{byte(i)},

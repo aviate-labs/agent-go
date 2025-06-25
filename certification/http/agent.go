@@ -22,7 +22,7 @@ func NewAgent(canisterId principal.Principal, cfg agent.Config) (*Agent, error) 
 
 	var supportsV1, supportsV2 bool
 	if raw, err := a.GetCanisterMetadata(canisterId, "supported_certificate_versions"); err == nil {
-		for _, v := range strings.Split(string(raw), ",") {
+		for v := range strings.SplitSeq(string(raw), ",") {
 			switch v {
 			case "1":
 				supportsV1 = true

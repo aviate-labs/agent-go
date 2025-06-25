@@ -29,7 +29,7 @@ func funcName(prefix, name string) string {
 		name = name[1 : len(name)-1]
 	}
 	var str string
-	for _, p := range strings.Split(name, "_") {
+	for p := range strings.SplitSeq(name, "_") {
 		if len(p) == 0 {
 			continue
 		}
@@ -247,7 +247,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 			} else {
 				typ = funcName(prefix, *field.NameData)
 			}
-			for _, typ := range strings.Split(typ, "\n") {
+			for typ := range strings.SplitSeq(typ, "\n") {
 				if l := len(typ); l > sizeType {
 					sizeType = l
 				}
@@ -310,7 +310,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 				} else {
 					typ = funcName(prefix, *field.NameData)
 				}
-				for _, typ := range strings.Split(typ, "\n") {
+				for typ := range strings.SplitSeq(typ, "\n") {
 					if l := len(typ); l > sizeType {
 						sizeType = l
 					}

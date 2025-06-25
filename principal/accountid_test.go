@@ -14,7 +14,7 @@ func ExampleNewAccountID() {
 }
 
 func TestAccountIdentifier(t *testing.T) {
-	for i := 0; i < 100; i++ {
+	for i := range 100 {
 		a := principal.NewAccountID(principal.Principal{}, [32]byte{byte(i)})
 		accountID, err := principal.DecodeAccountID(a.String())
 		if err != nil {

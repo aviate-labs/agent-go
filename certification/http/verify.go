@@ -325,7 +325,7 @@ type CertificateHeader struct {
 
 func ParseCertificateHeader(header string) (*CertificateHeader, error) {
 	var certificateHeader CertificateHeader
-	for _, value := range strings.Split(header, ",") {
+	for value := range strings.SplitSeq(header, ",") {
 		vs := strings.SplitN(strings.TrimSpace(value), "=", 2)
 		if len(vs) != 2 {
 			return nil, fmt.Errorf("invalid header")
