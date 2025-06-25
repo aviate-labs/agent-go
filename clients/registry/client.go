@@ -64,9 +64,9 @@ func (c *Client) GetNodeListSince(version uint64) (NodeMap, error) {
 		}
 		currentVersion = records[len(records)-1].Version
 		for _, record := range records {
-			if strings.HasPrefix(record.Key, "node_record_") {
+			if after, ok := strings.CutPrefix(record.Key, "node_record_"); ok {
 				if record.Value == nil {
-					delete(nodeMap, strings.TrimPrefix(record.Key, "node_record_"))
+					delete(nodeMap, after)
 				} else {
 					var nodeRecord v1.NodeRecord
 					if err := proto.Unmarshal(record.Value, &nodeRecord); err != nil {
@@ -74,9 +74,9 @@ func (c *Client) GetNodeListSince(version uint64) (NodeMap, error) {
 					}
 					nodeMap[strings.TrimPrefix(record.Key, "node_record_")] = &nodeRecord
 				}
-			} else if strings.HasPrefix(record.Key, "node_operator_record_") {
+			} else if after, ok := strings.CutPrefix(record.Key, "node_operator_record_"); ok {
 				if record.Value == nil {
-					delete(nodeOperatorMap, strings.TrimPrefix(record.Key, "node_operator_record_"))
+					delete(nodeOperatorMap, after)
 				} else {
 					var nodeOperatorRecord v1.NodeOperatorRecord
 					if err := proto.Unmarshal(record.Value, &nodeOperatorRecord); err != nil {
@@ -126,7 +126,7 @@ func (c *Client) GetNodeListSince(version uint64) (NodeMap, error) {
 }
 
 func (c *Client) GetSubnetDetails(subnetID principal.Principal) (*v1.SubnetRecord, error) {
-	v, _, err := c.dp.GetValueUpdate([]byte(fmt.Sprintf("subnet_record_%s", subnetID)), nil)
+	v, _, err := c.dp.GetValueUpdate(fmt.Appendf(nil, "subnet_record_%s", subnetID), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get subnet details: %w", err)
 	}
@@ -154,7 +154,7 @@ func (c *Client) GetSubnetIDs() ([]principal.Principal, error) {
 }
 
 func (c *Client) GetSubnetPublicKey(subnetID principal.Principal) ([]byte, error) {
-	v, _, err := c.dp.GetValueUpdate([]byte(fmt.Sprintf("crypto_threshold_signing_public_key_%s", subnetID)), nil)
+	v, _, err := c.dp.GetValueUpdate(fmt.Appendf(nil, "crypto_threshold_signing_public_key_%s", subnetID), nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get subnet public key: %w", err)
 	}

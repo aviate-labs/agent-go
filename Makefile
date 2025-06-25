@@ -28,5 +28,6 @@ gen:
 fmt:
 	go mod tidy
 	gofmt -s -w .
+	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix -test ./...
 	goarrange run -r .
 	golangci-lint run ./...

@@ -1,6 +1,6 @@
 module github.com/aviate-labs/agent-go
 
-go 1.22.1
+go 1.24.4
 
 require (
 	github.com/0x51-dev/upeg v0.1.5

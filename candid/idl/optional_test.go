@@ -32,7 +32,7 @@ func TestOptionalType_UnmarshalGo(t *testing.T) {
 	}
 
 	var nat *idl.Nat
-	for i := 0; i < 3; i++ {
+	for range 3 {
 		if err := (idl.OptionalType{
 			Type: new(idl.NatType),
 		}).UnmarshalGo(uint(1), &nat); err != nil {
