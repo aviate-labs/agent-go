@@ -7,12 +7,17 @@ import (
 	"math/big"
 	"sort"
 
+	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/leb128"
 	"github.com/fxamacker/cbor/v2"
 )
 
 // HashAny computes the hash of any value.
 func HashAny(v any) ([32]byte, error) {
+	if hasher, ok := v.(Hasher); ok {
+		return hasher.HashAny()
+	}
+
 	switch v := v.(type) {
 	case cbor.RawMessage:
 		var anyValue any
@@ -26,7 +31,7 @@ func HashAny(v any) ([32]byte, error) {
 		return sha256.Sum256(v), nil
 	case int64:
 		bi := big.NewInt(int64(v))
-		e, err := leb128.EncodeUnsigned(bi)
+		e, err := leb128.EncodeSigned(bi)
 		if err != nil {
 			return [32]byte{}, err
 		}
@@ -38,6 +43,22 @@ func HashAny(v any) ([32]byte, error) {
 			return [32]byte{}, err
 		}
 		return sha256.Sum256(e), nil
+	case idl.Int:
+		bi := v.BigInt()
+		e, err := leb128.EncodeSigned(bi)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		return sha256.Sum256(e), nil
+	case idl.Nat:
+		bi := v.BigInt()
+		e, err := leb128.EncodeUnsigned(bi)
+		if err != nil {
+			return [32]byte{}, err
+		}
+		return sha256.Sum256(e), nil
+	case leb128.SLEB128:
+		return sha256.Sum256(v), nil
 	case leb128.LEB128:
 		return sha256.Sum256(v), nil
 	case map[any]any: // cbor maps are not guaranteed to have string keys
@@ -95,6 +116,11 @@ func RepresentationIndependentHash(m []KeyValuePair) ([32]byte, error) {
 		return bytes.Compare(hashes[i], hashes[j]) == -1
 	})
 	return sha256.Sum256(bytes.Join(hashes, nil)), nil
+}
+
+// Hasher is an interface for types that can hash any value.
+type Hasher interface {
+	HashAny() ([32]byte, error)
 }
 
 type KeyValuePair struct {

@@ -29,5 +29,5 @@ fmt:
 	go mod tidy
 	gofmt -s -w .
 	go run golang.org/x/tools/gopls/internal/analysis/modernize/cmd/modernize@latest -fix -test ./...
-	goarrange run -r .
+	go run github.com/jdeflander/goarrange@v1.0.0 run -r .
 	golangci-lint run ./...
