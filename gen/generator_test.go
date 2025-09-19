@@ -48,7 +48,7 @@ func ExampleNewGenerator() {
 	// // Inc calls the "inc" method on the "test" canister.
 	// func (a TestAgent) Inc() (*idl.Nat, error) {
 	//     var r0 idl.Nat
-	//     if err := a.Agent.Call(
+	//     if err := a.Call(
 	//         a.CanisterId,
 	//         "inc",
 	//         []any{},
@@ -102,7 +102,7 @@ func ExampleNewGenerator_indirect() {
 	// // Inc calls the "inc" method on the "test" canister.
 	// func (a TestAgent) Inc() (*idl.Nat, error) {
 	//     var r0 idl.Nat
-	//     if err := a.Agent.Call(
+	//     if err := a.Call(
 	//         a.CanisterId,
 	//         "inc",
 	//         []any{},
@@ -115,7 +115,7 @@ func ExampleNewGenerator_indirect() {
 	//
 	// // IncCall creates an indirect representation of the "inc" method on the "test" canister.
 	// func (a TestAgent) IncCall() (*agent.CandidAPIRequest, error) {
-	//     return a.Agent.CreateCandidAPIRequest(
+	//     return a.CreateCandidAPIRequest(
 	//         agent.RequestTypeCall,
 	//         a.CanisterId,
 	//         "inc",
@@ -173,7 +173,7 @@ func ExampleNewGenerator_tags() {
 	// // Test calls the "test" method on the "test" canister.
 	// func (a TestAgent) Test() (*[]Resp, error) {
 	//     var r0 []Resp
-	//     if err := a.Agent.Call(
+	//     if err := a.Call(
 	//         a.CanisterId,
 	//         "test",
 	//         []any{},

@@ -40,7 +40,7 @@ func (a {{ $.AgentName }}Agent) {{ .Name }}({{ range $i, $e := .ArgumentTypes }}
     {{ range $i, $e := .ReturnTypes -}}
         var r{{ $i }} {{ $e }}
     {{ end -}}
-    if err := a.Agent.{{ .Type }}(
+    if err := a.{{ .Type }}(
         a.CanisterId,
         "{{ .RawName }}",
         []any{{ "{" }}{{ range $i, $e := .ArgumentTypes }}{{ if $i }}, {{ end }}{{ $e.Name }}{{ end }}{{ "}" }},
