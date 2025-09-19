@@ -133,6 +133,18 @@ func ExampleTupType() {
 	// {"TupType": "()"} <nil>
 }
 
+func TestComment(t *testing.T) {
+	var example = `// \ <-- oops
+`
+	p, err := candid.NewParser([]rune(example))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := p.ParseEOF(op.Capture{Value: candid.Comment}); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestDef_function(t *testing.T) {
 	var example = `type engine = service {
   search : (query : text, callback : func (vec result) -> ());

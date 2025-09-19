@@ -48,7 +48,7 @@ var (
 	Letter      = op.Or{op.RuneRange{Min: 0x41, Max: 0x5A}, op.RuneRange{Min: 0x61, Max: 0x7A}}
 	Digit       = op.RuneRange{Min: 0x30, Max: 0x39}
 	Hex         = op.Or{Digit, op.RuneRange{Min: 0x41, Max: 0x46}, op.RuneRange{Min: 0x61, Max: 0x66}}
-	CommentText = op.Capture{Name: "CommentText", Value: op.ZeroOrMore{Value: op.Or{Ascii, rune(0x22), rune(0x27), rune(0x60)}}}
+	CommentText = op.Capture{Name: "CommentText", Value: op.ZeroOrMore{Value: op.Or{Ascii, rune(0x22), rune(0x27), rune(0x5C), rune(0x60)}}}
 	Comment     = op.And{"//", CommentText, Nl}
 	Nl          = op.Or{rune(0x0A), rune(0x0D), op.And{rune(0x0D), rune(0x0A)}}
 	OWs         = op.ZeroOrMore{Value: op.Or{Sp, rune(0x09), Comment, Nl}}

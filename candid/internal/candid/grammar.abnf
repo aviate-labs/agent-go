@@ -71,7 +71,7 @@ letter  = %x41-5A / %x61-7A ; A-Z / a-z
 digit   = %x30-39 ; 0-9
 hex     = digit / %x41-46 / %x61-66 ; A-F / a-f
 
-CommentText = *(ascii / %x22 / %x27 / %x60) ; " ' `
+CommentText = *(ascii / %x22 / %x27 / %x5C / %x60) ; " ' \ `
 Comment     = "//" CommentText Nl
 
 Nl   = %x0A / %x0D / (%x0D %x0A)
