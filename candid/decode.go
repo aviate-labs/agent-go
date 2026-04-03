@@ -6,8 +6,8 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/leb128"
+	"github.com/niccolofant/agent-go/candid/idl"
+	"github.com/niccolofant/agent-go/leb128"
 )
 
 func Decode(bs []byte) ([]idl.Type, []any, error) {

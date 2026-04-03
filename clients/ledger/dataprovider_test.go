@@ -1,7 +1,7 @@
 package ledger_test
 
 import (
-	"github.com/aviate-labs/agent-go/clients/ledger"
+	"github.com/niccolofant/agent-go/clients/ledger"
 	"testing"
 )
 

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/cmd/goic/internal/cmd"
-	"github.com/aviate-labs/agent-go/gen"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go"
+	"github.com/niccolofant/agent-go/cmd/goic/internal/cmd"
+	"github.com/niccolofant/agent-go/gen"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 // rw-r--r-- : data files, not executable.

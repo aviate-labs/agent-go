@@ -8,7 +8,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/aviate-labs/agent-go/leb128"
+	"github.com/niccolofant/agent-go/leb128"
 )
 
 func TestAppendSignedInt64(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/principal"
 	"hash/crc32"
 	"strings"
 )

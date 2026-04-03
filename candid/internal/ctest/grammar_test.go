@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aviate-labs/agent-go/candid/internal/ctest"
+	"github.com/niccolofant/agent-go/candid/internal/ctest"
 )
 
 func TestData(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aviate-labs/agent-go/certification/hashtree"
+	"github.com/niccolofant/agent-go/certification/hashtree"
 )
 
 var pruned = hashtree.Fork{

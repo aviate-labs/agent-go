@@ -6,8 +6,8 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/aviate-labs/agent-go/candid"
-	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/niccolofant/agent-go/candid"
+	"github.com/niccolofant/agent-go/candid/idl"
 )
 
 // ulebNeg is ULEB128 for 2^63: its low 64 bits are negative as int64, so an

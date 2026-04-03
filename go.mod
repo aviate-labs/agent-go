@@ -1,4 +1,4 @@
-module github.com/aviate-labs/agent-go
+module github.com/niccolofant/agent-go
 
 go 1.26.4
 
@@ -12,7 +12,6 @@ require (
 require (
 	github.com/bits-and-blooms/bitset v1.20.0 // indirect
 	github.com/consensys/bavard v0.1.27 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/sys v0.29.0 // indirect

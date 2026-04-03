@@ -1,7 +1,7 @@
 package identity
 
 import (
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 // AnonymousIdentity is an identity that does not sign messages.

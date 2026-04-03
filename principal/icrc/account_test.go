@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aviate-labs/agent-go/principal"
-	"github.com/aviate-labs/agent-go/principal/icrc"
+	"github.com/niccolofant/agent-go/principal"
+	"github.com/niccolofant/agent-go/principal/icrc"
 )
 
 func ExampleAccount() {

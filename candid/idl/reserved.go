@@ -3,7 +3,7 @@ package idl
 import (
 	"bytes"
 
-	"github.com/aviate-labs/agent-go/leb128"
+	"github.com/niccolofant/agent-go/leb128"
 )
 
 type Reserved struct{}

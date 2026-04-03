@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/0x51-dev/upeg/parser"
-	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/internal/cvalue"
+	"github.com/niccolofant/agent-go/candid/idl"
+	"github.com/niccolofant/agent-go/candid/internal/cvalue"
 )
 
 func ConvertValues(n *parser.Node) ([]idl.Type, []any, error) {

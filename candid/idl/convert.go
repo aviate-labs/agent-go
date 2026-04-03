@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 func EmptyOf(t Type) (any, error) {

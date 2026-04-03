@@ -1,9 +1,9 @@
 package http
 
 import (
-	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go"
+	"github.com/niccolofant/agent-go/candid/idl"
+	"github.com/niccolofant/agent-go/principal"
 	"strings"
 )
 

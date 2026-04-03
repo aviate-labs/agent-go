@@ -1,7 +1,7 @@
 package identity
 
 import (
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 // Identity is an identity that can sign messages.

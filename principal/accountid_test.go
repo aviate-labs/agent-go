@@ -3,7 +3,7 @@ package principal_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/principal"
 	"testing"
 )
 

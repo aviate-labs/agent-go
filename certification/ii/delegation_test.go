@@ -3,8 +3,8 @@ package ii
 import (
 	"encoding/hex"
 	"encoding/json"
-	"github.com/aviate-labs/agent-go/certification"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/certification"
+	"github.com/niccolofant/agent-go/principal"
 	"testing"
 )
 

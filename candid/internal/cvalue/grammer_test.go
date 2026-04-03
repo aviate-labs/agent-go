@@ -3,7 +3,7 @@ package cvalue_test
 import (
 	"testing"
 
-	"github.com/aviate-labs/agent-go/candid/internal/cvalue"
+	"github.com/niccolofant/agent-go/candid/internal/cvalue"
 )
 
 func TestValues(t *testing.T) {

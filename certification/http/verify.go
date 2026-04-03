@@ -12,12 +12,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aviate-labs/agent-go/certification"
+	"github.com/niccolofant/agent-go/certification"
 
-	"github.com/aviate-labs/agent-go/certification/hashtree"
-	"github.com/aviate-labs/agent-go/certification/http/certexp"
-	"github.com/aviate-labs/agent-go/leb128"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/certification/hashtree"
+	"github.com/niccolofant/agent-go/certification/http/certexp"
+	"github.com/niccolofant/agent-go/leb128"
+	"github.com/niccolofant/agent-go/principal"
 
 	"github.com/fxamacker/cbor/v2"
 )

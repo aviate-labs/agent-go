@@ -11,13 +11,13 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/aviate-labs/agent-go/candid"
-	"github.com/aviate-labs/agent-go/certification"
-	"github.com/aviate-labs/agent-go/certification/hashtree"
-	"github.com/aviate-labs/agent-go/identity"
-	"github.com/aviate-labs/agent-go/leb128"
-	"github.com/aviate-labs/agent-go/principal"
 	"github.com/fxamacker/cbor/v2"
+	"github.com/niccolofant/agent-go/candid"
+	"github.com/niccolofant/agent-go/certification"
+	"github.com/niccolofant/agent-go/certification/hashtree"
+	"github.com/niccolofant/agent-go/identity"
+	"github.com/niccolofant/agent-go/leb128"
+	"github.com/niccolofant/agent-go/principal"
 	"google.golang.org/protobuf/proto"
 )
 

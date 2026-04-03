@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/leb128"
 	"github.com/fxamacker/cbor/v2"
+	"github.com/niccolofant/agent-go/candid/idl"
+	"github.com/niccolofant/agent-go/leb128"
 )
 
 // HashAny computes the hash of any value.

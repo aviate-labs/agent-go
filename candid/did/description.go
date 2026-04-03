@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/0x51-dev/upeg/parser"
-	"github.com/aviate-labs/agent-go/candid/internal/candid"
+	"github.com/niccolofant/agent-go/candid/internal/candid"
 )
 
 // Description represents the interface description of a program. An interface description consists of a sequence of

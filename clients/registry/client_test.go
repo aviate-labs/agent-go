@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/aviate-labs/agent-go/clients/registry"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/clients/registry"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 func TestClient_GetNNSSubnetID(t *testing.T) {

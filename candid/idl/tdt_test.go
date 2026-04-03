@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/0x51-dev/upeg/parser"
-	"github.com/aviate-labs/agent-go/candid"
-	"github.com/aviate-labs/agent-go/candid/internal/ctest"
+	"github.com/niccolofant/agent-go/candid"
+	"github.com/niccolofant/agent-go/candid/internal/ctest"
 )
 
 func TestTypeDefinitionTable(t *testing.T) {

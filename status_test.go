@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/aviate-labs/agent-go"
+	"github.com/niccolofant/agent-go"
 )
 
 var ic0URL, _ = url.Parse("https://icp-api.io")

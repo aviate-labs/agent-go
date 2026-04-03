@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/0x51-dev/upeg/parser"
-	"github.com/aviate-labs/agent-go/candid/internal/candid"
+	"github.com/niccolofant/agent-go/candid/internal/candid"
 )
 
 // Method is a public method of a service.

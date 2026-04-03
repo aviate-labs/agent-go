@@ -9,7 +9,7 @@ import (
 	"encoding/pem"
 	"fmt"
 
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 func derEncodeEd25519PublicKey(key ed25519.PublicKey) ([]byte, error) {

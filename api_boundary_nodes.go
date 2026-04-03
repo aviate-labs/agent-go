@@ -8,9 +8,9 @@ import (
 	"net/url"
 	"sync/atomic"
 
-	"github.com/aviate-labs/agent-go/certification"
-	"github.com/aviate-labs/agent-go/certification/hashtree"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/certification"
+	"github.com/niccolofant/agent-go/certification/hashtree"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 // DiscoverRoutes enumerates API boundary nodes on-chain and returns their

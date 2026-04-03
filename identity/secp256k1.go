@@ -10,11 +10,11 @@ import (
 	"math/big"
 	"slices"
 
-	"github.com/aviate-labs/agent-go/principal"
 	"github.com/consensys/gnark-crypto/ecc/secp256k1"
 	"github.com/consensys/gnark-crypto/ecc/secp256k1/ecdsa"
 	"github.com/consensys/gnark-crypto/ecc/secp256k1/fp"
 	"github.com/consensys/gnark-crypto/ecc/secp256k1/fr"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 // Sizes for secp256k1, sourced from gnark-crypto so they stay in lockstep

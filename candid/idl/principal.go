@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/aviate-labs/agent-go/leb128"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/leb128"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 type PrincipalType struct {

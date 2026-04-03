@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/aviate-labs/agent-go/leb128"
+	"github.com/niccolofant/agent-go/leb128"
 )
 
 func StructToMap(value any) (map[string]any, error) {

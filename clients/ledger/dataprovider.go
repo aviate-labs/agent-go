@@ -3,9 +3,9 @@ package ledger
 import (
 	"fmt"
 
-	"github.com/aviate-labs/agent-go"
-	v1 "github.com/aviate-labs/agent-go/clients/ledger/proto/v1"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go"
+	v1 "github.com/niccolofant/agent-go/clients/ledger/proto/v1"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 const MaxBlocksPerRequest = 2000

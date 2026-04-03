@@ -5,10 +5,10 @@ import (
 	"crypto/sha256"
 	"sort"
 
-	"github.com/aviate-labs/agent-go/certification/hashtree"
-	"github.com/aviate-labs/agent-go/identity"
-	"github.com/aviate-labs/agent-go/leb128"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/certification/hashtree"
+	"github.com/niccolofant/agent-go/identity"
+	"github.com/niccolofant/agent-go/leb128"
+	"github.com/niccolofant/agent-go/principal"
 
 	"github.com/fxamacker/cbor/v2"
 )

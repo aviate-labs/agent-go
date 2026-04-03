@@ -9,7 +9,7 @@ import (
 
 	"github.com/0x51-dev/upeg/parser"
 	"github.com/0x51-dev/upeg/parser/op"
-	"github.com/aviate-labs/agent-go/candid/internal/candid"
+	"github.com/niccolofant/agent-go/candid/internal/candid"
 )
 
 //go:embed testdata

@@ -6,8 +6,8 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/aviate-labs/agent-go/leb128"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/leb128"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 func encodeTypes(ts []Type, tdt *TypeDefinitionTable) ([]byte, error) {

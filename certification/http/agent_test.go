@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/certification/http"
-	"github.com/aviate-labs/agent-go/certification/http/certexp"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go"
+	"github.com/niccolofant/agent-go/certification/http"
+	"github.com/niccolofant/agent-go/certification/http/certexp"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 // nnsDappCanisterID is the NNS dapp canister, used as a stable mainnet fixture

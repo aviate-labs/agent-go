@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"reflect"
 
-	"github.com/aviate-labs/agent-go/leb128"
+	"github.com/niccolofant/agent-go/leb128"
 )
 
 type Null struct{}

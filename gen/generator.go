@@ -10,8 +10,8 @@ import (
 	"text/template"
 	"unicode"
 
-	"github.com/aviate-labs/agent-go/candid/did"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/candid/did"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 const (

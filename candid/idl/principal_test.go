@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/candid/idl"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 func ExamplePrincipal() {

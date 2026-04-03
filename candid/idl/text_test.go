@@ -3,7 +3,7 @@ package idl_test
 import (
 	"testing"
 
-	"github.com/aviate-labs/agent-go/candid/idl"
+	"github.com/niccolofant/agent-go/candid/idl"
 )
 
 func ExampleText() {

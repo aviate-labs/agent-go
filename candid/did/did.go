@@ -1,6 +1,6 @@
 package did
 
-import "github.com/aviate-labs/agent-go/candid/internal/candid"
+import "github.com/niccolofant/agent-go/candid/internal/candid"
 
 // ParseDID parses the given raw .did files and returns the Program that is defined in it.
 func ParseDID(raw []rune) (*Description, error) {

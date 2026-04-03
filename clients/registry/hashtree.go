@@ -2,8 +2,8 @@ package registry
 
 import (
 	"fmt"
-	"github.com/aviate-labs/agent-go/certification/hashtree"
-	v1 "github.com/aviate-labs/agent-go/clients/registry/proto/v1"
+	"github.com/niccolofant/agent-go/certification/hashtree"
+	v1 "github.com/niccolofant/agent-go/clients/registry/proto/v1"
 )
 
 func NewHashTree(tree *v1.MixedHashTree) (*hashtree.HashTree, error) {

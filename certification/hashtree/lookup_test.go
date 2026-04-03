@@ -3,7 +3,7 @@ package hashtree_test
 import (
 	"bytes"
 	"errors"
-	"github.com/aviate-labs/agent-go/certification/hashtree"
+	"github.com/niccolofant/agent-go/certification/hashtree"
 	"testing"
 )
 

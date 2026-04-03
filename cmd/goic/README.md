@@ -1,7 +1,7 @@
 # Agent CLI
 
 ```
-go install github.com/aviate-labs/agent-go/cmd/goic
+go install github.com/niccolofant/agent-go/cmd/goic
 goic version
 # 0.0.1
 ```

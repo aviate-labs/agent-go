@@ -3,7 +3,7 @@ package ii
 import (
 	"bytes"
 	"encoding/hex"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/principal"
 	"testing"
 )
 

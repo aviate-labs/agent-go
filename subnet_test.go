@@ -3,8 +3,8 @@ package agent
 import (
 	"testing"
 
-	"github.com/aviate-labs/agent-go/certification"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/certification"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 func TestAgent_GetSubnetMetrics(t *testing.T) {

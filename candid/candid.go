@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aviate-labs/agent-go/candid/did"
-	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/agent-go/candid/internal/cvalue"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/candid/did"
+	"github.com/niccolofant/agent-go/candid/idl"
+	"github.com/niccolofant/agent-go/candid/internal/cvalue"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 // DecodeValueString decodes the given value into a candid string.

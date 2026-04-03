@@ -1,7 +1,7 @@
 package agent
 
 import (
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go/principal"
 	"github.com/fxamacker/cbor/v2"
 )
 

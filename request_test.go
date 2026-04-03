@@ -7,9 +7,9 @@ import (
 
 	"github.com/fxamacker/cbor/v2"
 
-	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/certification/hashtree"
-	"github.com/aviate-labs/agent-go/principal"
+	"github.com/niccolofant/agent-go"
+	"github.com/niccolofant/agent-go/certification/hashtree"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 func BenchmarkNewRequestID_call(b *testing.B) {
