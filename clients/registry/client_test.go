@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/niccolofant/agent-go"
 	"github.com/niccolofant/agent-go/clients/registry"
 	"github.com/niccolofant/agent-go/principal"
 )
@@ -11,10 +12,7 @@ import (
 func TestClient_GetNNSSubnetID(t *testing.T) {
 	checkEnabled(t)
 
-	c, err := registry.New()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c := registry.New(&agent.Agent{})
 
 	id, err := c.GetNNSSubnetID()
 	if err != nil {
@@ -28,10 +26,7 @@ func TestClient_GetNNSSubnetID(t *testing.T) {
 func TestClient_GetNodeListSince(t *testing.T) {
 	checkEnabled(t)
 
-	c, err := registry.New()
-	if err != nil {
-		t.Fatal(err)
-	}
+	c := registry.New(&agent.Agent{})
 
 	latestVersion, err := c.GetLatestVersion()
 	if err != nil {

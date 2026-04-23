@@ -2,25 +2,23 @@ package registry
 
 import (
 	"fmt"
+	"strings"
+
+	"github.com/niccolofant/agent-go"
 	"github.com/niccolofant/agent-go/certification"
 	v1 "github.com/niccolofant/agent-go/clients/registry/proto/v1"
 	"github.com/niccolofant/agent-go/principal"
 	"google.golang.org/protobuf/proto"
-	"strings"
 )
 
 type Client struct {
 	dp *DataProvider
 }
 
-func New() (*Client, error) {
-	dp, err := NewDataProvider()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create data provider: %w", err)
-	}
+func New(a *agent.Agent) *Client {
 	return &Client{
-		dp: dp,
-	}, nil
+		dp: NewDataProvider(a),
+	}
 }
 
 func (c *Client) GetLatestVersion() (uint64, error) {
