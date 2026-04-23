@@ -31,8 +31,10 @@ func (d DataProvider) GetSubnetForCanister(canID principal.Principal) (principal
 		Principal *principal.Principal `ic:"principal"`
 	}
 	type result struct {
-		Ok  *principal.Principal `ic:"Ok,variant"`
-		Err *string              `ic:"Err,variant"`
+		Ok *struct {
+			SubnetID *principal.Principal `ic:"subnet_id"`
+		} `ic:"Ok,variant"`
+		Err *string `ic:"Err,variant"`
 	}
 
 	var resp result
@@ -48,10 +50,10 @@ func (d DataProvider) GetSubnetForCanister(canID principal.Principal) (principal
 	if resp.Err != nil {
 		return principal.Principal{}, fmt.Errorf("registry error: %s", *resp.Err)
 	}
-	if resp.Ok == nil {
+	if resp.Ok == nil || resp.Ok.SubnetID == nil {
 		return principal.Principal{}, fmt.Errorf("no subnet_id returned")
 	}
-	return *resp.Ok, nil
+	return *resp.Ok.SubnetID, nil
 }
 
 func (d DataProvider) GetCertifiedChangesSince(version uint64, publicKey []byte) ([]VersionedRecord, uint64, error) {
