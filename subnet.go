@@ -2,16 +2,17 @@ package agent
 
 import (
 	"fmt"
+	"math/big"
+
+	"github.com/fxamacker/cbor/v2"
 	"github.com/niccolofant/agent-go/certification"
 	"github.com/niccolofant/agent-go/certification/hashtree"
 	"github.com/niccolofant/agent-go/principal"
-	"github.com/fxamacker/cbor/v2"
-	"math/big"
 )
 
 func (a Agent) GetSubnetMetrics(subnetID principal.Principal) (*SubnetMetrics, error) {
 	path := []hashtree.Label{hashtree.Label("subnet"), subnetID.Raw, hashtree.Label("metrics")}
-	cert, err := a.readSubnetStateCertificate(subnetID, [][]hashtree.Label{path})
+	cert, err := a.ReadSubnetStateCertificate(subnetID, [][]hashtree.Label{path})
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +30,7 @@ func (a Agent) GetSubnetMetrics(subnetID principal.Principal) (*SubnetMetrics, e
 
 func (a Agent) GetSubnets() ([]principal.Principal, error) {
 	path := []hashtree.Label{hashtree.Label("subnet")}
-	cert, err := a.readSubnetStateCertificate(principal.MustDecode(certification.RootSubnetID), [][]hashtree.Label{path})
+	cert, err := a.ReadSubnetStateCertificate(principal.MustDecode(certification.RootSubnetID), [][]hashtree.Label{path})
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +52,7 @@ func (a Agent) GetSubnets() ([]principal.Principal, error) {
 func (a Agent) GetSubnetsInfo() ([]SubnetInfo, error) {
 	rootSubnetID := principal.MustDecode(certification.RootSubnetID)
 	path := []hashtree.Label{hashtree.Label("subnet")}
-	cert, err := a.readSubnetStateCertificate(rootSubnetID, [][]hashtree.Label{path})
+	cert, err := a.ReadSubnetStateCertificate(rootSubnetID, [][]hashtree.Label{path})
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +83,7 @@ func (a Agent) GetSubnetsInfo() ([]SubnetInfo, error) {
 		nodes, err := cert.Tree.LookupSubTree(hashtree.Label("subnet"), subnetID.Raw, hashtree.Label("node"))
 		if err != nil {
 			path = []hashtree.Label{hashtree.Label("subnet"), subnetID.Raw, hashtree.Label("node")}
-			nodesCert, err := a.readSubnetStateCertificate(subnetID, [][]hashtree.Label{path})
+			nodesCert, err := a.ReadSubnetStateCertificate(subnetID, [][]hashtree.Label{path})
 			if err != nil {
 				return nil, err
 			}

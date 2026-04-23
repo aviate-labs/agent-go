@@ -483,7 +483,7 @@ func (a Agent) readStateCertificate(ctx context.Context, ecID principal.Principa
 	return &certificate, nil
 }
 
-func (a Agent) readSubnetState(subnetID principal.Principal, data []byte) (map[string][]byte, error) {
+func (a Agent) ReadSubnetState(subnetID principal.Principal, data []byte) (map[string][]byte, error) {
 	ctx, cancel := context.WithTimeout(a.ctx, a.ingressExpiry)
 	defer cancel()
 	resp, err := a.client.ReadSubnetState(ctx, subnetID, data)
@@ -494,7 +494,7 @@ func (a Agent) readSubnetState(subnetID principal.Principal, data []byte) (map[s
 	return m, cbor.Unmarshal(resp, &m)
 }
 
-func (a Agent) readSubnetStateCertificate(subnetID principal.Principal, paths [][]hashtree.Label) (*certification.Certificate, error) {
+func (a Agent) ReadSubnetStateCertificate(subnetID principal.Principal, paths [][]hashtree.Label) (*certification.Certificate, error) {
 	_, data, err := a.sign(Request{
 		Type:          RequestTypeReadState,
 		Sender:        a.Sender(),
@@ -505,7 +505,7 @@ func (a Agent) readSubnetStateCertificate(subnetID principal.Principal, paths []
 		return nil, err
 	}
 	a.logger.Printf("[AGENT] READ SUBNET STATE %s (subnetID)", subnetID)
-	resp, err := a.readSubnetState(subnetID, data)
+	resp, err := a.ReadSubnetState(subnetID, data)
 	if err != nil {
 		return nil, err
 	}
