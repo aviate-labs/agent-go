@@ -15,6 +15,7 @@ type Client struct {
 	dp *DataProvider
 }
 
+// New
 func New(a *agent.Agent) *Client {
 	return &Client{
 		dp: NewDataProvider(a),
