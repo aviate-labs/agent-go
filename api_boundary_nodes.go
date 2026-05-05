@@ -66,7 +66,7 @@ type APIBoundaryNode struct {
 // icp0.io/ic0.app is a fallback for bootstrapping only.
 func (a Agent) GetAPIBoundaryNodes() ([]APIBoundaryNode, error) {
 	root := []hashtree.Label{hashtree.Label("api_boundary_nodes")}
-	cert, err := a.readSubnetStateCertificate(
+	cert, err := a.ReadSubnetStateCertificate(
 		principal.MustDecode(certification.RootSubnetID),
 		[][]hashtree.Label{root},
 	)
