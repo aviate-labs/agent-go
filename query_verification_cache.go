@@ -268,7 +268,6 @@ func (c *queryVerificationKeyCache) get(ecID principal.Principal, identities []p
 		return nil, false
 	}
 	stale := !now.Before(entry.refreshAfter)
-	entry = entry.clone()
 	c.mu.RUnlock()
 	return entry, stale
 }
@@ -289,7 +288,7 @@ func (c *queryVerificationKeyCache) store(ecID principal.Principal, keys *queryV
 		}
 		keys = merged
 	}
-	c.subnets[subnetKey] = keys.clone()
+	c.subnets[subnetKey] = keys
 	c.canisters[canisterKey] = subnetKey
 	c.storeRangesLocked(keys.subnetID, keys.canisterRanges)
 	c.mu.Unlock()

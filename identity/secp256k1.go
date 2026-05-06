@@ -154,8 +154,7 @@ func parseSecp256k1PEMBody(block *pem.Block) (*Secp256k1Identity, error) {
 
 // PublicKey returns the public key of the identity.
 func (id Secp256k1Identity) PublicKey() []byte {
-	der, _ := derEncodeSecp256k1PublicKey(id.publicKey)
-	return der
+	return id.derPubKey
 }
 
 // Sender returns the principal of the identity.

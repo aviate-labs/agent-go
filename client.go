@@ -9,8 +9,8 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/niccolofant/agent-go/principal"
 	"github.com/fxamacker/cbor/v2"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 // ic0 is the old (default) host for the Internet Computer.
@@ -45,7 +45,7 @@ func (c Client) Call(ctx context.Context, canisterID principal.Principal, data [
 		return nil, err
 	}
 	c.logger.Printf("[CLIENT] CALL %s", u)
-	req, err := c.newRequest(ctx, "POST", u, bytes.NewBuffer(data))
+	req, err := c.newRequest(ctx, "POST", u, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
@@ -64,26 +64,27 @@ func (c Client) Call(ctx context.Context, canisterID principal.Principal, data [
 		if err != nil {
 			return nil, err
 		}
-		var status struct {
-			Status string `cbor:"status"`
+		var reply struct {
+			Status      string `cbor:"status"`
+			Certificate []byte `cbor:"certificate"`
+			RejectCode  uint64 `cbor:"reject_code"`
+			Message     string `cbor:"reject_message"`
+			ErrorCode   string `cbor:"error_code"`
 		}
-		if err := cbor.Unmarshal(body, &status); err != nil {
+		if err := cbor.Unmarshal(body, &reply); err != nil {
 			return nil, err
 		}
-		switch status.Status {
+		switch reply.Status {
 		case "replied":
-			var certificate struct {
-				Certificate []byte `cbor:"certificate"`
-			}
-			return certificate.Certificate, cbor.Unmarshal(body, &certificate)
+			return reply.Certificate, nil
 		case "non_replicated_rejection":
-			var pErr preprocessingError
-			if err := cbor.Unmarshal(body, &pErr); err != nil {
-				return nil, err
+			return nil, preprocessingError{
+				RejectCode: reply.RejectCode,
+				Message:    reply.Message,
+				ErrorCode:  reply.ErrorCode,
 			}
-			return nil, pErr
 		default:
-			return nil, fmt.Errorf("unknown status: %s", status)
+			return nil, fmt.Errorf("unknown status: %s", reply.Status)
 		}
 	default:
 		body, err := io.ReadAll(resp.Body)
@@ -155,7 +156,7 @@ func (c Client) post(ctx context.Context, path string, canisterID principal.Prin
 		return nil, err
 	}
 	c.logger.Printf("[CLIENT] POST %s", u)
-	req, err := c.newRequest(ctx, "POST", u, bytes.NewBuffer(data))
+	req, err := c.newRequest(ctx, "POST", u, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +185,7 @@ func (c Client) postSubnet(ctx context.Context, path string, subnetID principal.
 		return nil, err
 	}
 	c.logger.Printf("[CLIENT] POST %s", u)
-	req, err := c.newRequest(ctx, "POST", u, bytes.NewBuffer(data))
+	req, err := c.newRequest(ctx, "POST", u, bytes.NewReader(data))
 	if err != nil {
 		return nil, err
 	}

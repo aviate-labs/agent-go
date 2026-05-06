@@ -33,13 +33,19 @@ func derEncodeEd25519PublicKey(key ed25519.PublicKey) ([]byte, error) {
 type Ed25519Identity struct {
 	privateKey ed25519.PrivateKey
 	publicKey  ed25519.PublicKey
+	derPubKey  []byte
 }
 
 // NewEd25519Identity creates a new identity based on the given key pair.
 func NewEd25519Identity(publicKey ed25519.PublicKey, privateKey ed25519.PrivateKey) (*Ed25519Identity, error) {
+	der, err := derEncodeEd25519PublicKey(publicKey)
+	if err != nil {
+		return nil, err
+	}
 	return &Ed25519Identity{
 		publicKey:  publicKey,
 		privateKey: privateKey,
+		derPubKey:  der,
 	}, nil
 }
 
@@ -55,10 +61,7 @@ func NewEd25519IdentityFromPEM(data []byte) (*Ed25519Identity, error) {
 	}
 	switch k := privateKey.(type) {
 	case ed25519.PrivateKey:
-		return &Ed25519Identity{
-			privateKey: k,
-			publicKey:  k.Public().(ed25519.PublicKey),
-		}, nil
+		return NewEd25519Identity(k.Public().(ed25519.PublicKey), k)
 	default:
 		return nil, fmt.Errorf("unknown key type")
 	}
@@ -72,8 +75,7 @@ func NewRandomEd25519Identity() (*Ed25519Identity, error) {
 
 // PublicKey returns the public key of the identity.
 func (id Ed25519Identity) PublicKey() []byte {
-	der, _ := derEncodeEd25519PublicKey(id.publicKey)
-	return der
+	return id.derPubKey
 }
 
 // Sender returns the principal of the identity.

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sync/atomic"
 	"time"
 
 	"github.com/fxamacker/cbor/v2"
@@ -77,12 +78,19 @@ func handleStatus(path []hashtree.Label, certificate *certification.Certificate)
 	return status, certificate.Tree.Root, nil
 }
 
-func newNonce() ([]byte, error) {
-	/* Read 10 bytes of random data, which is smaller than the max allowed by the IC (32 bytes)
-	 * and should still be enough from a practical point of view. */
-	nonce := make([]byte, 10)
-	_, err := rand.Read(nonce)
-	return nonce, err
+var nonceCounter atomic.Uint64
+
+func init() {
+	var seed [8]byte
+	_, _ = rand.Read(seed[:])
+	nonceCounter.Store(binary.LittleEndian.Uint64(seed[:]))
+}
+
+func newNonce() []byte {
+	n := nonceCounter.Add(1)
+	nonce := make([]byte, 8)
+	binary.LittleEndian.PutUint64(nonce, n)
+	return nonce
 }
 
 func uint64FromBytes(raw []byte) uint64 {
@@ -131,10 +139,7 @@ func CreateAPIRequest[In, Out any](
 	if err != nil {
 		return nil, err
 	}
-	nonce, err := newNonce()
-	if err != nil {
-		return nil, err
-	}
+	nonce := newNonce()
 	requestID, data, err := a.sign(Request{
 		Type:          typ,
 		Sender:        a.Sender(),
@@ -170,11 +175,14 @@ type Agent struct {
 	ctx                    context.Context
 	identity               identity.Identity
 	ingressExpiry          time.Duration
+	readStateTimeout       time.Duration
 	rootKey                []byte
 	logger                 Logger
 	delay, timeout         time.Duration
 	verifySignatures       bool
 	queryVerificationCache *queryVerificationKeyCache
+	sender                 principal.Principal
+	senderPubKey           []byte
 }
 
 // New returns a new Agent based on the given configuration.
@@ -207,15 +215,22 @@ func New(cfg Config) (*Agent, error) {
 	if cfg.PollTimeout != 0 {
 		timeout = cfg.PollTimeout
 	}
+	readStateTimeout := 5 * time.Second
+	if cfg.ReadStateTimeout != 0 {
+		readStateTimeout = cfg.ReadStateTimeout
+	}
 	a := &Agent{
 		client:                 client,
 		ctx:                    context.Background(),
 		identity:               id,
 		ingressExpiry:          cfg.IngressExpiry,
+		readStateTimeout:       readStateTimeout,
 		rootKey:                rootKey,
 		logger:                 client.logger,
 		delay:                  delay,
 		timeout:                timeout,
+		sender:                 id.Sender(),
+		senderPubKey:           id.PublicKey(),
 		verifySignatures:       !cfg.DisableSignedQueryVerification,
 		queryVerificationCache: newQueryVerificationKeyCache(cfg.IngressExpiry),
 	}
@@ -391,7 +406,7 @@ func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]b
 
 // Sender returns the principal that is sending the requests.
 func (a Agent) Sender() principal.Principal {
-	return a.identity.Sender()
+	return a.sender
 }
 
 func (a Agent) call(ctx context.Context, ecID principal.Principal, data []byte) ([]byte, error) {
@@ -405,42 +420,47 @@ func (a Agent) expiryDate() uint64 {
 }
 
 func (a Agent) poll(ctx context.Context, ecID principal.Principal, requestID RequestID) ([]byte, error) {
+	if ctx == nil {
+		ctx = a.ctx
+	}
 	ticker := time.NewTicker(a.delay)
 	defer ticker.Stop()
 	timer := time.NewTimer(a.timeout)
 	defer timer.Stop()
+
 	for {
+		a.logger.Printf("[AGENT] POLL %s %x", ecID, requestID)
+		data, node, err := a.requestStatus(ctx, ecID, requestID)
+		if err != nil {
+			return nil, err
+		}
+		if len(data) != 0 {
+			path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
+			switch string(data) {
+			case "replied":
+				replied, err := hashtree.Lookup(node, append(path, hashtree.Label("reply"))...)
+				if err != nil {
+					return nil, fmt.Errorf("no reply found")
+				}
+				return replied, nil
+			case "rejected":
+				tree := hashtree.NewHashTree(node)
+				code, err := tree.Lookup(append(path, hashtree.Label("reject_code"))...)
+				if err != nil {
+					return nil, err
+				}
+				message, err := tree.Lookup(append(path, hashtree.Label("reject_message"))...)
+				if err != nil {
+					return nil, err
+				}
+				return nil, fmt.Errorf("(%d) %s", uint64FromBytes(code), string(message))
+			}
+		}
+
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case <-ticker.C:
-			a.logger.Printf("[AGENT] POLL %s %x", ecID, requestID)
-			data, node, err := a.requestStatus(ctx, ecID, requestID)
-			if err != nil {
-				return nil, err
-			}
-			if len(data) != 0 {
-				path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
-				switch string(data) {
-				case "replied":
-					replied, err := hashtree.Lookup(node, append(path, hashtree.Label("reply"))...)
-					if err != nil {
-						return nil, fmt.Errorf("no reply found")
-					}
-					return replied, nil
-				case "rejected":
-					tree := hashtree.NewHashTree(node)
-					code, err := tree.Lookup(append(path, hashtree.Label("reject_code"))...)
-					if err != nil {
-						return nil, err
-					}
-					message, err := tree.Lookup(append(path, hashtree.Label("reject_message"))...)
-					if err != nil {
-						return nil, err
-					}
-					return nil, fmt.Errorf("(%d) %s", uint64FromBytes(code), string(message))
-				}
-			}
 		case <-timer.C:
 			return nil, fmt.Errorf("out of time... waited %d seconds", a.timeout/time.Second)
 		}
@@ -451,7 +471,7 @@ func (a Agent) readState(ctx context.Context, ecID principal.Principal, data []b
 	if ctx == nil {
 		ctx = a.ctx
 	}
-	ctx, cancel := context.WithTimeout(ctx, a.ingressExpiry)
+	ctx, cancel := context.WithTimeout(ctx, a.readStateTimeout)
 	defer cancel()
 	resp, err := a.client.ReadState(ctx, ecID, data)
 	if err != nil {
@@ -498,7 +518,7 @@ func (a Agent) readStateCertificateContext(ctx context.Context, ecID principal.P
 }
 
 func (a Agent) ReadSubnetState(subnetID principal.Principal, data []byte) (map[string][]byte, error) {
-	ctx, cancel := context.WithTimeout(a.ctx, a.ingressExpiry)
+	ctx, cancel := context.WithTimeout(a.ctx, a.readStateTimeout)
 	defer cancel()
 	resp, err := a.client.ReadSubnetState(ctx, subnetID, data)
 	if err != nil {
@@ -582,6 +602,10 @@ type Config struct {
 	PollDelay time.Duration
 	// PollTimeout is the timeout for polling for a response.
 	PollTimeout time.Duration
+	// ReadStateTimeout is the timeout for read_state HTTP calls.
+	// The default is 5 seconds. Set this to a tight value to avoid
+	// blocking on unresponsive boundary nodes.
+	ReadStateTimeout time.Duration
 	// DisableSignedQueryVerification disables the verification of signed queries.
 	DisableSignedQueryVerification bool
 	// RouteProvider, if non-nil, replaces the per-request host-URL provider
