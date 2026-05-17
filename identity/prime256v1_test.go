@@ -48,7 +48,11 @@ func TestPrime256v1Identity_Sign(t *testing.T) {
 		t.Fatal(err)
 	}
 	data := []byte("hello")
-	if !id.Verify(data, id.Sign(data)) {
+	sig, err := id.Sign(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !id.Verify(data, sig) {
 		t.Error()
 	}
 }

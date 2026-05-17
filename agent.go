@@ -526,10 +526,14 @@ func (a Agent) readSubnetStateCertificate(subnetID principal.Principal, paths []
 
 func (a Agent) sign(request Request) (*RequestID, []byte, error) {
 	requestID := NewRequestID(request)
+	sig, err := requestID.Sign(a.identity)
+	if err != nil {
+		return nil, nil, err
+	}
 	data, err := cbor.Marshal(Envelope{
 		Content:      request,
 		SenderPubKey: a.identity.PublicKey(),
-		SenderSig:    requestID.Sign(a.identity),
+		SenderSig:    sig,
 	})
 	if err != nil {
 		return nil, nil, err

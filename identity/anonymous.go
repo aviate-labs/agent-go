@@ -18,8 +18,8 @@ func (id AnonymousIdentity) Sender() principal.Principal {
 }
 
 // Sign signs the given message.
-func (id AnonymousIdentity) Sign(_ []byte) []byte {
-	return nil
+func (id AnonymousIdentity) Sign(_ []byte) ([]byte, error) {
+	return nil, nil
 }
 
 // ToPEM returns the PEM encoding of the public key.

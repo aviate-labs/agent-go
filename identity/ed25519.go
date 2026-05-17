@@ -82,8 +82,8 @@ func (id Ed25519Identity) Sender() principal.Principal {
 }
 
 // Sign signs the given message.
-func (id Ed25519Identity) Sign(data []byte) []byte {
-	return ed25519.Sign(id.privateKey, data)
+func (id Ed25519Identity) Sign(data []byte) ([]byte, error) {
+	return ed25519.Sign(id.privateKey, data), nil
 }
 
 // ToPEM returns the PEM representation of the identity.

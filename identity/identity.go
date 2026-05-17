@@ -20,7 +20,7 @@ type Identity interface {
 	// Sender returns the principal of the identity.
 	Sender() principal.Principal
 	// Sign signs the given message.
-	Sign(msg []byte) []byte
+	Sign(msg []byte) ([]byte, error)
 	// PublicKey returns the public key of the identity.
 	PublicKey() []byte
 	// Verify verifies the signature of the given message.

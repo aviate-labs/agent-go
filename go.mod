@@ -5,7 +5,6 @@ go 1.25.5
 require (
 	github.com/0x51-dev/upeg v0.1.5
 	github.com/aviate-labs/leb128 v0.3.0
-	github.com/aviate-labs/secp256k1 v0.0.0-5e6736a
 	github.com/consensys/gnark-crypto v0.15.0
 	github.com/fxamacker/cbor/v2 v2.7.0
 	google.golang.org/protobuf v1.36.3

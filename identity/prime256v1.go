@@ -75,15 +75,18 @@ func (id Prime256v1Identity) Sender() principal.Principal {
 }
 
 // Sign signs the given message.
-func (id Prime256v1Identity) Sign(msg []byte) []byte {
+func (id Prime256v1Identity) Sign(msg []byte) ([]byte, error) {
 	hashData := sha256.Sum256(msg)
-	sigR, sigS, _ := ecdsa.Sign(rand.Reader, id.privateKey, hashData[:])
+	sigR, sigS, err := ecdsa.Sign(rand.Reader, id.privateKey, hashData[:])
+	if err != nil {
+		return nil, err
+	}
 	var buffer [64]byte
 	r := sigR.Bytes()
 	s := sigS.Bytes()
 	copy(buffer[(32-len(r)):], r)
 	copy(buffer[(64-len(s)):], s)
-	return buffer[:]
+	return buffer[:], nil
 }
 
 // ToPEM returns the PEM encoding of the private key.
