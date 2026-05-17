@@ -10,6 +10,11 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
+// nnsDappCanisterID is the NNS dapp canister, used as a stable mainnet fixture
+// for HTTP gateway certificate verification. It is DFINITY-operated, widely used,
+// and serves certified responses at both "/" and "/index.html".
+var nnsDappCanisterID = principal.MustDecode("qoctq-giaaa-aaaaa-aaaea-cai")
+
 func TestAgent_HttpRequest(t *testing.T) {
 	a, err := http.NewAgent(nnsDappCanisterID, agent.DefaultConfig)
 	if err != nil {
@@ -70,11 +75,6 @@ func TestCalculateRequestHash(t *testing.T) {
 		}
 	})
 }
-
-// nnsDappCanisterID is the NNS dapp canister, used as a stable mainnet fixture
-// for HTTP gateway certificate verification. It is DFINITY-operated, widely used,
-// and serves certified responses at both "/" and "/index.html".
-var nnsDappCanisterID = principal.MustDecode("qoctq-giaaa-aaaaa-aaaea-cai")
 
 func TestResponse_Verify_V1(t *testing.T) {
 	a, err := http.NewAgent(nnsDappCanisterID, agent.DefaultConfig)

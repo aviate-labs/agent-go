@@ -49,10 +49,9 @@ func NewSecretKeyByCSPRNG() *SecretKey {
 
 func (sk *SecretKey) PublicKey() *PublicKey {
 	element := fr.Element(*sk)
-	return (*PublicKey)(g2Gen.ScalarMultiplication(
-		&g2Gen,
-		element.BigInt(big.NewInt(0)),
-	))
+	var pk bls.G2Affine
+	pk.ScalarMultiplication(&g2Gen, element.BigInt(big.NewInt(0)))
+	return (*PublicKey)(&pk)
 }
 
 func (sk *SecretKey) Sign(msg []byte) (*Signature, error) {

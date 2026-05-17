@@ -35,6 +35,19 @@ func Serialize(node Node) ([]byte, error) {
 	return cbor.Marshal(serialize(node))
 }
 
+// asByteString coerces a decoded CBOR value into a byte string, treating
+// nil as the empty byte string so Leaf(nil) and Labeled{Label: nil} round-trip.
+func asByteString(v any) ([]byte, error) {
+	if v == nil {
+		return []byte{}, nil
+	}
+	b, ok := v.([]byte)
+	if !ok {
+		return nil, fmt.Errorf("expected byte string, got %T", v)
+	}
+	return b, nil
+}
+
 func serialize(node Node) []any {
 	switch n := node.(type) {
 	case Empty:
@@ -184,9 +197,9 @@ func DeserializeNode(s []any) (Node, error) {
 		if l := len(s); l != 3 {
 			return nil, fmt.Errorf("invalid len: %d", l)
 		}
-		l, ok := s[1].([]byte)
-		if !ok {
-			return nil, fmt.Errorf("unknown value: %v", s[1])
+		l, err := asByteString(s[1])
+		if err != nil {
+			return nil, fmt.Errorf("labeled label: %w", err)
 		}
 		rt, ok := s[2].([]any)
 		if !ok {
@@ -204,9 +217,9 @@ func DeserializeNode(s []any) (Node, error) {
 		if l := len(s); l != 2 {
 			return nil, fmt.Errorf("invalid len: %d", l)
 		}
-		l, ok := s[1].([]byte)
-		if !ok {
-			return nil, fmt.Errorf("unknown value: %v", s[1])
+		l, err := asByteString(s[1])
+		if err != nil {
+			return nil, fmt.Errorf("leaf value: %w", err)
 		}
 		return Leaf(l), nil
 	case 4:

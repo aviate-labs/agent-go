@@ -16,6 +16,7 @@ import (
 
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/certification/http/certexp"
+	"github.com/aviate-labs/agent-go/principal"
 	"github.com/aviate-labs/leb128"
 
 	"github.com/fxamacker/cbor/v2"
@@ -155,165 +156,14 @@ func hashMap(m map[string]any) ([32]byte, error) {
 	return sha256.Sum256(concatHashes), nil
 }
 
+// VerifyResponse validates a certified HTTP response from the canister.
 func (a Agent) VerifyResponse(path string, req *Request, resp *Response) error {
-	var certificateHeader *CertificateHeader
-	for _, header := range resp.Headers {
-		if strings.ToLower(header.Field0) == "ic-certificate" {
-			v, err := ParseCertificateHeader(header.Field1)
-			if err != nil {
-				return err
-			}
-			certificateHeader = v
-		}
-	}
-	if certificateHeader == nil {
-		return fmt.Errorf("no certificate header found")
-	}
-
-	// Validate the certificate.
-	if err := certification.VerifyCertificate(
-		certificateHeader.Certificate,
-		a.canisterId,
-		a.GetRootKey(),
-	); err != nil {
-		return err
-	}
-
-	// The timestamp at the /time path must be recent, e.g. 5 minutes.
-	rawTime, err := certificateHeader.Certificate.Tree.Lookup(hashtree.Label("time"))
-	if err != nil {
-		return fmt.Errorf("no time found: %w", err)
-	}
-	t, err := leb128.DecodeUnsigned(bytes.NewReader(rawTime))
-	if err != nil {
-		return err
-	}
-	age := time.Unix(0, t.Int64())
-	minAge := time.Now().Add(-time.Duration(5) * time.Minute)
-	maxAge := time.Now().Add(time.Duration(5) * time.Minute)
-	if age.Before(minAge) || age.After(maxAge) {
-		return fmt.Errorf("certificate is not valid yet or expired")
-	}
-
-	switch certificateHeader.Version {
-	case 0, 1:
-		hash := sha256.Sum256(resp.Body)
-		// TODO: take asset streaming into account!
-		return a.verifyLegacy(path, hash, certificateHeader)
-	case 2:
-		return a.verify(req, resp, certificateHeader)
-	default:
-		return fmt.Errorf("invalid certificate version: %d", certificateHeader.Version)
-	}
-}
-
-func (a *Agent) verify(req *Request, resp *Response, certificateHeader *CertificateHeader) error {
-	exprPath, err := ParseExpressionPath(certificateHeader.ExprPath)
-	if err != nil {
-		return err
-	}
-
-	var certificateExpression string
-	for _, header := range resp.Headers {
-		if strings.ToLower(header.Field0) == "ic-certificateexpression" {
-			certificateExpression = header.Field1
-		}
-	}
-	if certificateExpression == "" {
-		return fmt.Errorf("no certification expression found")
-	}
-	certExpr, err := certexp.ParseCertificateExpression(certificateExpression)
-	if err != nil {
-		return err
-	}
-
-	exprPathNode, err := certificateHeader.Tree.LookupSubTree(exprPath.GetPath()...)
-	if err != nil {
-		return fmt.Errorf("no expression path found: %w", err)
-	}
-	var exprHash hashtree.Labeled
-	switch n := (exprPathNode).(type) {
-	case hashtree.Labeled:
-		exprHash = n
-		certExprHash := sha256.Sum256([]byte(certificateExpression))
-		if !bytes.Equal(exprHash.Label, certExprHash[:]) {
-			return fmt.Errorf("invalid expression hash")
-		}
-	default:
-		return fmt.Errorf("invalid expression path")
-	}
-
-	if certExpr.Certification == nil {
-		return nil
-	}
-
-	respHash, err := CalculateResponseHash(resp, certExpr.Certification.ResponseCertification)
-	if err != nil {
-		return err
-	}
-	if certExpr.Certification.RequestCertification == nil {
-		n, err := hashtree.NewHashTree(exprHash.Tree).LookupSubTree(hashtree.Label(""), respHash[:])
-		if err != nil {
-			return fmt.Errorf("response hash not found: %w", err)
-		}
-		switch n := (n).(type) {
-		case hashtree.Leaf:
-			if len(n) != 0 {
-				return fmt.Errorf("invalid response hash: not empty")
-			}
-			return nil
-		default:
-			return fmt.Errorf("invalid response hash")
-		}
-	} else {
-		reqHash, err := CalculateRequestHash(req, certExpr.Certification.RequestCertification)
-		if err != nil {
-			return err
-		}
-		n, err := hashtree.NewHashTree(exprHash.Tree).LookupSubTree(reqHash[:], respHash[:])
-		if err != nil {
-			return fmt.Errorf("response hash not found: %w", err)
-		}
-		switch n := (n).(type) {
-		case hashtree.Leaf:
-			if len(n) != 0 {
-				return fmt.Errorf("invalid response hash: not empty")
-			}
-			return nil
-		default:
-			return fmt.Errorf("invalid response hash")
-		}
-	}
-}
-
-func (a *Agent) verifyLegacy(path string, hash [32]byte, certificateHeader *CertificateHeader) error {
-	if a.forceV2 && a.supportsV2 {
-		return fmt.Errorf("certificate version 2 is supported")
-	}
-
-	witness, err := certificateHeader.Certificate.Tree.Lookup(hashtree.Label("canister"), a.canisterId.Raw, hashtree.Label("certified_data"))
-	if err != nil {
-		return fmt.Errorf("no witness found: %w", err)
-	}
-
-	if len(witness) != 32 {
-		return fmt.Errorf("invalid witness length")
-	}
-
-	reconstruct := certificateHeader.Tree.Root.Reconstruct()
-	if !bytes.Equal(witness, reconstruct[:32]) {
-		return fmt.Errorf("invalid witness")
-	}
-
-	treeHash, err := certificateHeader.Tree.Lookup(hashtree.Label("http_assets"), hashtree.Label(path))
-	if err != nil || len(treeHash) == 0 {
-		treeHash, _ = certificateHeader.Tree.Lookup(hashtree.Label("http_assets"))
-	}
-
-	if !bytes.Equal(hash[:], treeHash) {
-		return fmt.Errorf("invalid hash")
-	}
-	return nil
+	return Verifier{
+		CanisterID: a.canisterId,
+		RootKey:    a.GetRootKey(),
+		SupportsV2: a.supportsV2,
+		ForceV2:    a.forceV2,
+	}.Verify(path, req, resp)
 }
 
 type CertificateHeader struct {
@@ -411,6 +261,188 @@ func (e ExpressionPath) GetPath() []hashtree.Label {
 		path[len(path)-1] = hashtree.Label("<$>")
 	}
 	return path
+}
+
+// Verifier is the stateless core of Agent.VerifyResponse.
+type Verifier struct {
+	CanisterID principal.Principal
+	RootKey    []byte
+	SupportsV2 bool
+	ForceV2    bool
+}
+
+// Verify validates a certified HTTP response.
+func (v Verifier) Verify(path string, req *Request, resp *Response) error {
+	var certificateHeader *CertificateHeader
+	for _, header := range resp.Headers {
+		if strings.ToLower(header.Field0) == "ic-certificate" {
+			parsed, err := ParseCertificateHeader(header.Field1)
+			if err != nil {
+				return err
+			}
+			certificateHeader = parsed
+		}
+	}
+	if certificateHeader == nil {
+		return fmt.Errorf("no certificate header found")
+	}
+
+	if err := certification.VerifyCertificate(
+		certificateHeader.Certificate,
+		v.CanisterID,
+		v.RootKey,
+	); err != nil {
+		return err
+	}
+
+	// The timestamp at the /time path must be recent, e.g. 5 minutes.
+	rawTime, err := certificateHeader.Certificate.Tree.Lookup(hashtree.Label("time"))
+	if err != nil {
+		return fmt.Errorf("no time found: %w", err)
+	}
+	t, err := leb128.DecodeUnsigned(bytes.NewReader(rawTime))
+	if err != nil {
+		return err
+	}
+	age := time.Unix(0, t.Int64())
+	minAge := time.Now().Add(-5 * time.Minute)
+	maxAge := time.Now().Add(5 * time.Minute)
+	if age.Before(minAge) || age.After(maxAge) {
+		return fmt.Errorf("certificate is not valid yet or expired")
+	}
+
+	switch certificateHeader.Version {
+	case 0, 1:
+		hash := sha256.Sum256(resp.Body)
+		// TODO: take asset streaming into account!
+		return v.verifyV1(path, hash, certificateHeader)
+	case 2:
+		return v.verifyV2(req, resp, certificateHeader)
+	default:
+		return fmt.Errorf("invalid certificate version: %d", certificateHeader.Version)
+	}
+}
+
+// verifyCanisterTreeBinding asserts that the canister-side tree root
+// matches the certified_data leaf the IC state tree commits to.
+func (v Verifier) verifyCanisterTreeBinding(certificateHeader *CertificateHeader) error {
+	certifiedData, err := certificateHeader.Certificate.Tree.Lookup(
+		hashtree.Label("canister"), v.CanisterID.Raw, hashtree.Label("certified_data"),
+	)
+	if err != nil {
+		return fmt.Errorf("no certified_data found: %w", err)
+	}
+	if len(certifiedData) != 32 {
+		return fmt.Errorf("invalid certified_data length: %d", len(certifiedData))
+	}
+	localRoot := certificateHeader.Tree.Root.Reconstruct()
+	if !bytes.Equal(certifiedData, localRoot[:]) {
+		return fmt.Errorf("canister tree root does not match certified_data")
+	}
+	return nil
+}
+
+func (v Verifier) verifyV1(path string, hash [32]byte, certificateHeader *CertificateHeader) error {
+	if v.ForceV2 && v.SupportsV2 {
+		return fmt.Errorf("certificate version 2 is supported")
+	}
+	if err := v.verifyCanisterTreeBinding(certificateHeader); err != nil {
+		return err
+	}
+
+	treeHash, err := certificateHeader.Tree.Lookup(hashtree.Label("http_assets"), hashtree.Label(path))
+	if (err != nil || len(treeHash) == 0) && path != "/index.html" {
+		treeHash, err = certificateHeader.Tree.Lookup(hashtree.Label("http_assets"), hashtree.Label("/index.html"))
+	}
+	if err != nil {
+		return fmt.Errorf("no asset witness found: %w", err)
+	}
+	if !bytes.Equal(hash[:], treeHash) {
+		return fmt.Errorf("invalid hash")
+	}
+	return nil
+}
+
+func (v Verifier) verifyV2(req *Request, resp *Response, certificateHeader *CertificateHeader) error {
+	if err := v.verifyCanisterTreeBinding(certificateHeader); err != nil {
+		return err
+	}
+	exprPath, err := ParseExpressionPath(certificateHeader.ExprPath)
+	if err != nil {
+		return err
+	}
+
+	var certificateExpression string
+	for _, header := range resp.Headers {
+		if strings.ToLower(header.Field0) == "ic-certificateexpression" {
+			certificateExpression = header.Field1
+		}
+	}
+	if certificateExpression == "" {
+		return fmt.Errorf("no certification expression found")
+	}
+	certExpr, err := certexp.ParseCertificateExpression(certificateExpression)
+	if err != nil {
+		return err
+	}
+
+	exprPathNode, err := certificateHeader.Tree.LookupSubTree(exprPath.GetPath()...)
+	if err != nil {
+		return fmt.Errorf("no expression path found: %w", err)
+	}
+	var exprHash hashtree.Labeled
+	switch n := (exprPathNode).(type) {
+	case hashtree.Labeled:
+		exprHash = n
+		certExprHash := sha256.Sum256([]byte(certificateExpression))
+		if !bytes.Equal(exprHash.Label, certExprHash[:]) {
+			return fmt.Errorf("invalid expression hash")
+		}
+	default:
+		return fmt.Errorf("invalid expression path")
+	}
+
+	if certExpr.Certification == nil {
+		return nil
+	}
+
+	respHash, err := CalculateResponseHash(resp, certExpr.Certification.ResponseCertification)
+	if err != nil {
+		return err
+	}
+	if certExpr.Certification.RequestCertification == nil {
+		n, err := hashtree.NewHashTree(exprHash.Tree).LookupSubTree(hashtree.Label(""), respHash[:])
+		if err != nil {
+			return fmt.Errorf("response hash not found: %w", err)
+		}
+		switch n := (n).(type) {
+		case hashtree.Leaf:
+			if len(n) != 0 {
+				return fmt.Errorf("invalid response hash: not empty")
+			}
+			return nil
+		default:
+			return fmt.Errorf("invalid response hash")
+		}
+	} else {
+		reqHash, err := CalculateRequestHash(req, certExpr.Certification.RequestCertification)
+		if err != nil {
+			return err
+		}
+		n, err := hashtree.NewHashTree(exprHash.Tree).LookupSubTree(reqHash[:], respHash[:])
+		if err != nil {
+			return fmt.Errorf("response hash not found: %w", err)
+		}
+		switch n := (n).(type) {
+		case hashtree.Leaf:
+			if len(n) != 0 {
+				return fmt.Errorf("invalid response hash: not empty")
+			}
+			return nil
+		default:
+			return fmt.Errorf("invalid response hash")
+		}
+	}
 }
 
 type queryParameter struct {
