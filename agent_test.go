@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"testing"
 	"time"
 
@@ -142,6 +143,50 @@ func TestAgent_Call(t *testing.T) {
 		if len(path) == 3 && string(path[0]) == "subnet" && string(path[2]) == "public_key" {
 			subnetID := principal.Principal{Raw: []byte(path[1])}
 			_ = subnetID
+		}
+	}
+}
+
+func TestAgent_DiscoverRoutes_RoundTrip(t *testing.T) {
+	a, err := agent.New(agent.DefaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	hosts, err := agent.DiscoverRoutes(a)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(hosts) == 0 {
+		t.Fatal("no boundary node hosts discovered")
+	}
+	rp, err := agent.RoundRobinRoute(hosts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.Client().SetRouteProvider(rp)
+	if _, err := a.Client().Status(); err != nil {
+		t.Fatalf("status against discovered boundary node: %v", err)
+	}
+}
+
+func TestAgent_GetAPIBoundaryNodes(t *testing.T) {
+	a, err := agent.New(agent.DefaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	nodes, err := a.GetAPIBoundaryNodes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(nodes) == 0 {
+		t.Fatal("no API boundary nodes returned from mainnet")
+	}
+	for _, n := range nodes {
+		if n.Domain == "" {
+			t.Fatalf("node %s has no domain", n.NodeID)
+		}
+		if n.IPv4Address == "" && n.IPv6Address == "" {
+			t.Fatalf("node %s has neither IPv4 nor IPv6 address", n.NodeID)
 		}
 	}
 }
@@ -347,6 +392,39 @@ func TestCall_invalid(t *testing.T) {
 	cErr := a.Call(LEDGER_PRINCIPAL, "account_balance", []any{}, []any{})
 	if qErr != cErr {
 		t.Error(qErr, cErr)
+	}
+}
+
+func TestRoundRobinRoute(t *testing.T) {
+	parse := func(s string) *url.URL {
+		u, err := url.Parse(s)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return u
+	}
+	hosts := []*url.URL{parse("https://a.example"), parse("https://b.example"), parse("https://c.example")}
+	rp, err := agent.RoundRobinRoute(hosts)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got []string
+	for range 7 {
+		u, err := rp.Route()
+		if err != nil {
+			t.Fatal(err)
+		}
+		got = append(got, u.String())
+	}
+	want := []string{
+		"https://a.example", "https://b.example", "https://c.example",
+		"https://a.example", "https://b.example", "https://c.example",
+		"https://a.example",
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("call %d: got %s, want %s", i, got[i], want[i])
+		}
 	}
 }
 

@@ -22,7 +22,7 @@ var icp0, _ = url.Parse("https://icp0.io/")
 // Client is a client for the IC agent.
 type Client struct {
 	client *http.Client
-	host   *url.URL
+	routes RouteProvider
 	logger Logger
 }
 
@@ -30,7 +30,7 @@ type Client struct {
 func NewClient(options ...ClientOption) Client {
 	c := Client{
 		client: http.DefaultClient,
-		host:   icp0,
+		routes: StaticRoute(icp0),
 		logger: new(NoopLogger),
 	}
 	for _, o := range options {
@@ -40,7 +40,10 @@ func NewClient(options ...ClientOption) Client {
 }
 
 func (c Client) Call(ctx context.Context, canisterID principal.Principal, data []byte) ([]byte, error) {
-	u := c.url(fmt.Sprintf("/api/v3/canister/%s/call", canisterID.Encode()))
+	u, err := c.url(fmt.Sprintf("/api/v3/canister/%s/call", canisterID.Encode()))
+	if err != nil {
+		return nil, err
+	}
 	c.logger.Printf("[CLIENT] CALL %s", u)
 	req, err := c.newRequest(ctx, "POST", u, bytes.NewBuffer(data))
 	if err != nil {
@@ -103,6 +106,14 @@ func (c Client) ReadSubnetState(ctx context.Context, subnetID principal.Principa
 	return c.postSubnet(ctx, "read_state", subnetID, data)
 }
 
+// SetRouteProvider replaces the route provider used to pick a host URL for each
+// outgoing request. Intended for runtime boundary-node selection (e.g. via
+// DiscoverRoutes + RoundRobinRoute); not safe to call concurrently with
+// in-flight requests.
+func (c *Client) SetRouteProvider(rp RouteProvider) {
+	c.routes = rp
+}
+
 // Status returns the status of the IC.
 func (c Client) Status() (*Status, error) {
 	raw, err := c.get("/api/v2/status")
@@ -114,8 +125,12 @@ func (c Client) Status() (*Status, error) {
 }
 
 func (c Client) get(path string) ([]byte, error) {
-	c.logger.Printf("[CLIENT] GET %s", c.url(path))
-	resp, err := c.client.Get(c.url(path))
+	u, err := c.url(path)
+	if err != nil {
+		return nil, err
+	}
+	c.logger.Printf("[CLIENT] GET %s", u)
+	resp, err := c.client.Get(u)
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +150,10 @@ func (c Client) newRequest(ctx context.Context, method, url string, body io.Read
 }
 
 func (c Client) post(ctx context.Context, path string, canisterID principal.Principal, data []byte) ([]byte, error) {
-	u := c.url(fmt.Sprintf("/api/v2/canister/%s/%s", canisterID.Encode(), path))
+	u, err := c.url(fmt.Sprintf("/api/v2/canister/%s/%s", canisterID.Encode(), path))
+	if err != nil {
+		return nil, err
+	}
 	c.logger.Printf("[CLIENT] POST %s", u)
 	req, err := c.newRequest(ctx, "POST", u, bytes.NewBuffer(data))
 	if err != nil {
@@ -161,7 +179,10 @@ func (c Client) post(ctx context.Context, path string, canisterID principal.Prin
 }
 
 func (c Client) postSubnet(ctx context.Context, path string, subnetID principal.Principal, data []byte) ([]byte, error) {
-	u := c.url(fmt.Sprintf("/api/v2/subnet/%s/%s", subnetID.Encode(), path))
+	u, err := c.url(fmt.Sprintf("/api/v2/subnet/%s/%s", subnetID.Encode(), path))
+	if err != nil {
+		return nil, err
+	}
 	c.logger.Printf("[CLIENT] POST %s", u)
 	req, err := c.newRequest(ctx, "POST", u, bytes.NewBuffer(data))
 	if err != nil {
@@ -186,17 +207,21 @@ func (c Client) postSubnet(ctx context.Context, path string, subnetID principal.
 	}
 }
 
-func (c Client) url(p string) string {
-	u := *c.host
+func (c Client) url(p string) (string, error) {
+	host, err := c.routes.Route()
+	if err != nil {
+		return "", fmt.Errorf("route: %w", err)
+	}
+	u := *host
 	u.Path = path.Join(u.Path, p)
-	return u.String()
+	return u.String(), nil
 }
 
 type ClientOption func(c *Client)
 
 func WithHostURL(host *url.URL) ClientOption {
 	return func(c *Client) {
-		c.host = host
+		c.routes = StaticRoute(host)
 	}
 }
 

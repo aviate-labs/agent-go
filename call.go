@@ -60,6 +60,15 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, in []any,
 	return call.CallAndWait(out)
 }
 
+// CallProto calls a method on a canister and unmarshals the result into the given proto message.
+func (a Agent) CallProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
+	call, err := a.CreateProtoAPIRequest(RequestTypeCall, canisterID, methodName, in)
+	if err != nil {
+		return err
+	}
+	return call.CallAndWait(out)
+}
+
 // CallRaw submits an update call with an opaque argument and returns the raw reply bytes.
 // Neither the argument nor the reply is interpreted.
 //
@@ -76,13 +85,4 @@ func (a Agent) CallRaw(canisterID principal.Principal, methodName string, arg []
 		return nil, err
 	}
 	return out, nil
-}
-
-// CallProto calls a method on a canister and unmarshals the result into the given proto message.
-func (a Agent) CallProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
-	call, err := a.CreateProtoAPIRequest(RequestTypeCall, canisterID, methodName, in)
-	if err != nil {
-		return err
-	}
-	return call.CallAndWait(out)
 }

@@ -139,6 +139,16 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, in, out 
 	return query.Query(out, false)
 }
 
+// QueryProto calls a method on a canister and unmarshals the result into the given proto message.
+// Verifies query signatures by default; set Config.DisableSignedQueryVerification to opt out.
+func (a Agent) QueryProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
+	query, err := a.CreateProtoAPIRequest(RequestTypeQuery, canisterID, methodName, in)
+	if err != nil {
+		return err
+	}
+	return query.Query(out, false)
+}
+
 // QueryRaw is the query-call counterpart of CallRaw. Neither the argument nor the reply is interpreted.
 //
 // Example:
@@ -154,14 +164,4 @@ func (a Agent) QueryRaw(canisterID principal.Principal, methodName string, arg [
 		return nil, err
 	}
 	return out, nil
-}
-
-// QueryProto calls a method on a canister and unmarshals the result into the given proto message.
-// Verifies query signatures by default; set Config.DisableSignedQueryVerification to opt out.
-func (a Agent) QueryProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
-	query, err := a.CreateProtoAPIRequest(RequestTypeQuery, canisterID, methodName, in)
-	if err != nil {
-		return err
-	}
-	return query.Query(out, false)
 }

@@ -273,7 +273,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 			if strings.HasPrefix(r.typ, "*") {
 				tag += ",omitempty" // optional value.
 			}
-			record.WriteString(fmt.Sprintf("\t%-*s %-*s `ic:\"%s%s\" json:\"%s\"`\n", sizeName, r.name, sizeType, r.typ, tag, tupleTag, tag))
+			fmt.Fprintf(&record, "\t%-*s %-*s `ic:\"%s%s\" json:\"%s\"`\n", sizeName, r.name, sizeType, r.typ, tag, tupleTag, tag)
 		}
 		return fmt.Sprintf("struct {\n%s}", record.String())
 	case did.Variant:
@@ -328,7 +328,7 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 		}
 		var record strings.Builder
 		for _, r := range records {
-			record.WriteString(fmt.Sprintf("\t%-*s *%-*s `ic:\"%s,variant\" json:\"%s,omitempty\"`\n", sizeName, r.name, sizeType, r.typ, r.originalName, r.originalName))
+			fmt.Fprintf(&record, "\t%-*s *%-*s `ic:\"%s,variant\" json:\"%s,omitempty\"`\n", sizeName, r.name, sizeType, r.typ, r.originalName, r.originalName)
 		}
 		return fmt.Sprintf("struct {\n%s}", record.String())
 	case did.Vector:

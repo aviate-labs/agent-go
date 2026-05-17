@@ -197,7 +197,7 @@ func (r Record) String() string {
 	var s strings.Builder
 	s.WriteString("record {\n")
 	for _, f := range r {
-		s.WriteString(fmt.Sprintf("  %s;\n", f.String()))
+		fmt.Fprintf(&s, "  %s;\n", f.String())
 	}
 	return s.String() + "}"
 }
@@ -213,7 +213,7 @@ func (v Variant) String() string {
 	var s strings.Builder
 	s.WriteString("variant {\n")
 	for _, f := range v {
-		s.WriteString(fmt.Sprintf("  %s;\n", f.String()))
+		fmt.Fprintf(&s, "  %s;\n", f.String())
 	}
 	return s.String() + "}"
 }

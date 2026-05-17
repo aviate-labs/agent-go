@@ -206,7 +206,7 @@ func New(cfg Config) (*Agent, error) {
 	if cfg.PollTimeout != 0 {
 		timeout = cfg.PollTimeout
 	}
-	return &Agent{
+	a := &Agent{
 		client:           client,
 		ctx:              context.Background(),
 		identity:         id,
@@ -216,7 +216,11 @@ func New(cfg Config) (*Agent, error) {
 		delay:            delay,
 		timeout:          timeout,
 		verifySignatures: !cfg.DisableSignedQueryVerification,
-	}, nil
+	}
+	if cfg.RouteProvider != nil {
+		a.client.SetRouteProvider(cfg.RouteProvider)
+	}
+	return a, nil
 }
 
 // Client returns the underlying Client of the Agent.
@@ -235,28 +239,6 @@ func (a *Agent) CreateCandidAPIRequest(typ RequestType, canisterID principal.Pri
 		effectiveCanisterID(canisterID, args),
 		methodName,
 		args,
-	)
-}
-
-// CreateRawAPIRequest creates a new api request to the given canister and method without
-// applying any codec to the argument or reply. Callers that wire their own encoding
-// (CBOR, MessagePack, ...) and skip Candid use this.
-//
-// Example:
-//
-//	req, _ := a.CreateRawAPIRequest(agent.RequestTypeCall, canisterID, "ingest", cborBytes)
-//	var reply []byte
-//	_ = req.CallAndWait(&reply)
-func (a *Agent) CreateRawAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, arg []byte) (*RawAPIRequest, error) {
-	return CreateAPIRequest(
-		a,
-		func(b []byte) ([]byte, error) { return b, nil },
-		func(raw []byte, out *[]byte) error { *out = raw; return nil },
-		typ,
-		canisterID,
-		canisterID,
-		methodName,
-		arg,
 	)
 }
 
@@ -281,6 +263,28 @@ func (a *Agent) CreateProtoAPIRequest(typ RequestType, canisterID principal.Prin
 		canisterID,
 		methodName,
 		message,
+	)
+}
+
+// CreateRawAPIRequest creates a new api request to the given canister and method without
+// applying any codec to the argument or reply. Callers that wire their own encoding
+// (CBOR, MessagePack, ...) and skip Candid use this.
+//
+// Example:
+//
+//	req, _ := a.CreateRawAPIRequest(agent.RequestTypeCall, canisterID, "ingest", cborBytes)
+//	var reply []byte
+//	_ = req.CallAndWait(&reply)
+func (a *Agent) CreateRawAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, arg []byte) (*RawAPIRequest, error) {
+	return CreateAPIRequest(
+		a,
+		func(b []byte) ([]byte, error) { return b, nil },
+		func(raw []byte, out *[]byte) error { *out = raw; return nil },
+		typ,
+		canisterID,
+		canisterID,
+		methodName,
+		arg,
 	)
 }
 
@@ -315,30 +319,6 @@ func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) (
 	return canisterInfo, nil
 }
 
-// GetTime returns the certified IC time as reported by the subnet that
-// serves the given canister.
-//
-// Note: /time is a per-subnet value (the subnet's wall clock at the
-// moment it produced the read_state certificate), not a single global
-// IC clock. Different subnets may disagree by a few seconds; callers
-// that need a specific subnet's view should pass a canister hosted on it.
-func (a Agent) GetTime(canisterID principal.Principal) (time.Time, error) {
-	path := []hashtree.Label{hashtree.Label("time")}
-	node, err := a.ReadStateCertificate(canisterID, [][]hashtree.Label{path})
-	if err != nil {
-		return time.Time{}, err
-	}
-	raw, err := hashtree.Lookup(node, path...)
-	if err != nil {
-		return time.Time{}, err
-	}
-	nanos, err := leb128.DecodeUnsigned(bytes.NewReader(raw))
-	if err != nil {
-		return time.Time{}, err
-	}
-	return time.Unix(0, nanos.Int64()), nil
-}
-
 func (a Agent) GetCanisterMetadata(canisterID principal.Principal, subPath string) ([]byte, error) {
 	path := []hashtree.Label{hashtree.Label("canister"), canisterID.Raw, hashtree.Label("metadata"), hashtree.Label(subPath)}
 	c, err := a.readStateCertificate(canisterID, [][]hashtree.Label{path})
@@ -366,6 +346,30 @@ func (a Agent) GetCanisterModuleHash(canisterID principal.Principal) ([]byte, er
 // GetRootKey returns the root key of the host.
 func (a Agent) GetRootKey() []byte {
 	return a.rootKey
+}
+
+// GetTime returns the certified IC time as reported by the subnet that
+// serves the given canister.
+//
+// Note: /time is a per-subnet value (the subnet's wall clock at the
+// moment it produced the read_state certificate), not a single global
+// IC clock. Different subnets may disagree by a few seconds; callers
+// that need a specific subnet's view should pass a canister hosted on it.
+func (a Agent) GetTime(canisterID principal.Principal) (time.Time, error) {
+	path := []hashtree.Label{hashtree.Label("time")}
+	node, err := a.ReadStateCertificate(canisterID, [][]hashtree.Label{path})
+	if err != nil {
+		return time.Time{}, err
+	}
+	raw, err := hashtree.Lookup(node, path...)
+	if err != nil {
+		return time.Time{}, err
+	}
+	nanos, err := leb128.DecodeUnsigned(bytes.NewReader(raw))
+	if err != nil {
+		return time.Time{}, err
+	}
+	return time.Unix(0, nanos.Int64()), nil
 }
 
 // ReadStateCertificate reads the certificate state of the given canister at the given path.
@@ -554,6 +558,12 @@ type Config struct {
 	PollTimeout time.Duration
 	// DisableSignedQueryVerification disables the verification of signed queries.
 	DisableSignedQueryVerification bool
+	// RouteProvider, if non-nil, replaces the per-request host-URL provider
+	// configured by ClientConfig. Use StaticRoute, RoundRobinRoute, or
+	// RandomRoute for the built-in policies, or implement RouteProvider for
+	// a custom one. To use on-chain discovery, call DiscoverRoutes against
+	// a freshly constructed agent and pass the result to a RouteProvider.
+	RouteProvider RouteProvider
 }
 
 type ProtoAPIRequest = APIRequest[proto.Message, proto.Message]
