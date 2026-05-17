@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/candid/idl"
@@ -142,6 +143,20 @@ func TestAgent_Call(t *testing.T) {
 			subnetID := principal.Principal{Raw: []byte(path[1])}
 			_ = subnetID
 		}
+	}
+}
+
+func TestAgent_GetTime(t *testing.T) {
+	a, err := agent.New(agent.DefaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := a.GetTime(LEDGER_PRINCIPAL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if delta := time.Since(got); delta < -time.Minute || delta > 5*time.Minute {
+		t.Fatalf("IC time %s is %s away from now, expected within (-1m, 5m)", got, delta)
 	}
 }
 

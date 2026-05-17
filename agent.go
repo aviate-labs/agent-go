@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/binary"
@@ -15,6 +16,7 @@ import (
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/principal"
+	"github.com/aviate-labs/leb128"
 	"github.com/fxamacker/cbor/v2"
 	"google.golang.org/protobuf/proto"
 )
@@ -311,6 +313,30 @@ func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) (
 		return nil, err
 	}
 	return canisterInfo, nil
+}
+
+// GetTime returns the certified IC time as reported by the subnet that
+// serves the given canister.
+//
+// Note: /time is a per-subnet value (the subnet's wall clock at the
+// moment it produced the read_state certificate), not a single global
+// IC clock. Different subnets may disagree by a few seconds; callers
+// that need a specific subnet's view should pass a canister hosted on it.
+func (a Agent) GetTime(canisterID principal.Principal) (time.Time, error) {
+	path := []hashtree.Label{hashtree.Label("time")}
+	node, err := a.ReadStateCertificate(canisterID, [][]hashtree.Label{path})
+	if err != nil {
+		return time.Time{}, err
+	}
+	raw, err := hashtree.Lookup(node, path...)
+	if err != nil {
+		return time.Time{}, err
+	}
+	nanos, err := leb128.DecodeUnsigned(bytes.NewReader(raw))
+	if err != nil {
+		return time.Time{}, err
+	}
+	return time.Unix(0, nanos.Int64()), nil
 }
 
 func (a Agent) GetCanisterMetadata(canisterID principal.Principal, subPath string) ([]byte, error) {
