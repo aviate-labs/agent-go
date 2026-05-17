@@ -2,4 +2,4 @@
 
 ## References
 
-- [Specification](https://internetcomputer.org/docs/current/references/http-gateway-protocol-spec)
+- [Specification](https://docs.internetcomputer.org/references/http-gateway-protocol-spec)

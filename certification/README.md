@@ -8,5 +8,5 @@ A certificate consists of
 
 ## Read More
 
-- [Certified Data](https://smartcontracts.org/docs/interface-spec/index.html#system-api-certified-data)
-- [Certification](https://smartcontracts.org/docs/interface-spec/index.html#certification)
+- [Certified Data](https://docs.internetcomputer.org/references/ic-interface-spec/canister-interface#system-api-certified-data)
+- [Certification](https://docs.internetcomputer.org/references/ic-interface-spec/certification#certification)

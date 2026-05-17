@@ -48,7 +48,7 @@ func main() {
 
 ### Using an Identity
 
-Supported identities are `Ed25519` and `Secp256k1`. By default, the agent uses the anonymous identity.
+Supported identities are `Ed25519`, `Secp256k1`, and `Prime256v1`. By default, the agent uses the anonymous identity.
 
 ```go
 id, _ := identity.NewEd25519Identity(publicKey, privateKey)
@@ -64,7 +64,7 @@ If you are running a local replica, you can use the `FetchRootKey` option to fet
 ```go
 u, _ := url.Parse("http://localhost:8000")
 config := agent.Config{
-    ClientConfig: &agent.ClientConfig{Host: u},
+    ClientConfig: []agent.ClientOption{agent.WithHostURL(u)},
     FetchRootKey: true,
     DisableSignedQueryVerification: true,
 }
