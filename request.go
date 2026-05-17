@@ -114,7 +114,7 @@ func NewRequestID(req Request) RequestID {
 		methodNameHash := sha256.Sum256([]byte(req.MethodName))
 		hashes = append(hashes, append(methodNameKey[:], methodNameHash[:]...))
 	}
-	if len(req.Arguments) != 0 {
+	if req.Arguments != nil {
 		argumentsHash := sha256.Sum256(req.Arguments)
 		hashes = append(hashes, append(argumentsKey[:], argumentsHash[:]...))
 	}
