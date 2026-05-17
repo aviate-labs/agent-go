@@ -139,11 +139,29 @@ func (a Agent) Query(canisterID principal.Principal, methodName string, in, out 
 	return query.Query(out, false)
 }
 
+// QueryRaw is the query-call counterpart of CallRaw. Neither the argument nor the reply is interpreted.
+//
+// Example:
+//
+//	reply, err := a.QueryRaw(canisterID, "lookup", cborBytes)
+func (a Agent) QueryRaw(canisterID principal.Principal, methodName string, arg []byte) ([]byte, error) {
+	query, err := a.CreateRawAPIRequest(RequestTypeQuery, canisterID, methodName, arg)
+	if err != nil {
+		return nil, err
+	}
+	var out []byte
+	if err := query.Query(&out, false); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryProto calls a method on a canister and unmarshals the result into the given proto message.
+// Verifies query signatures by default; set Config.DisableSignedQueryVerification to opt out.
 func (a Agent) QueryProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
 	query, err := a.CreateProtoAPIRequest(RequestTypeQuery, canisterID, methodName, in)
 	if err != nil {
 		return err
 	}
-	return query.Query(out, true)
+	return query.Query(out, false)
 }

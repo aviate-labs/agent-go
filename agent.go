@@ -108,7 +108,14 @@ type APIRequest[In, Out any] struct {
 	data                []byte
 }
 
-func createAPIRequest[In, Out any](
+// CreateAPIRequest creates a new api request to the given canister and method using
+// a caller-supplied codec. Use this when neither Candid nor Protobuf fits and the
+// pre-built CallRaw/QueryRaw helpers force an unwanted extra []byte hop.
+//
+// marshal encodes the typed argument to wire bytes; unmarshal decodes the reply
+// into the caller-owned out value. effectiveCanisterID is the principal used for
+// routing (usually equal to canisterID; differs only for management-canister calls).
+func CreateAPIRequest[In, Out any](
 	a *Agent,
 	marshal func(In) ([]byte, error),
 	unmarshal func([]byte, Out) error,
@@ -217,7 +224,7 @@ func (a Agent) Client() *Client {
 
 // CreateCandidAPIRequest creates a new api request to the given canister and method.
 func (a *Agent) CreateCandidAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, args ...any) (*CandidAPIRequest, error) {
-	return createAPIRequest(
+	return CreateAPIRequest(
 		a,
 		candid.Marshal,
 		candid.Unmarshal,
@@ -229,9 +236,31 @@ func (a *Agent) CreateCandidAPIRequest(typ RequestType, canisterID principal.Pri
 	)
 }
 
+// CreateRawAPIRequest creates a new api request to the given canister and method without
+// applying any codec to the argument or reply. Callers that wire their own encoding
+// (CBOR, MessagePack, ...) and skip Candid use this.
+//
+// Example:
+//
+//	req, _ := a.CreateRawAPIRequest(agent.RequestTypeCall, canisterID, "ingest", cborBytes)
+//	var reply []byte
+//	_ = req.CallAndWait(&reply)
+func (a *Agent) CreateRawAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, arg []byte) (*RawAPIRequest, error) {
+	return CreateAPIRequest(
+		a,
+		func(b []byte) ([]byte, error) { return b, nil },
+		func(raw []byte, out *[]byte) error { *out = raw; return nil },
+		typ,
+		canisterID,
+		canisterID,
+		methodName,
+		arg,
+	)
+}
+
 // CreateProtoAPIRequest creates a new api request to the given canister and method.
 func (a *Agent) CreateProtoAPIRequest(typ RequestType, canisterID principal.Principal, methodName string, message proto.Message) (*ProtoAPIRequest, error) {
-	return createAPIRequest(
+	return CreateAPIRequest(
 		a,
 		func(m proto.Message) ([]byte, error) {
 			raw, err := proto.Marshal(m)
@@ -502,3 +531,9 @@ type Config struct {
 }
 
 type ProtoAPIRequest = APIRequest[proto.Message, proto.Message]
+
+// RawAPIRequest is an APIRequest with no codec applied to its argument or reply.
+// Out is *[]byte (not []byte) because the unmarshal function replaces the slice
+// header itself (`*out = raw`) rather than writing through it, which requires
+// indirection. CallRaw/QueryRaw hide that detail and return []byte.
+type RawAPIRequest = APIRequest[[]byte, *[]byte]

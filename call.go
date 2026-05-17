@@ -60,6 +60,24 @@ func (a Agent) Call(canisterID principal.Principal, methodName string, in []any,
 	return call.CallAndWait(out)
 }
 
+// CallRaw submits an update call with an opaque argument and returns the raw reply bytes.
+// Neither the argument nor the reply is interpreted.
+//
+// Example:
+//
+//	reply, err := a.CallRaw(canisterID, "ingest", cborBytes)
+func (a Agent) CallRaw(canisterID principal.Principal, methodName string, arg []byte) ([]byte, error) {
+	call, err := a.CreateRawAPIRequest(RequestTypeCall, canisterID, methodName, arg)
+	if err != nil {
+		return nil, err
+	}
+	var out []byte
+	if err := call.CallAndWait(&out); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CallProto calls a method on a canister and unmarshals the result into the given proto message.
 func (a Agent) CallProto(canisterID principal.Principal, methodName string, in, out proto.Message) error {
 	call, err := a.CreateProtoAPIRequest(RequestTypeCall, canisterID, methodName, in)
