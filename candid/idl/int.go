@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/aviate-labs/leb128"
+	"github.com/aviate-labs/agent-go/leb128"
 )
 
 func anyToInt16(v any) (int16, bool) {

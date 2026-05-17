@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/aviate-labs/leb128"
+	"github.com/aviate-labs/agent-go/leb128"
 )
 
 func Ptr[a any](v a) *a {

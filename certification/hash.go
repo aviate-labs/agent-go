@@ -8,7 +8,7 @@ import (
 	"sort"
 
 	"github.com/aviate-labs/agent-go/candid/idl"
-	"github.com/aviate-labs/leb128"
+	"github.com/aviate-labs/agent-go/leb128"
 	"github.com/fxamacker/cbor/v2"
 )
 

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/aviate-labs/leb128"
+	"github.com/aviate-labs/agent-go/leb128"
 )
 
 // BoolType is a type of bool.

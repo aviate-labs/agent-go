@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"github.com/aviate-labs/agent-go/certification/bls"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
+	"github.com/aviate-labs/agent-go/leb128"
 	"github.com/aviate-labs/agent-go/principal"
-	"github.com/aviate-labs/leb128"
 	"slices"
 	"time"
 

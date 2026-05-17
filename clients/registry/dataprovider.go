@@ -10,7 +10,7 @@ import (
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	v1 "github.com/aviate-labs/agent-go/clients/registry/proto/v1"
 	"github.com/aviate-labs/agent-go/principal"
-	"github.com/aviate-labs/leb128"
+	"github.com/aviate-labs/agent-go/leb128"
 	"github.com/fxamacker/cbor/v2"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/wrapperspb"

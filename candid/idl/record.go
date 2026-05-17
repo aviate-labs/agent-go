@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/aviate-labs/leb128"
+	"github.com/aviate-labs/agent-go/leb128"
 )
 
 func StructToMap(value any) (map[string]any, error) {

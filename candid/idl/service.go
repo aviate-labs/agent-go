@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/aviate-labs/agent-go/leb128"
 	"github.com/aviate-labs/agent-go/principal"
-	"github.com/aviate-labs/leb128"
 )
 
 type Method struct {

@@ -1,7 +1,5 @@
 github.com/0x51-dev/upeg v0.1.5 h1:wbggXZSJbI0ln+5sy77Y/y+1d6fB41VoA6J/840+6Cc=
 github.com/0x51-dev/upeg v0.1.5/go.mod h1:ts9/Zafxb9W9drZFTmQNMR7kLOyHyBw37NuowyiDork=
-github.com/aviate-labs/leb128 v0.3.0 h1:s9htRv3OYk8nuHqJu9PiVFJxv1jIUTIcpEeiURa91uQ=
-github.com/aviate-labs/leb128 v0.3.0/go.mod h1:GclhBOjhIKmcDlgHKhj0AEZollzERfZUbcRUKiQVqgY=
 github.com/bits-and-blooms/bitset v1.20.0 h1:2F+rfL86jE2d/bmw7OhqUg2Sj/1rURkBn3MdfoPyRVU=
 github.com/bits-and-blooms/bitset v1.20.0/go.mod h1:7hO7Gc7Pp1vODcmWvKMRA9BNmbv6a/7QIWpPxHddWR8=
 github.com/consensys/bavard v0.1.27 h1:j6hKUrGAy/H+gpNrpLU3I26n1yc+VMGmd6ID5+gAhOs=

@@ -13,8 +13,8 @@ import (
 	"github.com/aviate-labs/agent-go/certification/bls"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/certification/http/certexp"
+	"github.com/aviate-labs/agent-go/leb128"
 	"github.com/aviate-labs/agent-go/principal"
-	"github.com/aviate-labs/leb128"
 	bls12381 "github.com/consensys/gnark-crypto/ecc/bls12-381"
 	"github.com/fxamacker/cbor/v2"
 )

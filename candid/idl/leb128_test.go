@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/aviate-labs/leb128"
+	"github.com/aviate-labs/agent-go/leb128"
 )
 
 func TestReadLEB128(t *testing.T) {
