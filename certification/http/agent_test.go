@@ -11,8 +11,7 @@ import (
 )
 
 func TestAgent_HttpRequest(t *testing.T) {
-	canisterId := principal.MustDecode("rdmx6-jaaaa-aaaaa-aaadq-cai")
-	a, err := http.NewAgent(canisterId, agent.DefaultConfig)
+	a, err := http.NewAgent(nnsDappCanisterID, agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,9 +71,13 @@ func TestCalculateRequestHash(t *testing.T) {
 	})
 }
 
+// nnsDappCanisterID is the NNS dapp canister, used as a stable mainnet fixture
+// for HTTP gateway certificate verification. It is DFINITY-operated, widely used,
+// and serves certified responses at both "/" and "/index.html".
+var nnsDappCanisterID = principal.MustDecode("qoctq-giaaa-aaaaa-aaaea-cai")
+
 func TestResponse_Verify_V1(t *testing.T) {
-	canisterId := principal.MustDecode("rdmx6-jaaaa-aaaaa-aaadq-cai")
-	a, err := http.NewAgent(canisterId, agent.DefaultConfig)
+	a, err := http.NewAgent(nnsDappCanisterID, agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,8 +100,7 @@ func TestResponse_Verify_V1(t *testing.T) {
 }
 
 func TestResponse_Verify_V2(t *testing.T) {
-	canisterId := principal.MustDecode("rdmx6-jaaaa-aaaaa-aaadq-cai")
-	a, err := http.NewAgent(canisterId, agent.DefaultConfig)
+	a, err := http.NewAgent(nnsDappCanisterID, agent.DefaultConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
