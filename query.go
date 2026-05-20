@@ -165,3 +165,13 @@ func (a Agent) QueryRaw(canisterID principal.Principal, methodName string, arg [
 	}
 	return out, nil
 }
+
+// QueryWithEffectiveCanisterID is like Query but lets the caller supply the effective
+// canister ID. Symmetric with CallWithEffectiveCanisterID.
+func (a Agent) QueryWithEffectiveCanisterID(canisterID, effectiveCanisterID principal.Principal, methodName string, in, out []any) error {
+	query, err := a.CreateCandidAPIRequest(RequestTypeQuery, canisterID, methodName, in...)
+	if err != nil {
+		return err
+	}
+	return query.WithEffectiveCanisterID(effectiveCanisterID).Query(out, false)
+}

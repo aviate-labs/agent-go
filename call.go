@@ -86,3 +86,14 @@ func (a Agent) CallRaw(canisterID principal.Principal, methodName string, arg []
 	}
 	return out, nil
 }
+
+// CallWithEffectiveCanisterID is like Call but lets the caller supply the effective
+// canister ID. Needed for management-canister methods whose args carry no canister_id
+// (create_canister, provisional_create_canister_with_cycles).
+func (a Agent) CallWithEffectiveCanisterID(canisterID, effectiveCanisterID principal.Principal, methodName string, in, out []any) error {
+	call, err := a.CreateCandidAPIRequest(RequestTypeCall, canisterID, methodName, in...)
+	if err != nil {
+		return err
+	}
+	return call.WithEffectiveCanisterID(effectiveCanisterID).CallAndWait(out)
+}

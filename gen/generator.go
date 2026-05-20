@@ -28,17 +28,17 @@ func funcName(prefix, name string) string {
 	if strings.HasPrefix(name, "\"") {
 		name = name[1 : len(name)-1]
 	}
-	var str string
+	var str strings.Builder
 	for p := range strings.SplitSeq(name, "_") {
 		if len(p) == 0 {
 			continue
 		}
-		str += strings.ToUpper(string(p[0])) + p[1:]
+		str.WriteString(strings.ToUpper(string(p[0])) + p[1:])
 	}
 	if prefix != "" {
-		return fmt.Sprintf("%s.%s", prefix, str)
+		return fmt.Sprintf("%s.%s", prefix, str.String())
 	}
-	return str
+	return str.String()
 }
 
 func init() {
