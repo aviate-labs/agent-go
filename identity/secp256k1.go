@@ -96,6 +96,7 @@ func uncompressedPublicKey(key *ecdsa.PublicKey) []byte {
 type Secp256k1Identity struct {
 	privateKey *ecdsa.PrivateKey
 	publicKey  *ecdsa.PublicKey
+	derPubKey  []byte
 }
 
 // NewRandomSecp256k1Identity creates a new identity with a random key pair.
@@ -109,9 +110,14 @@ func NewRandomSecp256k1Identity() (*Secp256k1Identity, error) {
 
 // NewSecp256k1Identity creates a new identity based on the given key pair.
 func NewSecp256k1Identity(privateKey *ecdsa.PrivateKey) (*Secp256k1Identity, error) {
+	der, err := derEncodeSecp256k1PublicKey(&privateKey.PublicKey)
+	if err != nil {
+		return nil, err
+	}
 	return &Secp256k1Identity{
 		privateKey: privateKey,
 		publicKey:  &privateKey.PublicKey,
+		derPubKey:  der,
 	}, nil
 }
 
