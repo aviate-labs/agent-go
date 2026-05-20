@@ -83,3 +83,41 @@ func TestDecode_futureTypeOpcode(t *testing.T) {
 		}
 	})
 }
+
+func TestDecode_recordFieldOrdering(t *testing.T) {
+	t.Run("duplicate id rejected", func(t *testing.T) {
+		wire := []byte{
+			'D', 'I', 'D', 'L',
+			0x01,       // type table count = 1
+			0x6c,       // record opcode (-20)
+			0x02,       // field count = 2
+			0x05, 0x7d, // id 5, type nat
+			0x05, 0x7d, // id 5 again - duplicate
+			0x01,       // arg count = 1
+			0x00,       // arg type = type-table index 0
+			0x05, 0x2a, // record fields: id=5, nat=42
+		}
+		var m map[string]any
+		if err := Unmarshal(wire, []any{&m}); err == nil {
+			t.Fatal("expected error for duplicate field id, got nil")
+		}
+	})
+
+	t.Run("out-of-order ids rejected", func(t *testing.T) {
+		wire := []byte{
+			'D', 'I', 'D', 'L',
+			0x01,       // type table count = 1
+			0x6c,       // record opcode
+			0x02,       // field count = 2
+			0x05, 0x7d, // id 5, type nat
+			0x03, 0x7d, // id 3 (out of order: 3 < 5)
+			0x01,
+			0x00,
+			0x2a, 0x2a,
+		}
+		var m map[string]any
+		if err := Unmarshal(wire, []any{&m}); err == nil {
+			t.Fatal("expected error for unordered field ids, got nil")
+		}
+	})
+}

@@ -3,6 +3,7 @@ package candid
 import (
 	"bytes"
 	"fmt"
+	"math/big"
 	"reflect"
 
 	"github.com/aviate-labs/agent-go/candid/idl"
@@ -315,11 +316,24 @@ func (tc *typeCache) decodeFieldsSubType(r *bytes.Reader, tds []idl.Type) ([]idl
 		return nil, err
 	}
 	var fields []idl.FieldType
+	var prev *big.Int
 	for i := 0; i < int(l.Int64()); i++ {
 		h, err := leb128.DecodeUnsigned(r)
 		if err != nil {
 			return nil, err
 		}
+		if h.BitLen() > 32 {
+			return nil, fmt.Errorf("field id out of range: %s", h)
+		}
+		if prev != nil {
+			switch h.Cmp(prev) {
+			case 0:
+				return nil, fmt.Errorf("duplicate field id: %s", h)
+			case -1:
+				return nil, fmt.Errorf("field ids not in increasing order: %s after %s", h, prev)
+			}
+		}
+		prev = h
 		tid, err := leb128.DecodeSigned(r)
 		if err != nil {
 			return nil, err
