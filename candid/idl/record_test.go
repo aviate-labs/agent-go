@@ -173,13 +173,6 @@ func TestRecordType_UnmarshalGo(t *testing.T) {
 			}
 		}
 
-		expectErr(t, idl.UnmarshalGo(
-			idl.RecordType{
-				Fields: []idl.FieldType{{Name: "unknown"}},
-			},
-			make(map[string]any), &rt,
-		))
-
 		rn := idl.RecordType{
 			Fields: []idl.FieldType{
 				{

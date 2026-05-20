@@ -211,4 +211,54 @@ func TestRecordSubtyping(t *testing.T) {
 			t.Error(value.Y)
 		}
 	})
+	t.Run("extra wire field, required on Go side absent", func(t *testing.T) {
+		type wire struct {
+			X uint64 `ic:"x"`
+			Y uint64 `ic:"y"`
+		}
+		type got struct {
+			X uint64 `ic:"x"`
+		}
+		encoded, err := candid.Marshal([]any{wire{X: 1, Y: 2}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var value got
+		if err := candid.Unmarshal(encoded, []any{&value}); err != nil {
+			t.Fatal(err)
+		}
+		if value.X != 1 {
+			t.Errorf("got X=%d, want 1", value.X)
+		}
+	})
+	t.Run("extra wire field nested", func(t *testing.T) {
+		type innerWire struct {
+			A uint64 `ic:"a"`
+			B uint64 `ic:"b"`
+		}
+		type outerWire struct {
+			Inner innerWire `ic:"inner"`
+			Tail  uint64    `ic:"tail"`
+		}
+		type innerGot struct {
+			A uint64 `ic:"a"`
+		}
+		type outerGot struct {
+			Inner innerGot `ic:"inner"`
+		}
+		encoded, err := candid.Marshal([]any{outerWire{
+			Inner: innerWire{A: 7, B: 99},
+			Tail:  42,
+		}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		var value outerGot
+		if err := candid.Unmarshal(encoded, []any{&value}); err != nil {
+			t.Fatal(err)
+		}
+		if value.Inner.A != 7 {
+			t.Errorf("got inner.A=%d, want 7", value.Inner.A)
+		}
+	})
 }
