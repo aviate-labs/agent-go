@@ -35,3 +35,51 @@ func TestDecodeRaw(t *testing.T) {
 		t.Error(n)
 	}
 }
+
+func TestDecode_futureTypeOpcode(t *testing.T) {
+	t.Run("unreferenced future type", func(t *testing.T) {
+		wire := []byte{
+			'D', 'I', 'D', 'L',
+			0x01,       // type table count = 1
+			0x67, 0x00, // future-type opcode -25, body length 0
+			0x01, // arg count = 1
+			0x7d, // arg type = nat (-3)
+			0x2a, // nat 42
+		}
+
+		var n idl.Nat
+		if err := Unmarshal(wire, []any{&n}); err != nil {
+			t.Fatalf("decode failed on future type: %v", err)
+		}
+		if n.BigInt().Cmp(big.NewInt(42)) != 0 {
+			t.Fatalf("got %v, want 42", n)
+		}
+	})
+
+	t.Run("two args, second is a future value", func(t *testing.T) {
+		// Forward-compat: a payload with two args, where the second arg has
+		// a future type. The decoder must consume the future value bytes
+		// (<m> <n> <m bytes>) so the byte stream is exhausted cleanly.
+		wire := []byte{
+			'D', 'I', 'D', 'L',
+			0x01,       // type table count = 1
+			0x67, 0x00, // future-type opcode -25, body length 0
+			0x02,             // arg count = 2
+			0x7d,             // arg 0 type = nat
+			0x00,             // arg 1 type = type-table index 0 (future)
+			0x2a,             // nat 42
+			0x03,             // future value: m=3
+			0x00,             // future value: n=0
+			0xaa, 0xbb, 0xcc, // body
+		}
+
+		var n idl.Nat
+		var f any
+		if err := Unmarshal(wire, []any{&n, &f}); err != nil {
+			t.Fatalf("decode failed on future value: %v", err)
+		}
+		if n.BigInt().Cmp(big.NewInt(42)) != 0 {
+			t.Fatalf("got %v, want 42", n)
+		}
+	})
+}

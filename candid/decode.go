@@ -145,6 +145,19 @@ func decodeTypes(bs []byte) ([]idl.Type, *bytes.Reader, error) {
 					return nil, nil, err
 				}
 				tds = append(tds, typ)
+			default:
+				if o >= 0 {
+					return nil, nil, fmt.Errorf("invalid opcode: %d", o)
+				}
+				count, err := leb128.DecodeUnsigned(r)
+				if err != nil {
+					return nil, nil, err
+				}
+				skip := make([]byte, count.Int64())
+				if _, err := r.Read(skip); err != nil {
+					return nil, nil, err
+				}
+				tds = append(tds, &idl.FutureType{OpCode: o})
 			}
 		}
 
