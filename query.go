@@ -16,8 +16,14 @@ import (
 
 // Query calls a method on a canister and unmarshals the result into the given values.
 func (q APIRequest[In, Out]) Query(out Out, skipVerification bool) error {
+	return q.QueryWithContext(q.a.ctx, out, skipVerification)
+}
+
+// QueryWithContext is like Query but uses the given context as the parent of the
+// per-request timeout, letting the caller cancel an in-flight query.
+func (q APIRequest[In, Out]) QueryWithContext(ctx context.Context, out Out, skipVerification bool) error {
 	q.a.logger.Printf("[AGENT] QUERY %s %s", q.effectiveCanisterID, q.methodName)
-	ctx, cancel := context.WithTimeout(q.a.ctx, q.a.ingressExpiry)
+	ctx, cancel := context.WithTimeout(ctx, q.a.ingressExpiry)
 	defer cancel()
 	rawResp, err := q.a.client.Query(ctx, q.effectiveCanisterID, q.data)
 	if err != nil {
@@ -38,7 +44,7 @@ func (q APIRequest[In, Out]) Query(out Out, skipVerification bool) error {
 			if len(q.effectiveCanisterID.Raw) == 0 {
 				return fmt.Errorf("can not verify signature without effective canister ID")
 			}
-			c, err := q.a.readStateCertificate(q.effectiveCanisterID, [][]hashtree.Label{{hashtree.Label("subnet")}})
+			c, err := q.a.readStateCertificate(ctx, q.effectiveCanisterID, [][]hashtree.Label{{hashtree.Label("subnet")}})
 			if err != nil {
 				return err
 			}
@@ -164,6 +170,16 @@ func (a Agent) QueryRaw(canisterID principal.Principal, methodName string, arg [
 		return nil, err
 	}
 	return out, nil
+}
+
+// QueryWithContext is like Query but uses the given context as the parent of the
+// per-request timeout, letting the caller cancel an in-flight query.
+func (a Agent) QueryWithContext(ctx context.Context, canisterID principal.Principal, methodName string, in, out []any) error {
+	query, err := a.CreateCandidAPIRequest(RequestTypeQuery, canisterID, methodName, in...)
+	if err != nil {
+		return err
+	}
+	return query.QueryWithContext(ctx, out, false)
 }
 
 // QueryWithEffectiveCanisterID is like Query but lets the caller supply the effective

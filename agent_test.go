@@ -1,10 +1,15 @@
 package agent_test
 
 import (
+	"context"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -147,6 +152,47 @@ func TestAgent_Call(t *testing.T) {
 	}
 }
 
+func TestAgent_CallWithContext_cancelledDuringPoll(t *testing.T) {
+	// /call returns 202 so CallAndWait falls into the poll loop. PollDelay is
+	// long relative to the cancel below, so poll is parked on its select when
+	// the context is cancelled: this exercises the ctx.Done() arm directly.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case strings.HasSuffix(r.URL.Path, "/call"):
+			w.WriteHeader(http.StatusAccepted)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer srv.Close()
+	host, _ := url.Parse(srv.URL)
+
+	a, err := agent.New(agent.Config{
+		ClientConfig: []agent.ClientOption{agent.WithHostURL(host)},
+		PollDelay:    10 * time.Second,
+		PollTimeout:  10 * time.Second,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(50*time.Millisecond, cancel)
+
+	start := time.Now()
+	err = a.CallWithContext(ctx, LEDGER_PRINCIPAL, "account_balance", []any{
+		struct {
+			Account []byte `ic:"account"`
+		}{Account: make([]byte, 32)},
+	}, []any{})
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("got %v, want context.Canceled", err)
+	}
+	if elapsed := time.Since(start); elapsed > time.Second {
+		t.Fatalf("poll did not abort promptly on cancel: waited %s", elapsed)
+	}
+}
+
 func TestAgent_DiscoverRoutes_RoundTrip(t *testing.T) {
 	a, err := agent.New(agent.DefaultConfig)
 	if err != nil {
@@ -202,6 +248,41 @@ func TestAgent_GetTime(t *testing.T) {
 	}
 	if delta := time.Since(got); delta < -time.Minute || delta > 5*time.Minute {
 		t.Fatalf("IC time %s is %s away from now, expected within (-1m, 5m)", got, delta)
+	}
+}
+
+func TestAgent_QueryWithContext_cancelled(t *testing.T) {
+	a, err := agent.New(agent.DefaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	req, err := a.CreateCandidAPIRequest(
+		agent.RequestTypeQuery,
+		LEDGER_PRINCIPAL,
+		"account_balance",
+		struct {
+			Account []byte `ic:"account"`
+		}{Account: make([]byte, 32)},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out struct {
+		E8S uint64 `ic:"e8s"`
+	}
+	if err := req.QueryWithContext(ctx, []any{&out}, false); !errors.Is(err, context.Canceled) {
+		t.Errorf("APIRequest.QueryWithContext: got %v, want context.Canceled", err)
+	}
+
+	if err := a.QueryWithContext(ctx, LEDGER_PRINCIPAL, "account_balance", []any{
+		struct {
+			Account []byte `ic:"account"`
+		}{Account: make([]byte, 32)},
+	}, []any{&out}); !errors.Is(err, context.Canceled) {
+		t.Errorf("Agent.QueryWithContext: got %v, want context.Canceled", err)
 	}
 }
 

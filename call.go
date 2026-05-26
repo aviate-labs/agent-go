@@ -1,6 +1,8 @@
 package agent
 
 import (
+	"context"
+
 	"github.com/aviate-labs/agent-go/certification"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/principal"
@@ -10,8 +12,15 @@ import (
 
 // CallAndWait calls a method on a canister and waits for the result.
 func (c APIRequest[_, Out]) CallAndWait(out Out) error {
+	return c.CallAndWaitWithContext(c.a.ctx, out)
+}
+
+// CallAndWaitWithContext is like CallAndWait but uses the given context as the parent
+// of the per-request timeouts and the polling loop, letting the caller cancel an
+// in-flight update call.
+func (c APIRequest[_, Out]) CallAndWaitWithContext(ctx context.Context, out Out) error {
 	c.a.logger.Printf("[AGENT] CALL %s %s (%x)", c.effectiveCanisterID, c.methodName, c.requestID)
-	rawCertificate, err := c.a.call(c.effectiveCanisterID, c.data)
+	rawCertificate, err := c.a.call(ctx, c.effectiveCanisterID, c.data)
 	if err != nil {
 		return err
 	}
@@ -44,7 +53,7 @@ func (c APIRequest[_, Out]) CallAndWait(out Out) error {
 		}
 	}
 
-	raw, err := c.a.poll(c.effectiveCanisterID, c.requestID)
+	raw, err := c.a.poll(ctx, c.effectiveCanisterID, c.requestID)
 	if err != nil {
 		return err
 	}
@@ -85,6 +94,17 @@ func (a Agent) CallRaw(canisterID principal.Principal, methodName string, arg []
 		return nil, err
 	}
 	return out, nil
+}
+
+// CallWithContext is like Call but uses the given context as the parent of the
+// per-request timeouts and the polling loop, letting the caller cancel an in-flight
+// update call.
+func (a Agent) CallWithContext(ctx context.Context, canisterID principal.Principal, methodName string, in []any, out []any) error {
+	call, err := a.CreateCandidAPIRequest(RequestTypeCall, canisterID, methodName, in...)
+	if err != nil {
+		return err
+	}
+	return call.CallAndWaitWithContext(ctx, out)
 }
 
 // CallWithEffectiveCanisterID is like Call but lets the caller supply the effective

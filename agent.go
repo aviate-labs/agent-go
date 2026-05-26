@@ -321,7 +321,7 @@ func (a Agent) GetCanisterInfo(canisterID principal.Principal, subPath string) (
 
 func (a Agent) GetCanisterMetadata(canisterID principal.Principal, subPath string) ([]byte, error) {
 	path := []hashtree.Label{hashtree.Label("canister"), canisterID.Raw, hashtree.Label("metadata"), hashtree.Label(subPath)}
-	c, err := a.readStateCertificate(canisterID, [][]hashtree.Label{path})
+	c, err := a.readStateCertificate(a.ctx, canisterID, [][]hashtree.Label{path})
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +374,7 @@ func (a Agent) GetTime(canisterID principal.Principal) (time.Time, error) {
 
 // ReadStateCertificate reads the certificate state of the given canister at the given path.
 func (a Agent) ReadStateCertificate(canisterID principal.Principal, path [][]hashtree.Label) (hashtree.Node, error) {
-	c, err := a.readStateCertificate(canisterID, path)
+	c, err := a.readStateCertificate(a.ctx, canisterID, path)
 	if err != nil {
 		return nil, err
 	}
@@ -383,13 +383,7 @@ func (a Agent) ReadStateCertificate(canisterID principal.Principal, path [][]has
 
 // RequestStatus returns the status of the request with the given ID.
 func (a Agent) RequestStatus(ecID principal.Principal, requestID RequestID) ([]byte, hashtree.Node, error) {
-	a.logger.Printf("[AGENT] REQUEST STATUS %s %x", ecID, requestID)
-	path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
-	certificate, err := a.readStateCertificate(ecID, [][]hashtree.Label{path})
-	if err != nil {
-		return nil, nil, err
-	}
-	return handleStatus(path, certificate)
+	return a.requestStatus(a.ctx, ecID, requestID)
 }
 
 // Sender returns the principal that is sending the requests.
@@ -397,8 +391,8 @@ func (a Agent) Sender() principal.Principal {
 	return a.identity.Sender()
 }
 
-func (a Agent) call(ecID principal.Principal, data []byte) ([]byte, error) {
-	ctx, cancel := context.WithTimeout(a.ctx, a.ingressExpiry)
+func (a Agent) call(ctx context.Context, ecID principal.Principal, data []byte) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, a.ingressExpiry)
 	defer cancel()
 	return a.client.Call(ctx, ecID, data)
 }
@@ -407,14 +401,18 @@ func (a Agent) expiryDate() uint64 {
 	return uint64(time.Now().Add(a.ingressExpiry).UnixNano())
 }
 
-func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, error) {
+func (a Agent) poll(ctx context.Context, ecID principal.Principal, requestID RequestID) ([]byte, error) {
 	ticker := time.NewTicker(a.delay)
+	defer ticker.Stop()
 	timer := time.NewTimer(a.timeout)
+	defer timer.Stop()
 	for {
 		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
 		case <-ticker.C:
 			a.logger.Printf("[AGENT] POLL %s %x", ecID, requestID)
-			data, node, err := a.RequestStatus(ecID, requestID)
+			data, node, err := a.requestStatus(ctx, ecID, requestID)
 			if err != nil {
 				return nil, err
 			}
@@ -446,8 +444,8 @@ func (a Agent) poll(ecID principal.Principal, requestID RequestID) ([]byte, erro
 	}
 }
 
-func (a Agent) readState(ecID principal.Principal, data []byte) (map[string][]byte, error) {
-	ctx, cancel := context.WithTimeout(a.ctx, a.ingressExpiry)
+func (a Agent) readState(ctx context.Context, ecID principal.Principal, data []byte) (map[string][]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, a.ingressExpiry)
 	defer cancel()
 	resp, err := a.client.ReadState(ctx, ecID, data)
 	if err != nil {
@@ -457,7 +455,7 @@ func (a Agent) readState(ecID principal.Principal, data []byte) (map[string][]by
 	return m, cbor.Unmarshal(resp, &m)
 }
 
-func (a Agent) readStateCertificate(ecID principal.Principal, paths [][]hashtree.Label) (*certification.Certificate, error) {
+func (a Agent) readStateCertificate(ctx context.Context, ecID principal.Principal, paths [][]hashtree.Label) (*certification.Certificate, error) {
 	_, data, err := a.sign(Request{
 		Type:          RequestTypeReadState,
 		Sender:        a.Sender(),
@@ -468,7 +466,7 @@ func (a Agent) readStateCertificate(ecID principal.Principal, paths [][]hashtree
 		return nil, err
 	}
 	a.logger.Printf("[AGENT] READ STATE %s (ecID)", ecID)
-	resp, err := a.readState(ecID, data)
+	resp, err := a.readState(ctx, ecID, data)
 	if err != nil {
 		return nil, err
 	}
@@ -522,6 +520,16 @@ func (a Agent) readSubnetStateCertificate(subnetID principal.Principal, paths []
 		return nil, err
 	}
 	return &certificate, nil
+}
+
+func (a Agent) requestStatus(ctx context.Context, ecID principal.Principal, requestID RequestID) ([]byte, hashtree.Node, error) {
+	a.logger.Printf("[AGENT] REQUEST STATUS %s %x", ecID, requestID)
+	path := []hashtree.Label{hashtree.Label("request_status"), requestID[:]}
+	certificate, err := a.readStateCertificate(ctx, ecID, [][]hashtree.Label{path})
+	if err != nil {
+		return nil, nil, err
+	}
+	return handleStatus(path, certificate)
 }
 
 func (a Agent) sign(request Request) (*RequestID, []byte, error) {
