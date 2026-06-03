@@ -3,19 +3,13 @@ package agent
 import (
 	"bytes"
 	"crypto/sha256"
-	"sort"
 
 	"github.com/niccolofant/agent-go/certification/hashtree"
 	"github.com/niccolofant/agent-go/identity"
-	"github.com/niccolofant/agent-go/leb128"
 	"github.com/niccolofant/agent-go/principal"
 
 	"github.com/fxamacker/cbor/v2"
 )
-
-// requestFields is the number of fields a request id may be built from, each
-// contributing one row of sha256(key) || sha256(value).
-const requestFields = 8
 
 var (
 	typeKey          = sha256.Sum256([]byte("request_type"))
@@ -100,56 +94,111 @@ func (r *Request) MarshalCBOR() ([]byte, error) {
 // RequestID is the request ID.
 type RequestID [32]byte
 
+// requestFields is the maximum number of fields a request id is built from
+// (type, canister_id, method_name, arg, sender, ingress_expiry, nonce, paths).
+const requestFields = 8
+
+// rowBytes is the size of one hashed field entry: sha256(key) || sha256(value).
+const rowBytes = 64
+
 // NewRequestID creates a new request ID.
 // DOCS: https://smartcontracts.org/docs/interface-spec/index.html#request-id
+//
+// Hot path: this runs on every signed request (queries, reads, and update
+// calls). It is written to allocate nothing — the per-field entries live in a
+// fixed stack buffer, are sorted in place (≤8 elements), and hashed directly —
+// versus the previous append/bytes.Join/sort.Slice version that did ~10 heap
+// allocations per call. The computed id is byte-for-byte identical (verified by
+// the spec known-answer tests in request_test.go).
 func NewRequestID(req Request) RequestID {
-	var rows [requestFields]ridRow
+	var flat [requestFields * rowBytes]byte
 	n := 0
-	add := func(key, valueHash [32]byte) {
-		copy(rows[n][:32], key[:])
-		copy(rows[n][32:], valueHash[:])
+
+	if len(req.Type) != 0 {
+		putRow(flat[:], n, typeKey, sha256.Sum256([]byte(req.Type)))
+		n++
+	}
+	// NOTE: the canister ID may be the empty slice. The empty slice doesn't mean
+	// it's not set, it means it's the management canister (aaaaa-aa) — so this
+	// keys off Raw != nil, NOT len, to keep that case in the id.
+	if req.CanisterID.Raw != nil {
+		putRow(flat[:], n, canisterIDKey, sha256.Sum256(req.CanisterID.Raw))
+		n++
+	}
+	if len(req.MethodName) != 0 {
+		putRow(flat[:], n, methodNameKey, sha256.Sum256([]byte(req.MethodName)))
+		n++
+	}
+	if req.Arguments != nil {
+		putRow(flat[:], n, argumentsKey, sha256.Sum256(req.Arguments))
+		n++
+	}
+	if len(req.Sender.Raw) != 0 {
+		putRow(flat[:], n, senderKey, sha256.Sum256(req.Sender.Raw))
+		n++
+	}
+	if req.IngressExpiry != 0 {
+		var lebBuf [10]byte // a uint64 ULEB128 is at most 10 bytes
+		putRow(flat[:], n, ingressExpiryKey, sha256.Sum256(uleb128(req.IngressExpiry, lebBuf[:])))
+		n++
+	}
+	if len(req.Nonce) != 0 {
+		putRow(flat[:], n, nonceKey, sha256.Sum256(req.Nonce))
+		n++
+	}
+	if req.Paths != nil {
+		putRow(flat[:], n, pathsKey, hashPaths(req.Paths))
 		n++
 	}
 
-	if len(req.Type) != 0 {
-		add(typeKey, sha256.Sum256([]byte(req.Type)))
-	}
-	// NOTE: the canister ID may be the empty slice. The empty slice doesn't mean it's not
-	// set, it means it's the management canister (aaaaa-aa).
-	if req.CanisterID.Raw != nil {
-		add(canisterIDKey, sha256.Sum256(req.CanisterID.Raw))
-	}
-	if len(req.MethodName) != 0 {
-		add(methodNameKey, sha256.Sum256([]byte(req.MethodName)))
-	}
-	if req.Arguments != nil {
-		add(argumentsKey, sha256.Sum256(req.Arguments))
-	}
-	if len(req.Sender.Raw) != 0 {
-		add(senderKey, sha256.Sum256(req.Sender.Raw))
-	}
-	if req.IngressExpiry != 0 {
-		var buf [10]byte
-		add(ingressExpiryKey, sha256.Sum256(leb128.AppendUnsignedUint64(buf[:0], req.IngressExpiry)))
-	}
-	if len(req.Nonce) != 0 {
-		add(nonceKey, sha256.Sum256(req.Nonce))
-	}
-	if req.Paths != nil {
-		add(pathsKey, hashPaths(req.Paths))
-	}
+	// Representation-independent request-id hashing: sort the (key||valueHash)
+	// rows lexicographically, then hash their concatenation. Insertion sort —
+	// n ≤ 8 and it's alloc-free (sort.Slice escapes a closure + reflect.Swapper).
+	sortRows(flat[:], n)
+	return sha256.Sum256(flat[:n*rowBytes])
+}
 
-	active := rows[:n]
-	sort.Slice(active, func(i, j int) bool {
-		return bytes.Compare(active[i][:], active[j][:]) == -1
-	})
-	h := sha256.New()
-	for i := range active {
-		h.Write(active[i][:])
+// putRow writes sha256(key) || valueHash into row n of flat.
+func putRow(flat []byte, n int, key, valueHash [32]byte) {
+	off := n * rowBytes
+	copy(flat[off:off+32], key[:])
+	copy(flat[off+32:off+64], valueHash[:])
+}
+
+// sortRows sorts the first n 64-byte rows of flat lexicographically, in place.
+func sortRows(flat []byte, n int) {
+	for i := 1; i < n; i++ {
+		for j := i; j > 0; j-- {
+			a := flat[(j-1)*rowBytes : j*rowBytes]
+			b := flat[j*rowBytes : (j+1)*rowBytes]
+			if bytes.Compare(b, a) >= 0 {
+				break
+			}
+			var tmp [rowBytes]byte
+			copy(tmp[:], a)
+			copy(a, b)
+			copy(b, tmp[:])
+		}
 	}
-	var id RequestID
-	h.Sum(id[:0])
-	return id
+}
+
+// uleb128 encodes v as unsigned LEB128 into buf, returning the used prefix.
+// Equivalent to leb128.EncodeUnsigned(big.NewInt(int64(v))) for any uint64, but
+// allocation-free. (kept identical to the spec's canonical ULEB128.)
+func uleb128(v uint64, buf []byte) []byte {
+	i := 0
+	for {
+		b := byte(v & 0x7f)
+		v >>= 7
+		if v != 0 {
+			b |= 0x80
+		}
+		buf[i] = b
+		i++
+		if v == 0 {
+			return buf[:i]
+		}
+	}
 }
 
 // Sign signs the request ID with the given identity.
@@ -173,5 +222,3 @@ const (
 	// RequestTypeReadState is a read state request.
 	RequestTypeReadState RequestType = "read_state"
 )
-
-type ridRow [64]byte
