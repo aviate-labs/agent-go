@@ -103,31 +103,31 @@ func (f FunctionType) Decode(r *bytes.Reader) (any, error) {
 	if n != 2 || bs[0] != 0x01 || bs[1] != 0x01 {
 		return nil, fmt.Errorf("invalid func reference: %d", bs)
 	}
-	l, err := leb128.DecodeUnsigned(r)
+	l, err := decodeLen(r)
 	if err != nil {
 		return nil, err
 	}
-	pid := make([]byte, l.Int64())
+	pid := make([]byte, l)
 	{
 		n, err := r.Read(pid)
 		if err != nil {
 			return nil, err
 		}
-		if n != int(l.Int64()) {
+		if n != l {
 			return nil, fmt.Errorf("invalid principal id: %s", principal.Principal{Raw: pid})
 		}
 	}
-	ml, err := leb128.DecodeUnsigned(r)
+	ml, err := decodeLen(r)
 	if err != nil {
 		return nil, err
 	}
-	m := make([]byte, ml.Int64())
+	m := make([]byte, ml)
 	{
 		n, err := r.Read(m)
 		if err != nil {
 			return nil, err
 		}
-		if n != int(ml.Int64()) {
+		if n != ml {
 			return nil, fmt.Errorf("invalid method: %s", m)
 		}
 	}
@@ -174,17 +174,21 @@ func (f FunctionType) Read(r *bytes.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	l, err := leb128.DecodeUnsigned(bytes.NewReader(raw))
+	lbi, err := leb128.DecodeUnsigned(bytes.NewReader(raw))
 	if err != nil {
 		return nil, err
 	}
-	pid := make([]byte, l.Int64())
+	l, err := checkLen(lbi, r)
+	if err != nil {
+		return nil, err
+	}
+	pid := make([]byte, l)
 	{
 		n, err := r.Read(pid)
 		if err != nil {
 			return nil, err
 		}
-		if n != int(l.Int64()) {
+		if n != l {
 			return nil, fmt.Errorf("invalid principal id: %s", principal.Principal{Raw: pid})
 		}
 	}
@@ -192,17 +196,21 @@ func (f FunctionType) Read(r *bytes.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	ml, err := leb128.DecodeUnsigned(bytes.NewReader(rawl))
+	mlbi, err := leb128.DecodeUnsigned(bytes.NewReader(rawl))
 	if err != nil {
 		return nil, err
 	}
-	m := make([]byte, ml.Int64())
+	ml, err := checkLen(mlbi, r)
+	if err != nil {
+		return nil, err
+	}
+	m := make([]byte, ml)
 	{
 		n, err := r.Read(m)
 		if err != nil {
 			return nil, err
 		}
-		if n != int(ml.Int64()) {
+		if n != ml {
 			return nil, fmt.Errorf("invalid method: %s", m)
 		}
 	}

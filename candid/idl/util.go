@@ -1,9 +1,13 @@
 package idl
 
 import (
+	"bytes"
+	"fmt"
 	"math"
 	"math/big"
 	"reflect"
+
+	"github.com/aviate-labs/agent-go/leb128"
 )
 
 func checkIsPtr(_v any) (reflect.Value, bool) {
@@ -18,6 +22,15 @@ func checkIsPtr(_v any) (reflect.Value, bool) {
 	return v, true
 }
 
+// checkLen validates an already-decoded length against the bytes remaining in
+// r, for callers that read the length from a separate buffer.
+func checkLen(l *big.Int, r *bytes.Reader) (int, error) {
+	if !l.IsInt64() || l.Int64() < 0 || l.Int64() > int64(r.Len()) {
+		return 0, fmt.Errorf("invalid length %s with %d bytes remaining", l, r.Len())
+	}
+	return int(l.Int64()), nil
+}
+
 func concat(bs ...[]byte) []byte {
 	var l int
 	for _, b := range bs {
@@ -29,6 +42,18 @@ func concat(bs ...[]byte) []byte {
 		i += copy(tmp[i:], b)
 	}
 	return tmp
+}
+
+// decodeLen reads a ULEB128 length and rejects values that cannot be honored by
+// the remaining input, so a malformed header cannot panic make() with a
+// negative or absurd length. Each element is at least one byte, so a length
+// exceeding r.Len() is always invalid.
+func decodeLen(r *bytes.Reader) (int, error) {
+	l, err := leb128.DecodeUnsigned(r)
+	if err != nil {
+		return 0, err
+	}
+	return checkLen(l, r)
 }
 
 func log2(n uint8) uint8 {

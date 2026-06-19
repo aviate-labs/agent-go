@@ -9,13 +9,13 @@ import (
 	"encoding/asn1"
 	"encoding/pem"
 	"fmt"
-	"github.com/aviate-labs/agent-go/principal"
 	"math/big"
+
+	"github.com/aviate-labs/agent-go/principal"
 )
 
-var prime256v1OID = asn1.ObjectIdentifier{1, 2, 840, 10045, 3, 1, 7}
-
 var (
+	prime256v1OID = asn1.ObjectIdentifier{1, 2, 840, 10045, 3, 1, 7}
 	p256Order     = elliptic.P256().Params().N
 	p256HalfOrder = new(big.Int).Rsh(p256Order, 1)
 )

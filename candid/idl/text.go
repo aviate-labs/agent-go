@@ -16,19 +16,19 @@ type TextType struct {
 
 // Decode decodes the value from the given reader into a string.
 func (TextType) Decode(r *bytes.Reader) (any, error) {
-	n, err := leb128.DecodeUnsigned(r)
+	n, err := decodeLen(r)
 	if err != nil {
 		return nil, err
 	}
-	if n.Int64() == 0 {
+	if n == 0 {
 		return "", nil
 	}
-	bs := make([]byte, n.Int64())
+	bs := make([]byte, n)
 	i, err := r.Read(bs)
 	if err != nil {
 		return nil, err
 	}
-	if i != int(n.Int64()) {
+	if i != n {
 		return nil, io.EOF
 	}
 	if !utf8.Valid(bs) {

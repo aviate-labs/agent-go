@@ -37,11 +37,10 @@ func (vec VectorType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 }
 
 func (vec VectorType) Decode(r *bytes.Reader) (any, error) {
-	l, err := leb128.DecodeUnsigned(r)
+	n, err := decodeLen(r)
 	if err != nil {
 		return nil, err
 	}
-	n := int(l.Int64())
 	vs := make([]any, n)
 	for i := range vs {
 		v_, err := vec.Type.Decode(r)
@@ -98,9 +97,12 @@ func (vec VectorType) Read(r *bytes.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	n := int(l.Int64())
+	n, err := checkLen(l, r)
+	if err != nil {
+		return nil, err
+	}
 	bs := raw
-	for i := 0; i < n; i++ {
+	for range n {
 		b, err := vec.Type.Read(r)
 		if err != nil {
 			return nil, err

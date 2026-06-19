@@ -78,16 +78,16 @@ func (s Service) Decode(r *bytes.Reader) (any, error) {
 			return nil, fmt.Errorf("invalid func reference: %d", bs)
 		}
 	}
-	l, err := leb128.DecodeUnsigned(r)
+	l, err := decodeLen(r)
 	if err != nil {
 		return nil, err
 	}
-	pid := make([]byte, l.Int64())
+	pid := make([]byte, l)
 	n, err := r.Read(pid)
 	if err != nil {
 		return nil, err
 	}
-	if n != int(l.Int64()) {
+	if n != l {
 		return nil, fmt.Errorf("invalid principal id: %d", pid)
 	}
 	return &principal.Principal{Raw: pid}, nil
@@ -125,17 +125,21 @@ func (s Service) Read(r *bytes.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	l, err := leb128.DecodeUnsigned(bytes.NewReader(raw))
+	lbi, err := leb128.DecodeUnsigned(bytes.NewReader(raw))
 	if err != nil {
 		return nil, err
 	}
-	pid := make([]byte, l.Int64())
+	l, err := checkLen(lbi, r)
+	if err != nil {
+		return nil, err
+	}
+	pid := make([]byte, l)
 	{
 		n, err := r.Read(pid)
 		if err != nil {
 			return nil, err
 		}
-		if n != int(l.Int64()) {
+		if n != l {
 			return nil, fmt.Errorf("invalid principal id: %d", pid)
 		}
 	}

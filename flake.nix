@@ -20,7 +20,7 @@
       in
       {
         devShells.default = pkgs.mkShell {
-          packages = [ go ];
+          packages = [ go pkgs.golangci-lint ];
           shellHook = ''
             export GOTOOLCHAIN=local
           '';

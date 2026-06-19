@@ -17,14 +17,14 @@ type FutureType struct {
 }
 
 func (FutureType) Decode(r *bytes.Reader) (any, error) {
-	m, err := leb128.DecodeUnsigned(r)
+	m, err := decodeLen(r)
 	if err != nil {
 		return nil, err
 	}
 	if _, err := leb128.DecodeUnsigned(r); err != nil {
 		return nil, err
 	}
-	skip := make([]byte, m.Int64())
+	skip := make([]byte, m)
 	if _, err := r.Read(skip); err != nil {
 		return nil, err
 	}
@@ -48,7 +48,11 @@ func (FutureType) Read(r *bytes.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	body := make([]byte, m.Int64())
+	ml, err := checkLen(m, r)
+	if err != nil {
+		return nil, err
+	}
+	body := make([]byte, ml)
 	if _, err := r.Read(body); err != nil {
 		return nil, err
 	}
