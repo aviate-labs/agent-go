@@ -20,11 +20,39 @@ type Command struct {
 }
 
 func (c *Command) Call(args ...string) error {
+	if isHelp(args) {
+		fmt.Println(c.Usage())
+		return nil
+	}
 	arguments, options, err := c.extractArgumentsAndOptions(args)
 	if err != nil {
 		return err
 	}
 	return c.Method(arguments, options)
+}
+
+func (c *Command) Usage() string {
+	var b strings.Builder
+	b.WriteString(c.name)
+	for _, a := range c.Arguments {
+		fmt.Fprintf(&b, " <%s>", a)
+	}
+	if len(c.Options) != 0 {
+		b.WriteString(" [options]")
+	}
+	fmt.Fprintf(&b, "\n  %s", c.description)
+	if len(c.Options) != 0 {
+		var pairs [][2]string
+		for _, o := range c.Options {
+			name := "--" + o.Name
+			if o.HasValue {
+				name += "=<value>"
+			}
+			pairs = append(pairs, [2]string{name, o.Description})
+		}
+		fmt.Fprintf(&b, "\n\nOptions:\n%s", pad(pairs))
+	}
+	return b.String()
 }
 
 func (c *Command) checkArguments(args []string) error {
@@ -96,8 +124,9 @@ type CommandFork struct {
 }
 
 func (c *CommandFork) Call(args ...string) error {
-	if len(args) == 0 {
-		return NewErrCommandNotFound("")
+	if len(args) == 0 || args[0] == "help" || args[0] == "--help" || args[0] == "-h" {
+		fmt.Println(c.Usage())
+		return nil
 	}
 	var name, args1 = args[0], args[1:]
 	var cmd InternalCommand
@@ -111,6 +140,17 @@ func (c *CommandFork) Call(args ...string) error {
 		return NewErrCommandNotFound(name)
 	}
 	return cmd.Call(args1...)
+}
+
+func (c *CommandFork) Usage() string {
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s <command>\n  %s\n\nCommands:\n", c.name, c.description)
+	var pairs [][2]string
+	for _, sub := range c.Commands {
+		pairs = append(pairs, [2]string{sub.Name(), sub.Description()})
+	}
+	b.WriteString(pad(pairs))
+	return b.String()
 }
 
 type CommandOption struct {
@@ -167,8 +207,33 @@ func (e *ErrInvalidArguments) Error() string {
 type InternalCommand interface {
 	Name() string
 	Description() string
+	Usage() string
 
 	Call(args ...string) error
+}
+
+func isHelp(args []string) bool {
+	for _, a := range args {
+		if a == "help" || a == "--help" || a == "-h" {
+			return true
+		}
+	}
+	return false
+}
+
+// pad right-pads each name to the widest, returning aligned "  name  desc" lines.
+func pad(pairs [][2]string) string {
+	var w int
+	for _, p := range pairs {
+		if len(p[0]) > w {
+			w = len(p[0])
+		}
+	}
+	var b strings.Builder
+	for _, p := range pairs {
+		fmt.Fprintf(&b, "  %-*s  %s\n", w, p[0], p[1])
+	}
+	return strings.TrimRight(b.String(), "\n")
 }
 
 func NewCommand(

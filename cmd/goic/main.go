@@ -10,6 +10,9 @@ import (
 	"github.com/aviate-labs/agent-go/principal"
 )
 
+// rw-r--r-- : data files, not executable.
+const outputPerm os.FileMode = 0o644
+
 var root = cmd.NewCommandFork(
 	"goic",
 	"`goic` is a CLI tool for creating a Go agent.",
@@ -29,8 +32,9 @@ var root = cmd.NewCommandFork(
 		[]string{"id"},
 		[]cmd.CommandOption{
 			{
-				Name:     "output",
-				HasValue: true,
+				Name:        "output",
+				Description: "Write the DID to this file instead of stdout.",
+				HasValue:    true,
 			},
 		},
 		func(args []string, options map[string]string) error {
@@ -49,7 +53,7 @@ var root = cmd.NewCommandFork(
 				path = p
 			}
 			if path != "" {
-				return os.WriteFile(path, rawDID, os.ModePerm)
+				return os.WriteFile(path, rawDID, outputPerm)
 			}
 			fmt.Println(string(rawDID))
 			return nil
@@ -57,51 +61,41 @@ var root = cmd.NewCommandFork(
 	),
 	cmd.NewCommandFork(
 		"generate",
-		"Generate a new Agent from...",
+		"Generate a new Agent from a DID file or a canister ID.",
 		cmd.NewCommand(
 			"did",
 			"Generate a new Agent from a DID.",
 			[]string{"path", "name"},
 			[]cmd.CommandOption{
 				{
-					Name:     "output",
-					HasValue: true,
+					Name:        "output",
+					Description: "Write the Agent to this file instead of stdout.",
+					HasValue:    true,
 				},
 				{
-					Name:     "packageName",
-					HasValue: true,
+					Name:        "packageName",
+					Description: "Go package name for the generated code (default: name).",
+					HasValue:    true,
 				},
 				{
-					Name:     "agentName",
-					HasValue: true,
+					Name:        "agentName",
+					Description: "Name of the generated Agent type (default: name).",
+					HasValue:    true,
 				},
 				{
-					Name:     "canisterID",
-					HasValue: true,
+					Name:        "canisterID",
+					Description: "Embed this canister ID in the generated Agent.",
+					HasValue:    true,
 				},
 				{
-					Name:     "indirect",
-					HasValue: false,
+					Name:        "indirect",
+					Description: "Generate indirect (boxed) call wrappers.",
+					HasValue:    false,
 				},
 			},
 			func(args []string, options map[string]string) error {
 				inputPath := args[0]
-
-				var path string
-				if p, ok := options["output"]; ok {
-					path = p
-				}
-
-				canisterName := args[1]
-				packageName := canisterName
-				if p, ok := options["packageName"]; ok {
-					packageName = p
-				}
-
-				var agentName string
-				if a, ok := options["agentName"]; ok {
-					agentName = a
-				}
+				o := parseGenOptions(args[1], options)
 
 				var canisterID *principal.Principal
 				if cID, ok := options["canisterID"]; ok {
@@ -112,12 +106,11 @@ var root = cmd.NewCommandFork(
 					canisterID = &p
 				}
 
-				_, indirect := options["indirect"]
-				g, err := gen.NewGeneratorFromFile(agentName, canisterName, packageName, inputPath)
+				g, err := gen.NewGeneratorFromFile(o.agentName, o.canisterName, o.packageName, inputPath)
 				if err != nil {
 					return err
 				}
-				return writeGenerated(g, canisterID, path, indirect)
+				return writeGenerated(g, canisterID, o.output, o.indirect)
 			},
 		),
 		cmd.NewCommand(
@@ -126,20 +119,24 @@ var root = cmd.NewCommandFork(
 			[]string{"id", "canisterName"},
 			[]cmd.CommandOption{
 				{
-					Name:     "output",
-					HasValue: true,
+					Name:        "output",
+					Description: "Write the Agent to this file instead of stdout.",
+					HasValue:    true,
 				},
 				{
-					Name:     "packageName",
-					HasValue: true,
+					Name:        "packageName",
+					Description: "Go package name for the generated code (default: canisterName).",
+					HasValue:    true,
 				},
 				{
-					Name:     "agentName",
-					HasValue: true,
+					Name:        "agentName",
+					Description: "Name of the generated Agent type (default: canisterName).",
+					HasValue:    true,
 				},
 				{
-					Name:     "indirect",
-					HasValue: false,
+					Name:        "indirect",
+					Description: "Generate indirect (boxed) call wrappers.",
+					HasValue:    false,
 				},
 			},
 			func(args []string, options map[string]string) error {
@@ -153,24 +150,8 @@ var root = cmd.NewCommandFork(
 					return err
 				}
 
-				var path string
-				if p, ok := options["output"]; ok {
-					path = p
-				}
-
-				canisterName := args[1]
-				packageName := canisterName
-				if p, ok := options["packageName"]; ok {
-					packageName = p
-				}
-
-				var agentName string
-				if a, ok := options["agentName"]; ok {
-					agentName = a
-				}
-
-				_, indirect := options["indirect"]
-				return writeDID(agentName, canisterName, &canisterID, packageName, path, []rune(string(rawDID)), indirect)
+				o := parseGenOptions(args[1], options)
+				return writeDID(o.agentName, o.canisterName, &canisterID, o.packageName, o.output, []rune(string(rawDID)), o.indirect)
 			},
 		),
 	),
@@ -198,6 +179,33 @@ func main() {
 	}
 }
 
+type genOptions struct {
+	canisterName string
+	packageName  string
+	agentName    string
+	output       string
+	indirect     bool
+}
+
+// parseGenOptions reads the options shared by the generate subcommands.
+// packageName and agentName default to canisterName when unset.
+func parseGenOptions(canisterName string, options map[string]string) genOptions {
+	o := genOptions{
+		canisterName: canisterName,
+		packageName:  canisterName,
+		agentName:    canisterName,
+		output:       options["output"],
+	}
+	if p, ok := options["packageName"]; ok {
+		o.packageName = p
+	}
+	if a, ok := options["agentName"]; ok {
+		o.agentName = a
+	}
+	_, o.indirect = options["indirect"]
+	return o
+}
+
 func writeDID(agentName, canisterName string, canisterID *principal.Principal, packageName, outputPath string, rawDID []rune, indirect bool) error {
 	g, err := gen.NewGenerator(agentName, canisterName, packageName, rawDID)
 	if err != nil {
@@ -219,7 +227,7 @@ func writeGenerated(g *gen.Generator, canisterID *principal.Principal, outputPat
 	}
 
 	if outputPath != "" {
-		return os.WriteFile(outputPath, raw, os.ModePerm)
+		return os.WriteFile(outputPath, raw, outputPerm)
 	}
 	fmt.Println(string(raw))
 	return nil
