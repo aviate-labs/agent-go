@@ -5,6 +5,30 @@ import (
 	"strings"
 )
 
+func isHelp(args []string) bool {
+	for _, a := range args {
+		if a == "help" || a == "--help" || a == "-h" {
+			return true
+		}
+	}
+	return false
+}
+
+// pad right-pads each name to the widest, returning aligned "  name  desc" lines.
+func pad(pairs [][2]string) string {
+	var w int
+	for _, p := range pairs {
+		if len(p[0]) > w {
+			w = len(p[0])
+		}
+	}
+	var b strings.Builder
+	for _, p := range pairs {
+		fmt.Fprintf(&b, "  %-*s  %s\n", w, p[0], p[1])
+	}
+	return strings.TrimRight(b.String(), "\n")
+}
+
 func trimPrefix(s, prefix string) (string, bool) {
 	if after, ok := strings.CutPrefix(s, prefix); ok {
 		return after, true
@@ -210,30 +234,6 @@ type InternalCommand interface {
 	Usage() string
 
 	Call(args ...string) error
-}
-
-func isHelp(args []string) bool {
-	for _, a := range args {
-		if a == "help" || a == "--help" || a == "-h" {
-			return true
-		}
-	}
-	return false
-}
-
-// pad right-pads each name to the widest, returning aligned "  name  desc" lines.
-func pad(pairs [][2]string) string {
-	var w int
-	for _, p := range pairs {
-		if len(p[0]) > w {
-			w = len(p[0])
-		}
-	}
-	var b strings.Builder
-	for _, p := range pairs {
-		fmt.Fprintf(&b, "  %-*s  %s\n", w, p[0], p[1])
-	}
-	return strings.TrimRight(b.String(), "\n")
 }
 
 func NewCommand(

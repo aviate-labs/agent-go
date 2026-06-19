@@ -179,33 +179,6 @@ func main() {
 	}
 }
 
-type genOptions struct {
-	canisterName string
-	packageName  string
-	agentName    string
-	output       string
-	indirect     bool
-}
-
-// parseGenOptions reads the options shared by the generate subcommands.
-// packageName and agentName default to canisterName when unset.
-func parseGenOptions(canisterName string, options map[string]string) genOptions {
-	o := genOptions{
-		canisterName: canisterName,
-		packageName:  canisterName,
-		agentName:    canisterName,
-		output:       options["output"],
-	}
-	if p, ok := options["packageName"]; ok {
-		o.packageName = p
-	}
-	if a, ok := options["agentName"]; ok {
-		o.agentName = a
-	}
-	_, o.indirect = options["indirect"]
-	return o
-}
-
 func writeDID(agentName, canisterName string, canisterID *principal.Principal, packageName, outputPath string, rawDID []rune, indirect bool) error {
 	g, err := gen.NewGenerator(agentName, canisterName, packageName, rawDID)
 	if err != nil {
@@ -231,4 +204,31 @@ func writeGenerated(g *gen.Generator, canisterID *principal.Principal, outputPat
 	}
 	fmt.Println(string(raw))
 	return nil
+}
+
+type genOptions struct {
+	canisterName string
+	packageName  string
+	agentName    string
+	output       string
+	indirect     bool
+}
+
+// parseGenOptions reads the options shared by the generate subcommands.
+// packageName and agentName default to canisterName when unset.
+func parseGenOptions(canisterName string, options map[string]string) genOptions {
+	o := genOptions{
+		canisterName: canisterName,
+		packageName:  canisterName,
+		agentName:    canisterName,
+		output:       options["output"],
+	}
+	if p, ok := options["packageName"]; ok {
+		o.packageName = p
+	}
+	if a, ok := options["agentName"]; ok {
+		o.agentName = a
+	}
+	_, o.indirect = options["indirect"]
+	return o
 }

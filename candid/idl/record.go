@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/aviate-labs/agent-go/leb128"
@@ -122,13 +123,13 @@ func (record RecordType) EncodeValue(v any) ([]byte, error) {
 			return nil, NewEncodeValueError(v, RecOpCode)
 		}
 	}
-	var vs_ []any
+	vs_ := make([]any, 0, len(record.Fields))
 	for i, f := range record.Fields {
 		if v, ok := fs[f.Name]; ok {
 			vs_ = append(vs_, v)
 			continue
 		}
-		vs_ = append(vs_, fs[fmt.Sprintf("%d", i)])
+		vs_ = append(vs_, fs[strconv.Itoa(i)])
 	}
 	var vs []byte
 	for i, f := range record.Fields {

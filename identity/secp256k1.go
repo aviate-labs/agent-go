@@ -164,7 +164,8 @@ func (id Secp256k1Identity) Sender() principal.Principal {
 }
 
 // Sign signs the given message. The signature is normalized to low-S form
-// (s <= n/2); the IC replica rejects high-S signatures.
+// (s <= n/2): mainnet rejects high-S secp256k1 signatures with a 400 Invalid
+// signature, and Go's signer does not normalize. Verified against mainnet.
 func (id Secp256k1Identity) Sign(msg []byte) ([]byte, error) {
 	sig, err := id.privateKey.Sign(msg, sha256.New())
 	if err != nil {

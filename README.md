@@ -15,8 +15,10 @@ The agent is a library that allows you to talk to the Internet Computer.
 package main
 
 import (
-	"github.com/aviate-labs/agent-go"
 	"log"
+
+	"github.com/aviate-labs/agent-go"
+	"github.com/aviate-labs/agent-go/principal"
 )
 
 type (
@@ -78,11 +80,10 @@ You can find the documentation for each package in the links below. Examples can
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `agent`           | [![README](https://img.shields.io/badge/-README-green)](https://github.com/aviate-labs/agent-go) [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go)   | A library to talk directly to the Replica.                                      |
 | `candid`          | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/candid)                                                                                             | A Candid library for Golang.                                                    |
-| `certification`   | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/certificate)                                                                                        | A Certification library for Golang.                                             |
+| `certification`   | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/certification)                                                                                        | A Certification library for Golang.                                             |
 | `gen`             | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/gen)                                                                                                | A library to generate Golang clients.                                           |
 | `identity`        | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/identity)                                                                                           | A library that creates/manages identities.                                      |
 | `principal`       | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/agent-go/principal)                                                                                          | Generic Identifiers for the Internet Computer                                   |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | `ic-go`           | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/ic-go)                                                                                                       | Multiple auto-generated sub-modules to talk to the Internet Computer services   |
 | `pocketic-go`     | [![DOC](https://img.shields.io/badge/-DOC-blue)](https://pkg.go.dev/github.com/aviate-labs/pocketic-go)                                                                                                 | A client library to talk to the PocketIC Server.                                |
 

@@ -4,11 +4,37 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 	"math/big"
 	"testing"
 
 	"github.com/aviate-labs/agent-go/leb128"
 )
+
+func TestAppendUnsignedUint64(t *testing.T) {
+	for _, v := range []uint64{
+		0, 1, 7, 127, 128, 255, 624485, 2000000,
+		60000000000000000, math.MaxUint32, math.MaxUint64 - 1, math.MaxUint64,
+	} {
+		want, err := leb128.EncodeUnsigned(new(big.Int).SetUint64(v))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var buf [10]byte
+		got := leb128.AppendUnsignedUint64(buf[:0], v)
+		if fmt.Sprintf("%X", got) != fmt.Sprintf("%X", want) {
+			t.Errorf("v=%d: got %X, want %X", v, got, want)
+		}
+	}
+}
+
+func TestAppendUnsignedUint64_appends(t *testing.T) {
+	dst := []byte{0xAA, 0xBB}
+	got := leb128.AppendUnsignedUint64(dst, 127)
+	if want := []byte{0xAA, 0xBB, 0x7F}; fmt.Sprintf("%X", got) != fmt.Sprintf("%X", want) {
+		t.Errorf("got %X, want %X", got, want)
+	}
+}
 
 func TestUnsigned(t *testing.T) {
 	for _, test := range []struct {

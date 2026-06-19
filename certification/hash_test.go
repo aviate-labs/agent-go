@@ -9,6 +9,22 @@ import (
 	"github.com/aviate-labs/agent-go/candid/idl"
 )
 
+func BenchmarkRepresentationIndependentHash_reply(b *testing.B) {
+	reqID := make([]byte, 32)
+	kv := []KeyValuePair{
+		{Key: "status", Value: "replied"},
+		{Key: "reply", Value: []byte("DIDL\x00\xFD*")},
+		{Key: "timestamp", Value: uint64(1711532558242940000)},
+		{Key: "request_id", Value: reqID},
+	}
+	b.ReportAllocs()
+	for b.Loop() {
+		if _, err := RepresentationIndependentHash(kv); err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func TestHashAny(t *testing.T) {
 	for _, test := range []struct {
 		name string

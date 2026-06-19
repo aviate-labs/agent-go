@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"math/big"
 	"unicode/utf8"
 
 	"github.com/aviate-labs/agent-go/leb128"
@@ -49,11 +48,9 @@ func (TextType) EncodeValue(v any) ([]byte, error) {
 	if !ok {
 		return nil, NewEncodeValueError(v, TextOpCode)
 	}
-	bs, err := leb128.EncodeUnsigned(big.NewInt(int64(len(v_))))
-	if err != nil {
-		return nil, err
-	}
-	return append(bs, []byte(v_)...), nil
+	var buf [10]byte
+	bs := leb128.AppendUnsignedUint64(buf[:0], uint64(len(v_)))
+	return append(bs, v_...), nil
 }
 
 func (TextType) Read(r *bytes.Reader) ([]byte, error) {

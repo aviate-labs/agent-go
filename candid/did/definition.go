@@ -20,15 +20,6 @@ type Import struct {
 	Service bool
 }
 
-func (i Import) String() string {
-	if i.Service {
-		return fmt.Sprintf("import service %q", i.Text)
-	}
-	return fmt.Sprintf("import %q", i.Text)
-}
-
-func (i Import) def() {}
-
 func convertImport(n *parser.Node) Import {
 	var imp Import
 	for _, c := range n.Children() {
@@ -41,6 +32,15 @@ func convertImport(n *parser.Node) Import {
 	}
 	return imp
 }
+
+func (i Import) String() string {
+	if i.Service {
+		return fmt.Sprintf("import service %q", i.Text)
+	}
+	return fmt.Sprintf("import %q", i.Text)
+}
+
+func (i Import) def() {}
 
 // Type represents a named type definition.
 type Type struct {

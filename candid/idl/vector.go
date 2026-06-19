@@ -41,13 +41,14 @@ func (vec VectorType) Decode(r *bytes.Reader) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-	var vs []any
-	for i := 0; i < int(l.Int64()); i++ {
+	n := int(l.Int64())
+	vs := make([]any, n)
+	for i := range vs {
 		v_, err := vec.Type.Decode(r)
 		if err != nil {
 			return nil, err
 		}
-		vs = append(vs, v_)
+		vs[i] = v_
 	}
 	return vs, nil
 }
@@ -65,8 +66,9 @@ func (vec VectorType) EncodeValue(v any) ([]byte, error) {
 	if !ok {
 		v_ := reflect.ValueOf(v)
 		if v_.Kind() == reflect.Array || v_.Kind() == reflect.Slice {
-			for i := 0; i < v_.Len(); i++ {
-				vs_ = append(vs_, v_.Index(i).Interface())
+			vs_ = make([]any, v_.Len())
+			for i := range vs_ {
+				vs_[i] = v_.Index(i).Interface()
 			}
 		} else {
 			return nil, NewEncodeValueError(v, VecOpCode)
@@ -96,15 +98,16 @@ func (vec VectorType) Read(r *bytes.Reader) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	var bs []byte
-	for i := 0; i < int(l.Int64()); i++ {
+	n := int(l.Int64())
+	bs := raw
+	for i := 0; i < n; i++ {
 		b, err := vec.Type.Read(r)
 		if err != nil {
 			return nil, err
 		}
 		bs = append(bs, b...)
 	}
-	return append(raw, bs...), nil
+	return bs, nil
 }
 
 func (vec VectorType) String() string {

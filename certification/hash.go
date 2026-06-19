@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"math/big"
 	"sort"
 
 	"github.com/aviate-labs/agent-go/candid/idl"
@@ -30,19 +29,11 @@ func HashAny(v any) ([32]byte, error) {
 	case []byte:
 		return sha256.Sum256(v), nil
 	case int64:
-		bi := big.NewInt(int64(v))
-		e, err := leb128.EncodeSigned(bi)
-		if err != nil {
-			return [32]byte{}, err
-		}
-		return sha256.Sum256(e), nil
+		var buf [10]byte
+		return sha256.Sum256(leb128.AppendSignedInt64(buf[:0], v)), nil
 	case uint64:
-		bi := big.NewInt(int64(v))
-		e, err := leb128.EncodeUnsigned(bi)
-		if err != nil {
-			return [32]byte{}, err
-		}
-		return sha256.Sum256(e), nil
+		var buf [10]byte
+		return sha256.Sum256(leb128.AppendUnsignedUint64(buf[:0], v)), nil
 	case idl.Int:
 		bi := v.BigInt()
 		e, err := leb128.EncodeSigned(bi)
@@ -99,7 +90,9 @@ func HashAny(v any) ([32]byte, error) {
 // RepresentationIndependentHash computes the hash of a map in a representation-independent way.
 // https://internetcomputer.org/docs/current/references/ic-interface-spec/#hash-of-map
 func RepresentationIndependentHash(m []KeyValuePair) ([32]byte, error) {
-	var hashes [][]byte
+	// Each pair contributes one row of sha256(key) || sha256(value).
+	type row [64]byte
+	rows := make([]row, 0, len(m))
 	for _, kv := range m {
 		if kv.Value == nil {
 			continue
@@ -110,12 +103,21 @@ func RepresentationIndependentHash(m []KeyValuePair) ([32]byte, error) {
 		if err != nil {
 			return [32]byte{}, err
 		}
-		hashes = append(hashes, append(keyHash[:], valueHash[:]...))
+		var r row
+		copy(r[:32], keyHash[:])
+		copy(r[32:], valueHash[:])
+		rows = append(rows, r)
 	}
-	sort.Slice(hashes, func(i, j int) bool {
-		return bytes.Compare(hashes[i], hashes[j]) == -1
+	sort.Slice(rows, func(i, j int) bool {
+		return bytes.Compare(rows[i][:], rows[j][:]) == -1
 	})
-	return sha256.Sum256(bytes.Join(hashes, nil)), nil
+	h := sha256.New()
+	for i := range rows {
+		h.Write(rows[i][:])
+	}
+	var out [32]byte
+	h.Sum(out[:0])
+	return out, nil
 }
 
 // Hasher is an interface for types that can hash any value.

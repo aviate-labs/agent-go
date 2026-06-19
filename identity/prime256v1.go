@@ -15,14 +15,23 @@ import (
 
 var prime256v1OID = asn1.ObjectIdentifier{1, 2, 840, 10045, 3, 1, 7}
 
+var (
+	p256Order     = elliptic.P256().Params().N
+	p256HalfOrder = new(big.Int).Rsh(p256Order, 1)
+)
+
 func derEncodePrime256v1PublicKey(key *ecdsa.PublicKey) ([]byte, error) {
+	pub, err := key.Bytes()
+	if err != nil {
+		return nil, err
+	}
 	return asn1.Marshal(ecPublicKey{
 		Metadata: []asn1.ObjectIdentifier{
 			ecPublicKeyOID,
 			prime256v1OID,
 		},
 		PublicKey: asn1.BitString{
-			Bytes: marshal(elliptic.P256(), key.X, key.Y),
+			Bytes: pub,
 		},
 	})
 }
@@ -74,12 +83,18 @@ func (id Prime256v1Identity) Sender() principal.Principal {
 	return principal.NewSelfAuthenticating(id.PublicKey())
 }
 
-// Sign signs the given message.
+// Sign signs the given message. The signature is normalized to low-S form
+// (s <= n/2) to match the reference ic-agent and avoid malleability. Unlike
+// secp256k1, mainnet does accept high-S P-256, so this is conformance, not a
+// hard requirement.
 func (id Prime256v1Identity) Sign(msg []byte) ([]byte, error) {
 	hashData := sha256.Sum256(msg)
 	sigR, sigS, err := ecdsa.Sign(rand.Reader, id.privateKey, hashData[:])
 	if err != nil {
 		return nil, err
+	}
+	if sigS.Cmp(p256HalfOrder) == 1 {
+		sigS.Sub(p256Order, sigS)
 	}
 	var buffer [64]byte
 	r := sigR.Bytes()

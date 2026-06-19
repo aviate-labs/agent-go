@@ -194,7 +194,7 @@ func (variant VariantType) UnmarshalGo(raw any, _v any) error {
 				f := rv.Type().Field(i)
 				tag := ParseTags(f)
 				v := rv.Field(i)
-				if v.Kind() == reflect.Ptr {
+				if v.Kind() == reflect.Pointer {
 					v = v.Elem()
 				}
 				name = tag.Name
@@ -289,7 +289,7 @@ func (variant VariantType) unmarshalStruct(name string, value any, _v reflect.Va
 			continue
 		}
 
-		if v.Kind() != reflect.Ptr {
+		if v.Kind() != reflect.Pointer {
 			return NewUnmarshalGoError(value, _v.Interface())
 		}
 		if v.IsNil() {

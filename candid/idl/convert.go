@@ -9,7 +9,7 @@ import (
 
 func EmptyOf(t Type) (any, error) {
 	var v any = t
-	if r := reflect.ValueOf(t); r.Kind() == reflect.Ptr {
+	if r := reflect.ValueOf(t); r.Kind() == reflect.Pointer {
 		v = r.Elem().Interface()
 	}
 
@@ -205,7 +205,7 @@ func TypeOf(v any) (Type, error) {
 				}
 				return NewRecordType(fields), nil
 			}
-		case reflect.Ptr:
+		case reflect.Pointer:
 			indirect := reflect.Indirect(reflect.ValueOf(v))
 			if !indirect.IsValid() {
 				indirect = reflect.New(reflect.TypeOf(v).Elem())

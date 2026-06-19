@@ -4,11 +4,29 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 	"math/big"
 	"testing"
 
 	"github.com/aviate-labs/agent-go/leb128"
 )
+
+func TestAppendSignedInt64(t *testing.T) {
+	for _, v := range []int64{
+		0, 1, -1, 63, 64, -64, -65, 127, -128, 624485, -624485,
+		math.MaxInt32, math.MinInt32, math.MaxInt64, math.MinInt64,
+	} {
+		want, err := leb128.EncodeSigned(big.NewInt(v))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var buf [10]byte
+		got := leb128.AppendSignedInt64(buf[:0], v)
+		if fmt.Sprintf("%X", got) != fmt.Sprintf("%X", want) {
+			t.Errorf("v=%d: got %X, want %X", v, got, want)
+		}
+	}
+}
 
 func TestSigned(t *testing.T) {
 	for _, test := range []struct {

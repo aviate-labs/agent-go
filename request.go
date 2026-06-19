@@ -3,15 +3,19 @@ package agent
 import (
 	"bytes"
 	"crypto/sha256"
+	"sort"
+
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/identity"
 	"github.com/aviate-labs/agent-go/leb128"
 	"github.com/aviate-labs/agent-go/principal"
-	"math/big"
-	"sort"
 
 	"github.com/fxamacker/cbor/v2"
 )
+
+// requestFields is the number of fields a request id may be built from, each
+// contributing one row of sha256(key) || sha256(value).
+const requestFields = 8
 
 var (
 	typeKey          = sha256.Sum256([]byte("request_type"))
@@ -25,9 +29,9 @@ var (
 )
 
 func hashPaths(paths [][]hashtree.Label) [32]byte {
-	var hash []byte
+	hash := make([]byte, 0, len(paths)*sha256.Size)
 	for _, path := range paths {
-		var rawPathHash []byte
+		rawPathHash := make([]byte, 0, len(path)*sha256.Size)
 		for _, p := range path {
 			pathBytes := sha256.Sum256(p)
 			rawPathHash = append(rawPathHash, pathBytes[:]...)
@@ -99,47 +103,53 @@ type RequestID [32]byte
 // NewRequestID creates a new request ID.
 // DOCS: https://smartcontracts.org/docs/interface-spec/index.html#request-id
 func NewRequestID(req Request) RequestID {
-	var hashes [][]byte
+	var rows [requestFields]ridRow
+	n := 0
+	add := func(key, valueHash [32]byte) {
+		copy(rows[n][:32], key[:])
+		copy(rows[n][32:], valueHash[:])
+		n++
+	}
+
 	if len(req.Type) != 0 {
-		typeHash := sha256.Sum256([]byte(req.Type))
-		hashes = append(hashes, append(typeKey[:], typeHash[:]...))
+		add(typeKey, sha256.Sum256([]byte(req.Type)))
 	}
 	// NOTE: the canister ID may be the empty slice. The empty slice doesn't mean it's not
 	// set, it means it's the management canister (aaaaa-aa).
 	if req.CanisterID.Raw != nil {
-		canisterIDHash := sha256.Sum256(req.CanisterID.Raw)
-		hashes = append(hashes, append(canisterIDKey[:], canisterIDHash[:]...))
+		add(canisterIDKey, sha256.Sum256(req.CanisterID.Raw))
 	}
 	if len(req.MethodName) != 0 {
-		methodNameHash := sha256.Sum256([]byte(req.MethodName))
-		hashes = append(hashes, append(methodNameKey[:], methodNameHash[:]...))
+		add(methodNameKey, sha256.Sum256([]byte(req.MethodName)))
 	}
 	if req.Arguments != nil {
-		argumentsHash := sha256.Sum256(req.Arguments)
-		hashes = append(hashes, append(argumentsKey[:], argumentsHash[:]...))
+		add(argumentsKey, sha256.Sum256(req.Arguments))
 	}
 	if len(req.Sender.Raw) != 0 {
-		senderHash := sha256.Sum256(req.Sender.Raw)
-		hashes = append(hashes, append(senderKey[:], senderHash[:]...))
+		add(senderKey, sha256.Sum256(req.Sender.Raw))
 	}
 	if req.IngressExpiry != 0 {
-		bi := big.NewInt(int64(req.IngressExpiry))
-		e, _ := leb128.EncodeUnsigned(bi)
-		ingressExpiryHash := sha256.Sum256(e)
-		hashes = append(hashes, append(ingressExpiryKey[:], ingressExpiryHash[:]...))
+		var buf [10]byte
+		add(ingressExpiryKey, sha256.Sum256(leb128.AppendUnsignedUint64(buf[:0], req.IngressExpiry)))
 	}
 	if len(req.Nonce) != 0 {
-		nonceHash := sha256.Sum256(req.Nonce)
-		hashes = append(hashes, append(nonceKey[:], nonceHash[:]...))
+		add(nonceKey, sha256.Sum256(req.Nonce))
 	}
 	if req.Paths != nil {
-		pathsHash := hashPaths(req.Paths)
-		hashes = append(hashes, append(pathsKey[:], pathsHash[:]...))
+		add(pathsKey, hashPaths(req.Paths))
 	}
-	sort.Slice(hashes, func(i, j int) bool {
-		return bytes.Compare(hashes[i], hashes[j]) == -1
+
+	active := rows[:n]
+	sort.Slice(active, func(i, j int) bool {
+		return bytes.Compare(active[i][:], active[j][:]) == -1
 	})
-	return sha256.Sum256(bytes.Join(hashes, nil))
+	h := sha256.New()
+	for i := range active {
+		h.Write(active[i][:])
+	}
+	var id RequestID
+	h.Sum(id[:0])
+	return id
 }
 
 // Sign signs the request ID with the given identity.
@@ -163,3 +173,5 @@ const (
 	// RequestTypeReadState is a read state request.
 	RequestTypeReadState RequestType = "read_state"
 )
+
+type ridRow [64]byte

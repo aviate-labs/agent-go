@@ -3,6 +3,7 @@ package identity
 import (
 	"bytes"
 	"encoding/hex"
+	"math/big"
 	"testing"
 )
 
@@ -143,17 +144,23 @@ func TestSecp256k1Identity_Sign(t *testing.T) {
 }
 
 // TestSecp256k1Identity_SignatureFormat pins the on-wire signature shape:
-// 64 bytes total, r and s each 32 bytes big-endian zero-padded.
+// 64 bytes total, r and s each 32 bytes big-endian zero-padded, and low-S
+// (s <= n/2) as the IC expects. High-S occurs ~50% of the time, so loop.
 func TestSecp256k1Identity_SignatureFormat(t *testing.T) {
 	id, err := NewRandomSecp256k1Identity()
 	if err != nil {
 		t.Fatal(err)
 	}
-	sig, err := id.Sign([]byte("anything"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(sig) != 64 {
-		t.Fatalf("signature length: got %d, want 64", len(sig))
+	for i := range 64 {
+		sig, err := id.Sign([]byte{byte(i)})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(sig) != 64 {
+			t.Fatalf("signature length: got %d, want 64", len(sig))
+		}
+		if s := new(big.Int).SetBytes(sig[32:]); s.Cmp(secp256k1HalfOrder) == 1 {
+			t.Fatalf("high-S signature at i=%d: s > n/2", i)
+		}
 	}
 }

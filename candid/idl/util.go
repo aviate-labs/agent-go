@@ -36,17 +36,24 @@ func log2(n uint8) uint8 {
 }
 
 func pad0(n int, bs []byte) []byte {
-	for len(bs) != n {
-		bs = append(bs, 0)
+	if len(bs) >= n {
+		return bs
 	}
-	return bs
+	out := make([]byte, n)
+	copy(out, bs)
+	return out
 }
 
 func pad1(n int, bs []byte) []byte {
-	for len(bs) != n {
-		bs = append(bs, 0xff)
+	if len(bs) >= n {
+		return bs
 	}
-	return bs
+	out := make([]byte, n)
+	copy(out, bs)
+	for i := len(bs); i < n; i++ {
+		out[i] = 0xff
+	}
+	return out
 }
 
 func readInt(bi *big.Int, n int) (*big.Int, error) {
@@ -89,9 +96,5 @@ func writeInt(bi *big.Int, n int) []byte {
 }
 
 func zeros(n int) []byte {
-	var z []byte
-	for range n {
-		z = append(z, 0)
-	}
-	return z
+	return make([]byte, n)
 }

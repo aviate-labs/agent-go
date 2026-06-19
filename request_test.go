@@ -2,14 +2,45 @@ package agent_test
 
 import (
 	"fmt"
-	"github.com/fxamacker/cbor/v2"
 	"testing"
 	"time"
+
+	"github.com/fxamacker/cbor/v2"
 
 	"github.com/aviate-labs/agent-go"
 	"github.com/aviate-labs/agent-go/certification/hashtree"
 	"github.com/aviate-labs/agent-go/principal"
 )
+
+func BenchmarkNewRequestID_call(b *testing.B) {
+	req := agent.Request{
+		Type:          agent.RequestTypeCall,
+		Sender:        principal.AnonymousID,
+		IngressExpiry: 1711532558242940000,
+		CanisterID:    principal.Principal{Raw: []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0xD2}},
+		MethodName:    "update_settings",
+		Arguments:     []byte("DIDL\x00\xFD*"),
+	}
+	b.ReportAllocs()
+	for b.Loop() {
+		agent.NewRequestID(req)
+	}
+}
+
+func BenchmarkNewRequestID_readState(b *testing.B) {
+	req := agent.Request{
+		Type:          agent.RequestTypeReadState,
+		Sender:        principal.AnonymousID,
+		IngressExpiry: 1711532558242940000,
+		Paths: [][]hashtree.Label{
+			{[]byte("request_status"), make([]byte, 32)},
+		},
+	}
+	b.ReportAllocs()
+	for b.Loop() {
+		agent.NewRequestID(req)
+	}
+}
 
 func TestNewRequestID(t *testing.T) {
 	// Source: https://smartcontracts.org/docs/interface-spec/index.html#request-id

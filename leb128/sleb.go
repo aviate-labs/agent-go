@@ -7,29 +7,46 @@ import (
 	"math/big"
 )
 
-// DecodeSigned converts the byte slice back to a signed integer.
-func DecodeSigned(r *bytes.Reader) (*big.Int, error) {
-	bs, err := io.ReadAll(r)
-	if err != nil {
-		return nil, err
+// AppendSignedInt64 appends the signed LEB128 encoding of v to dst and returns
+// the extended slice. Allocation-free when dst has spare capacity (an int64
+// needs at most 10 bytes). Matches EncodeSigned.
+func AppendSignedInt64(dst []byte, v int64) []byte {
+	for {
+		b := byte(v & 0x7f)
+		v >>= 7 // arithmetic shift keeps the sign
+		done := (v == 0 && b&0x40 == 0) || (v == -1 && b&0x40 != 0)
+		if !done {
+			b |= 0x80
+		}
+		dst = append(dst, b)
+		if done {
+			return dst
+		}
 	}
+}
 
-	l := 0
-	for _, b := range bs {
+// DecodeSigned converts the byte slice back to a signed integer. It consumes
+// only the LEB128 bytes from r, leaving the reader positioned right after.
+func DecodeSigned(r *bytes.Reader) (*big.Int, error) {
+	var bs []byte
+	for {
+		b, err := r.ReadByte()
+		if err != nil {
+			if err == io.EOF {
+				return nil, fmt.Errorf("too short")
+			}
+			return nil, err
+		}
+		bs = append(bs, b)
 		if b < 0x80 {
 			if (b & 0x40) == 0 {
-				*r = *bytes.NewReader(bs)
-				return DecodeUnsigned(r)
+				return decodeUnsignedBytes(bs), nil
 			}
 			break
 		}
-		l++
 	}
-	if l >= len(bs) {
-		return nil, fmt.Errorf("too short")
-	}
-	*r = *bytes.NewReader(bs[l+1:])
 
+	l := len(bs) - 1
 	v := new(big.Int)
 	for i := l; i >= 0; i-- {
 		v = v.Mul(v, x80)

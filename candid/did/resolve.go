@@ -6,6 +6,16 @@ import (
 	"path/filepath"
 )
 
+// canonical resolves symlinks so the same file reached via different paths maps
+// to one key. Callers must have confirmed the path exists (EvalSymlinks errors
+// otherwise), and on any failure it falls back to the lexical path.
+func canonical(path string) string {
+	if c, err := filepath.EvalSymlinks(path); err == nil {
+		return c
+	}
+	return path
+}
+
 // ParseDIDFile parses the .did file at path and resolves its import and
 // `import service` declarations transitively, relative to the importing file.
 //
@@ -21,9 +31,16 @@ func ParseDIDFile(path string) (*Description, error) {
 	return resolveFile(abs)
 }
 
-type resolved struct {
-	desc        *Description
-	wantService bool
+func parseFile(abs string) (*Description, error) {
+	raw, err := os.ReadFile(abs)
+	if err != nil {
+		return nil, err
+	}
+	desc, err := ParseDID([]rune(string(raw)))
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", abs, err)
+	}
+	return desc, nil
 }
 
 func resolveFile(abs string) (*Description, error) {
@@ -102,28 +119,6 @@ func resolveFile(abs string) (*Description, error) {
 	return out, nil
 }
 
-// canonical resolves symlinks so the same file reached via different paths maps
-// to one key. Callers must have confirmed the path exists (EvalSymlinks errors
-// otherwise), and on any failure it falls back to the lexical path.
-func canonical(path string) string {
-	if c, err := filepath.EvalSymlinks(path); err == nil {
-		return c
-	}
-	return path
-}
-
-func parseFile(abs string) (*Description, error) {
-	raw, err := os.ReadFile(abs)
-	if err != nil {
-		return nil, err
-	}
-	desc, err := ParseDID([]rune(string(raw)))
-	if err != nil {
-		return nil, fmt.Errorf("%s: %w", abs, err)
-	}
-	return desc, nil
-}
-
 func (d *Description) addType(t Type) error {
 	for _, def := range d.Definitions {
 		e, ok := def.(Type)
@@ -156,4 +151,9 @@ func (d *Description) mergeService(s Service) {
 		have[m.Name] = true
 		dst.Methods = append(dst.Methods, m)
 	}
+}
+
+type resolved struct {
+	desc        *Description
+	wantService bool
 }

@@ -7,33 +7,76 @@ import (
 	"time"
 )
 
-func writeFile(t *testing.T, path, content string) {
-	t.Helper()
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+// A file plain-imported via one path and `import service` via another must
+// still contribute its methods: the service flag is the union over all paths.
+func TestParseDIDFile_asymmetricServiceImport(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "d.did"), "service : { d_method : () -> () };")
+	writeFile(t, filepath.Join(dir, "b.did"),
+		"import \"./d.did\";\nservice : { b_method : () -> () };")
+	writeFile(t, filepath.Join(dir, "c.did"),
+		"import service \"./d.did\";\nservice : { c_method : () -> () };")
+	writeFile(t, filepath.Join(dir, "a.did"),
+		"import service \"./b.did\";\nimport service \"./c.did\";\n"+
+			"service : { a_method : () -> () };")
+
+	d, err := ParseDIDFile(filepath.Join(dir, "a.did"))
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
-		t.Fatal(err)
+	got := map[string]bool{}
+	for _, n := range methodNames(d) {
+		got[n] = true
+	}
+	for _, want := range []string{"a_method", "b_method", "c_method", "d_method"} {
+		if !got[want] {
+			t.Errorf("missing merged method %q; got %v", want, methodNames(d))
+		}
 	}
 }
 
-func hasType(d *Description, id string) bool {
-	for _, def := range d.Definitions {
-		if t, ok := def.(Type); ok && t.Id == id {
-			return true
-		}
+func TestParseDIDFile_conflictingType(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "x.did"), "type T = text;")
+	writeFile(t, filepath.Join(dir, "y.did"), "type T = nat;")
+	writeFile(t, filepath.Join(dir, "main.did"),
+		"import \"./x.did\";\nimport \"./y.did\";\nservice : { f : () -> () };")
+
+	if _, err := ParseDIDFile(filepath.Join(dir, "main.did")); err == nil {
+		t.Fatal("expected error on conflicting type T definitions")
 	}
-	return false
 }
 
-func methodNames(d *Description) []string {
-	var names []string
-	for _, s := range d.Services {
-		for _, m := range s.Methods {
-			names = append(names, m.Name)
-		}
+func TestParseDIDFile_cycle(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "a.did"), "import \"./b.did\";\ntype A = text;")
+	writeFile(t, filepath.Join(dir, "b.did"), "import \"./a.did\";\ntype B = text;")
+
+	d, err := ParseDIDFile(filepath.Join(dir, "a.did"))
+	if err != nil {
+		t.Fatal(err)
 	}
-	return names
+	if !hasType(d, "A") || !hasType(d, "B") {
+		t.Errorf("expected both A and B after cyclic import resolution")
+	}
+}
+
+// An identical re-declaration of a type through different import paths is not a
+// conflict.
+func TestParseDIDFile_duplicateTypeOK(t *testing.T) {
+	dir := t.TempDir()
+	writeFile(t, filepath.Join(dir, "x.did"), "type T = text;")
+	writeFile(t, filepath.Join(dir, "y.did"), "import \"./x.did\";\ntype Y = T;")
+	writeFile(t, filepath.Join(dir, "main.did"),
+		"import \"./x.did\";\nimport \"./y.did\";\nservice : { f : () -> () };")
+
+	d, err := ParseDIDFile(filepath.Join(dir, "main.did"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasType(d, "T") || !hasType(d, "Y") {
+		t.Errorf("expected types T and Y; got %v", d.Definitions)
+	}
 }
 
 func TestParseDIDFile_imports(t *testing.T) {
@@ -79,64 +122,6 @@ func TestParseDIDFile_imports(t *testing.T) {
 	}
 }
 
-// A file plain-imported via one path and `import service` via another must
-// still contribute its methods: the service flag is the union over all paths.
-func TestParseDIDFile_asymmetricServiceImport(t *testing.T) {
-	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "d.did"), "service : { d_method : () -> () };")
-	writeFile(t, filepath.Join(dir, "b.did"),
-		"import \"./d.did\";\nservice : { b_method : () -> () };")
-	writeFile(t, filepath.Join(dir, "c.did"),
-		"import service \"./d.did\";\nservice : { c_method : () -> () };")
-	writeFile(t, filepath.Join(dir, "a.did"),
-		"import service \"./b.did\";\nimport service \"./c.did\";\n"+
-			"service : { a_method : () -> () };")
-
-	d, err := ParseDIDFile(filepath.Join(dir, "a.did"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	got := map[string]bool{}
-	for _, n := range methodNames(d) {
-		got[n] = true
-	}
-	for _, want := range []string{"a_method", "b_method", "c_method", "d_method"} {
-		if !got[want] {
-			t.Errorf("missing merged method %q; got %v", want, methodNames(d))
-		}
-	}
-}
-
-func TestParseDIDFile_conflictingType(t *testing.T) {
-	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "x.did"), "type T = text;")
-	writeFile(t, filepath.Join(dir, "y.did"), "type T = nat;")
-	writeFile(t, filepath.Join(dir, "main.did"),
-		"import \"./x.did\";\nimport \"./y.did\";\nservice : { f : () -> () };")
-
-	if _, err := ParseDIDFile(filepath.Join(dir, "main.did")); err == nil {
-		t.Fatal("expected error on conflicting type T definitions")
-	}
-}
-
-// An identical re-declaration of a type through different import paths is not a
-// conflict.
-func TestParseDIDFile_duplicateTypeOK(t *testing.T) {
-	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "x.did"), "type T = text;")
-	writeFile(t, filepath.Join(dir, "y.did"), "import \"./x.did\";\ntype Y = T;")
-	writeFile(t, filepath.Join(dir, "main.did"),
-		"import \"./x.did\";\nimport \"./y.did\";\nservice : { f : () -> () };")
-
-	d, err := ParseDIDFile(filepath.Join(dir, "main.did"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !hasType(d, "T") || !hasType(d, "Y") {
-		t.Errorf("expected types T and Y; got %v", d.Definitions)
-	}
-}
-
 // A cycle whose two ends reach the same file via different paths (one through a
 // symlinked dir) must be broken by canonicalizing the key, not loop forever.
 func TestParseDIDFile_symlinkCycle(t *testing.T) {
@@ -166,16 +151,31 @@ func TestParseDIDFile_symlinkCycle(t *testing.T) {
 	}
 }
 
-func TestParseDIDFile_cycle(t *testing.T) {
-	dir := t.TempDir()
-	writeFile(t, filepath.Join(dir, "a.did"), "import \"./b.did\";\ntype A = text;")
-	writeFile(t, filepath.Join(dir, "b.did"), "import \"./a.did\";\ntype B = text;")
+func hasType(d *Description, id string) bool {
+	for _, def := range d.Definitions {
+		if t, ok := def.(Type); ok && t.Id == id {
+			return true
+		}
+	}
+	return false
+}
 
-	d, err := ParseDIDFile(filepath.Join(dir, "a.did"))
-	if err != nil {
+func methodNames(d *Description) []string {
+	var names []string
+	for _, s := range d.Services {
+		for _, m := range s.Methods {
+			names = append(names, m.Name)
+		}
+	}
+	return names
+}
+
+func writeFile(t *testing.T, path, content string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if !hasType(d, "A") || !hasType(d, "B") {
-		t.Errorf("expected both A and B after cyclic import resolution")
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatal(err)
 	}
 }
