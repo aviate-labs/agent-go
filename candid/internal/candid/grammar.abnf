@@ -72,8 +72,11 @@ letter  = %x41-5A / %x61-7A ; A-Z / a-z
 digit   = %x30-39 ; 0-9
 hex     = digit / %x41-46 / %x61-66 ; A-F / a-f
 
-CommentText = *(ascii / %x22 / %x27 / %x5C / %x60) ; " ' \ `
-Comment     = "//" CommentText Nl
+LineCommentText = *(%x00-09 / %x0B-0C / %x0E-10FFFF) ; any but CR/LF
+LineComment     = "//" LineCommentText [Nl] ; Nl optional so a trailing comment at EOF parses
+BlockCommentText = *(%x00-29 / %x2B-10FFFF / (%x2A (%x00-29 / %x2B-2E / %x30-10FFFF))) ; "*" only when next is neither "*" nor "/"
+BlockComment     = "/*" BlockCommentText 1*%x2A "/" ; close swallows the run of trailing stars
+Comment     = LineComment / BlockComment
 
 Nl   = %x0A / %x0D / (%x0D %x0A)
 OWs   = *(Sp / %x09 / Comment / Nl)

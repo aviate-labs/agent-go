@@ -35,9 +35,10 @@ func ConvertDescription(n *parser.Node) Description {
 				desc.Services,
 				convertService(n),
 			)
-		case candid.CommentText.Name:
-			// Ignore comments.
 		default:
+			if isComment(n) {
+				continue
+			}
 			panic(n)
 		}
 	}

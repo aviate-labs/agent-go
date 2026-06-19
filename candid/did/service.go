@@ -64,7 +64,7 @@ func convertService(n *parser.Node) Service {
 		case candid.TupType.Name:
 		case candid.ActorType.Name:
 			for _, n := range n.Children() {
-				if n.Name == candid.CommentText.Name {
+				if isComment(n) {
 					continue
 				}
 

@@ -10,6 +10,11 @@ import (
 	"github.com/aviate-labs/agent-go/candid/internal/candid"
 )
 
+// isComment matches comment-text nodes that bubble up from OWs/Ws into children.
+func isComment(n *parser.Node) bool {
+	return n.Name == candid.LineCommentText.Name || n.Name == candid.BlockCommentText.Name
+}
+
 func convertNat(n *parser.Node) *big.Int {
 	switch n := strings.ReplaceAll(n.Value(), "_", ""); {
 	case strings.HasPrefix(n, "0x"):
@@ -51,7 +56,7 @@ func convertData(n *parser.Node) Data {
 	case candid.Record.Name:
 		var record Record
 		for _, n := range n.Children() {
-			if n.Name == candid.CommentText.Name {
+			if isComment(n) {
 				continue
 			}
 			record = append(
@@ -63,7 +68,7 @@ func convertData(n *parser.Node) Data {
 	case candid.Variant.Name:
 		var variant Variant
 		for _, n := range n.Children() {
-			if n.Name == candid.CommentText.Name {
+			if isComment(n) {
 				continue
 			}
 			variant = append(
