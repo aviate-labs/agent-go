@@ -2,6 +2,7 @@ package did
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/0x51-dev/upeg/parser"
 )
@@ -12,16 +13,34 @@ type Definition interface {
 	fmt.Stringer
 }
 
-// Import represents an import declarations from another file.
+// Import represents an import declaration from another file. Service is true for
+// `import service "..."`, which also merges the imported file's main service.
 type Import struct {
-	Text string
+	Text    string
+	Service bool
 }
 
 func (i Import) String() string {
+	if i.Service {
+		return fmt.Sprintf("import service %q", i.Text)
+	}
 	return fmt.Sprintf("import %q", i.Text)
 }
 
 func (i Import) def() {}
+
+func convertImport(n *parser.Node) Import {
+	var imp Import
+	for _, c := range n.Children() {
+		switch c.Name {
+		case "ImportService":
+			imp.Service = true
+		case "Text":
+			imp.Text = strings.Trim(c.Value(), `"`)
+		}
+	}
+	return imp
+}
 
 // Type represents a named type definition.
 type Type struct {

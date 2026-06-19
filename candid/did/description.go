@@ -28,9 +28,7 @@ func ConvertDescription(n *parser.Node) Description {
 		case candid.Import.Name:
 			desc.Definitions = append(
 				desc.Definitions,
-				Import{
-					Text: "",
-				},
+				convertImport(n),
 			)
 		case candid.Actor.Name:
 			desc.Services = append(

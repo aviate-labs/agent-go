@@ -100,6 +100,21 @@ func ExampleFuncType() {
 	// {"FuncType": [{"TupType": [{"ArgType": [{"Id": "name"}, {"PrimType": "text"}]}, {"ArgType": [{"Id": "address"}, {"PrimType": "text"}]}, {"ArgType": [{"Id": "nr"}, {"PrimType": "nat16"}]}]}, {"TupType": [{"ArgType": [{"Id": "nick"}, {"PrimType": "text"}]}, {"ArgType": [{"Id": "id"}, {"PrimType": "nat64"}]}]}]} <nil>
 }
 
+func ExampleImport() {
+	for _, imp := range []string{
+		`import "./a.did"`,
+		`import "../../b.did"`,
+		`import service "./c.did"`,
+	} {
+		p, _ := candid.NewParser([]rune(imp))
+		fmt.Println(p.ParseEOF(candid.Import))
+	}
+	// output:
+	// {"Import": [{"Text": "\"./a.did\""}]} <nil>
+	// {"Import": [{"Text": "\"../../b.did\""}]} <nil>
+	// {"Import": [{"ImportService": "service"}, {"Text": "\"./c.did\""}]} <nil>
+}
+
 func ExampleMethType() {
 	for _, method := range []string{
 		"addUser : (name : text, age : nat8) -> (id : nat64)",

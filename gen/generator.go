@@ -90,6 +90,20 @@ func NewGenerator(agentName, canisterName, packageName string, rawDID []rune) (*
 	if err != nil {
 		return nil, err
 	}
+	return newGenerator(agentName, canisterName, packageName, desc)
+}
+
+// NewGeneratorFromFile creates a new generator for the .did file at path,
+// resolving its import and `import service` declarations relative to the file.
+func NewGeneratorFromFile(agentName, canisterName, packageName, path string) (*Generator, error) {
+	desc, err := did.ParseDIDFile(path)
+	if err != nil {
+		return nil, err
+	}
+	return newGenerator(agentName, canisterName, packageName, desc)
+}
+
+func newGenerator(agentName, canisterName, packageName string, desc *did.Description) (*Generator, error) {
 	if rs := []rune(agentName); len(rs) != 0 && unicode.IsLower(rs[0]) {
 		agentName = strings.ToUpper(agentName[:1]) + agentName[1:]
 	}

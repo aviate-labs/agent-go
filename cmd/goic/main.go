@@ -86,10 +86,6 @@ var root = cmd.NewCommandFork(
 			},
 			func(args []string, options map[string]string) error {
 				inputPath := args[0]
-				rawDID, err := os.ReadFile(inputPath)
-				if err != nil {
-					return err
-				}
 
 				var path string
 				if p, ok := options["output"]; ok {
@@ -117,7 +113,11 @@ var root = cmd.NewCommandFork(
 				}
 
 				_, indirect := options["indirect"]
-				return writeDID(agentName, canisterName, canisterID, packageName, path, []rune(string(rawDID)), indirect)
+				g, err := gen.NewGeneratorFromFile(agentName, canisterName, packageName, inputPath)
+				if err != nil {
+					return err
+				}
+				return writeGenerated(g, canisterID, path, indirect)
 			},
 		),
 		cmd.NewCommand(
@@ -203,6 +203,10 @@ func writeDID(agentName, canisterName string, canisterID *principal.Principal, p
 	if err != nil {
 		return err
 	}
+	return writeGenerated(g, canisterID, outputPath, indirect)
+}
+
+func writeGenerated(g *gen.Generator, canisterID *principal.Principal, outputPath string, indirect bool) error {
 	if indirect {
 		g.Indirect()
 	}
