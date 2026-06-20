@@ -121,3 +121,129 @@ func TestDecode_recordFieldOrdering(t *testing.T) {
 		}
 	})
 }
+
+func TestUnmarshalDirect_skipsUnknownNestedFields(t *testing.T) {
+	type ignoredVariant struct {
+		Off *idl.Null `ic:"off,variant"`
+		On  *uint64   `ic:"on,variant"`
+	}
+	type ignoredInner struct {
+		A      uint64         `ic:"a"`
+		Choice ignoredVariant `ic:"choice"`
+		Maybe  *uint32        `ic:"maybe"`
+		Names  []string       `ic:"names"`
+	}
+	type wire struct {
+		Ignored []ignoredInner `ic:"a"`
+		Tail    string         `ic:"z"`
+	}
+	type got struct {
+		Tail string `ic:"z"`
+	}
+
+	maybe := uint32(7)
+	on := uint64(99)
+	encoded, err := Marshal([]any{wire{
+		Ignored: []ignoredInner{
+			{
+				A:      1,
+				Choice: ignoredVariant{On: &on},
+				Maybe:  &maybe,
+				Names:  []string{"alpha", "beta", "gamma"},
+			},
+			{
+				A:      2,
+				Choice: ignoredVariant{Off: new(idl.Null)},
+				Names:  []string{"delta"},
+			},
+		},
+		Tail: "kept",
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ts, _, err := decodeTypes(encoded)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var value got
+	if !canUnmarshalDirect(ts[0], &value) {
+		t.Fatal("expected direct unmarshal path")
+	}
+	if err := Unmarshal(encoded, []any{&value}); err != nil {
+		t.Fatal(err)
+	}
+	if value.Tail != "kept" {
+		t.Fatalf("got Tail=%q, want kept", value.Tail)
+	}
+}
+
+func TestUnmarshalDirect_unknownVariantArmStillErrors(t *testing.T) {
+	type wireVariant struct {
+		Known *uint64 `ic:"known,variant"`
+		Other *uint64 `ic:"other,variant"`
+	}
+	type gotVariant struct {
+		Known *uint64 `ic:"known,variant"`
+	}
+
+	other := uint64(42)
+	encoded, err := Marshal([]any{wireVariant{Other: &other}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var value gotVariant
+	if err := Unmarshal(encoded, []any{&value}); err == nil {
+		t.Fatal("expected error for unknown selected variant arm")
+	}
+}
+
+func BenchmarkUnmarshal_skippedVsMaterializedNestedFields(b *testing.B) {
+	type ignoredInner struct {
+		A     uint64   `ic:"a"`
+		Maybe *uint32  `ic:"maybe"`
+		Names []string `ic:"names"`
+	}
+	type wire struct {
+		Ignored []ignoredInner `ic:"a"`
+		Tail    string         `ic:"z"`
+	}
+	type got struct {
+		Tail string `ic:"z"`
+	}
+
+	maybe := uint32(7)
+	ignored := make([]ignoredInner, 64)
+	for i := range ignored {
+		ignored[i] = ignoredInner{
+			A:     uint64(i),
+			Maybe: &maybe,
+			Names: []string{"alpha", "beta", "gamma"},
+		}
+	}
+	encoded, err := Marshal([]any{wire{Ignored: ignored, Tail: "kept"}})
+	if err != nil {
+		b.Fatal(err)
+	}
+
+	b.Run("direct_skip", func(b *testing.B) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			var value got
+			if err := Unmarshal(encoded, []any{&value}); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+
+	b.Run("materialize_any", func(b *testing.B) {
+		b.ReportAllocs()
+		for i := 0; i < b.N; i++ {
+			if _, _, err := Decode(encoded); err != nil {
+				b.Fatal(err)
+			}
+		}
+	})
+}

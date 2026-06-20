@@ -51,6 +51,13 @@ func Unmarshal(data []byte, values []any) error {
 			}
 			*v = bs
 		default:
+			if canUnmarshalDirect(ts[i], v) {
+				if err := unmarshalDirect(ts[i], r, v); err != nil {
+					return err
+				}
+				continue
+			}
+
 			vs, err := ts[i].Decode(r)
 			if err != nil {
 				return err
