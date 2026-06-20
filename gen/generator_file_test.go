@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/aviate-labs/agent-go/gen"
+	"github.com/niccolofant/agent-go/gen"
 )
 
 func TestNewGeneratorFromFile_imports(t *testing.T) {

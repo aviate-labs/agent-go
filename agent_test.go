@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -153,13 +154,25 @@ func TestAgent_Call(t *testing.T) {
 }
 
 func TestAgent_CallWithContext_cancelledDuringPoll(t *testing.T) {
-	// /call returns 202 so CallAndWait falls into the poll loop. PollDelay is
-	// long relative to the cancel below, so poll is parked on its select when
-	// the context is cancelled: this exercises the ctx.Done() arm directly.
+	// /call returns 202 so CallAndWait falls into the poll loop. The fork polls
+	// request status immediately, so block read_state and verify the context
+	// cancels that in-flight status request promptly.
+	release := make(chan struct{})
+	var releaseOnce sync.Once
+	releaseStatus := func() {
+		releaseOnce.Do(func() { close(release) })
+	}
+	defer releaseStatus()
+
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case strings.HasSuffix(r.URL.Path, "/call"):
 			w.WriteHeader(http.StatusAccepted)
+		case strings.HasSuffix(r.URL.Path, "/read_state"):
+			select {
+			case <-r.Context().Done():
+			case <-release:
+			}
 		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
@@ -177,7 +190,11 @@ func TestAgent_CallWithContext_cancelledDuringPoll(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	time.AfterFunc(50*time.Millisecond, cancel)
+	defer cancel()
+	time.AfterFunc(50*time.Millisecond, func() {
+		cancel()
+		releaseStatus()
+	})
 
 	start := time.Now()
 	err = a.CallWithContext(ctx, LEDGER_PRINCIPAL, "account_balance", []any{
