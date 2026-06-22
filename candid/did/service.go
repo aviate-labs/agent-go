@@ -70,7 +70,7 @@ func convertService(n *parser.Node) Service {
 
 				cs := n.Children()
 
-				name := cs[0].Value()
+				name := nameValue(cs[0])
 				switch n := cs[len(cs)-1]; n.Name {
 				case candid.FuncType.Name:
 					f := convertFunc(n)
