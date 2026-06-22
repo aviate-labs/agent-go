@@ -2,8 +2,10 @@ package certification
 
 import (
 	"encoding/hex"
-	"github.com/niccolofant/agent-go/principal"
+
 	"github.com/fxamacker/cbor/v2"
+	"github.com/niccolofant/agent-go/certification/hashtree"
+	"github.com/niccolofant/agent-go/principal"
 	"testing"
 )
 
@@ -64,4 +66,94 @@ func TestSubnetDelegateTestVector(t *testing.T) {
 func hexToBytes(s string) []byte {
 	b, _ := hex.DecodeString(s)
 	return b
+}
+
+// encodeRanges encodes canister ranges the way the replica certifies them: a
+// CBOR self-describe-tagged array of [from, to] principal byte-string pairs.
+func encodeRanges(t *testing.T, ranges ...[2]principal.Principal) []byte {
+	t.Helper()
+	pairs := make([][][]byte, len(ranges))
+	for i, r := range ranges {
+		pairs[i] = [][]byte{r[0].Raw, r[1].Raw}
+	}
+	em, err := cbor.EncOptions{}.EncMode()
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := em.Marshal(pairs)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// d9d9f7 = self-describe CBOR tag (55799), as emitted by the replica.
+	return append([]byte{0xd9, 0xd9, 0xf7}, b...)
+}
+
+func TestLookupCanisterRangesLegacy(t *testing.T) {
+	subnetID := principal.MustDecode("aaaaa-aa")
+	from := principal.Principal{Raw: hexToBytes("00000000002000000101")}
+	to := principal.Principal{Raw: hexToBytes("00000000002fffff0101")}
+	in := principal.Principal{Raw: hexToBytes("000000000020000c0101")}
+
+	tree := hashtree.NewHashTree(hashtree.Labeled{
+		Label: hashtree.Label("subnet"),
+		Tree: hashtree.Labeled{
+			Label: hashtree.Label(subnetID.Raw),
+			Tree: hashtree.Labeled{
+				Label: hashtree.Label("canister_ranges"),
+				Tree:  hashtree.Leaf(encodeRanges(t, [2]principal.Principal{from, to})),
+			},
+		},
+	})
+
+	ranges, err := lookupCanisterRanges(tree, subnetID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ranges.InRange(in) {
+		t.Fatalf("expected %s in range", in)
+	}
+}
+
+func TestLookupCanisterRangesSharded(t *testing.T) {
+	subnetID := principal.MustDecode("aaaaa-aa")
+	// Two non-overlapping shards, each keyed by the first canister id in the shard.
+	s1from := principal.Principal{Raw: hexToBytes("00000000002000000101")}
+	s1to := principal.Principal{Raw: hexToBytes("00000000002fffff0101")}
+	s2from := principal.Principal{Raw: hexToBytes("00000000003000000101")}
+	s2to := principal.Principal{Raw: hexToBytes("00000000003fffff0101")}
+
+	in1 := principal.Principal{Raw: hexToBytes("000000000020000c0101")}
+	in2 := principal.Principal{Raw: hexToBytes("000000000030000c0101")}
+	out := principal.Principal{Raw: hexToBytes("00000000004000000101")}
+
+	tree := hashtree.NewHashTree(hashtree.Labeled{
+		Label: hashtree.Label("canister_ranges"),
+		Tree: hashtree.Labeled{
+			Label: hashtree.Label(subnetID.Raw),
+			Tree: hashtree.Fork{
+				LeftTree: hashtree.Labeled{
+					Label: hashtree.Label(s1from.Raw),
+					Tree:  hashtree.Leaf(encodeRanges(t, [2]principal.Principal{s1from, s1to})),
+				},
+				RightTree: hashtree.Labeled{
+					Label: hashtree.Label(s2from.Raw),
+					Tree:  hashtree.Leaf(encodeRanges(t, [2]principal.Principal{s2from, s2to})),
+				},
+			},
+		},
+	})
+
+	ranges, err := lookupCanisterRanges(tree, subnetID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ranges.InRange(in1) {
+		t.Fatalf("expected %s in range (shard 1)", in1)
+	}
+	if !ranges.InRange(in2) {
+		t.Fatalf("expected %s in range (shard 2)", in2)
+	}
+	if ranges.InRange(out) {
+		t.Fatalf("did not expect %s in range", out)
+	}
 }
