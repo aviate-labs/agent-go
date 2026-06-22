@@ -23,7 +23,7 @@ func convertArgument(n *parser.Node) Argument {
 			Data: data,
 		}
 	}
-	name := cs[0].Value()
+	name := nameValue(cs[0])
 	return Argument{
 		Name: &name,
 		Data: data,

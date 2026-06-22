@@ -15,6 +15,17 @@ func isComment(n *parser.Node) bool {
 	return n.Name == candid.LineCommentText.Name || n.Name == candid.BlockCommentText.Name
 }
 
+// nameValue returns the value of a <name> node (<id> | <text>), stripping the
+// surrounding quotes the Text capture includes. Used for field labels, method
+// names and argument names, all of which the spec allows as quoted text.
+func nameValue(n *parser.Node) string {
+	v := n.Value()
+	if n.Name == candid.Text.Name {
+		v = strings.TrimSuffix(strings.TrimPrefix(v, `"`), `"`)
+	}
+	return v
+}
+
 func convertNat(n *parser.Node) *big.Int {
 	switch n := strings.ReplaceAll(n.Value(), "_", ""); {
 	case strings.HasPrefix(n, "0x"):
@@ -126,7 +137,7 @@ func convertField(n *parser.Node) Field {
 		case candid.Nat.Name:
 			field.Nat = convertNat(n)
 		case candid.Text.Name, candid.Id.Name:
-			v := n.Value()
+			v := nameValue(n)
 			field.Name = &v
 		default:
 			panic(n)
