@@ -24,14 +24,22 @@ type Client struct {
 	client *http.Client
 	routes RouteProvider
 	logger Logger
+	// callVersion / readStateVersion select the API version segment of the
+	// call and read_state endpoints. The defaults certify canister ranges
+	// under the sharded /canister_ranges/<subnet_id> layout; legacy uses the
+	// deprecated /subnet/<subnet_id>/canister_ranges layout.
+	callVersion      string
+	readStateVersion string
 }
 
 // NewClient creates a new client based on the given configuration.
 func NewClient(options ...ClientOption) Client {
 	c := Client{
-		client: http.DefaultClient,
-		routes: StaticRoute(icp0),
-		logger: new(NoopLogger),
+		client:           http.DefaultClient,
+		routes:           StaticRoute(icp0),
+		logger:           new(NoopLogger),
+		callVersion:      "v4",
+		readStateVersion: "v3",
 	}
 	for _, o := range options {
 		o(&c)
@@ -40,7 +48,7 @@ func NewClient(options ...ClientOption) Client {
 }
 
 func (c Client) Call(ctx context.Context, canisterID principal.Principal, data []byte) ([]byte, error) {
-	u, err := c.url(fmt.Sprintf("/api/v3/canister/%s/call", canisterID.Encode()))
+	u, err := c.url(fmt.Sprintf("/api/%s/canister/%s/call", c.callVersion, canisterID.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -96,11 +104,11 @@ func (c Client) Call(ctx context.Context, canisterID principal.Principal, data [
 }
 
 func (c Client) Query(ctx context.Context, canisterID principal.Principal, data []byte) ([]byte, error) {
-	return c.post(ctx, "query", canisterID, data)
+	return c.post(ctx, "v2", "query", canisterID, data)
 }
 
 func (c Client) ReadState(ctx context.Context, canisterID principal.Principal, data []byte) ([]byte, error) {
-	return c.post(ctx, "read_state", canisterID, data)
+	return c.post(ctx, c.readStateVersion, "read_state", canisterID, data)
 }
 
 func (c Client) ReadSubnetState(ctx context.Context, subnetID principal.Principal, data []byte) ([]byte, error) {
@@ -150,8 +158,8 @@ func (c Client) newRequest(ctx context.Context, method, url string, body io.Read
 	return req, nil
 }
 
-func (c Client) post(ctx context.Context, path string, canisterID principal.Principal, data []byte) ([]byte, error) {
-	u, err := c.url(fmt.Sprintf("/api/v2/canister/%s/%s", canisterID.Encode(), path))
+func (c Client) post(ctx context.Context, version, path string, canisterID principal.Principal, data []byte) ([]byte, error) {
+	u, err := c.url(fmt.Sprintf("/api/%s/canister/%s/%s", version, canisterID.Encode(), path))
 	if err != nil {
 		return nil, err
 	}
@@ -235,6 +243,15 @@ func WithHttpClient(client *http.Client) ClientOption {
 func WithLogger(logger Logger) ClientOption {
 	return func(c *Client) {
 		c.logger = logger
+	}
+}
+
+// WithLegacyAPI uses the deprecated /api/v3 call and /api/v2 read_state
+// endpoints instead of the defaults (/api/v4 call, /api/v3 read_state).
+func WithLegacyAPI() ClientOption {
+	return func(c *Client) {
+		c.callVersion = "v3"
+		c.readStateVersion = "v2"
 	}
 }
 
