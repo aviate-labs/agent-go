@@ -71,12 +71,8 @@ func (a Agent) GetSubnetsInfo() ([]SubnetInfo, error) {
 		if err != nil {
 			return nil, err
 		}
-		rawCanisterRanges, err := hashtree.Lookup(p.Value, hashtree.Label("canister_ranges"))
+		canisterRanges, err := certification.LookupCanisterRanges(cert.Tree, subnetID)
 		if err != nil {
-			return nil, err
-		}
-		var canisterRanges certification.CanisterRanges
-		if err := cbor.Unmarshal(rawCanisterRanges, &canisterRanges); err != nil {
 			return nil, err
 		}
 
