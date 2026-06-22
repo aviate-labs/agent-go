@@ -182,16 +182,8 @@ func verifyDelegationCertificate(
 		return nil, err
 	}
 
-	rawRanges, err := delegation.Certificate.Tree.Lookup(
-		hashtree.Label("subnet"),
-		delegation.SubnetId.Raw,
-		hashtree.Label("canister_ranges"),
-	)
+	canisterRanges, err := lookupCanisterRanges(delegation.Certificate.Tree, delegation.SubnetId)
 	if err != nil {
-		return nil, err
-	}
-	var canisterRanges CanisterRanges
-	if err := cbor.Unmarshal(rawRanges, &canisterRanges); err != nil {
 		return nil, err
 	}
 	if !canisterRanges.InRange(canisterID) {
@@ -251,6 +243,57 @@ func verifySubnetDelegationCertificate(
 		return nil, err
 	}
 	return PublicBLSKeyFromDER(rawPublicKey)
+}
+
+// lookupCanisterRanges retrieves the subnet's canister ranges from a delegation
+// certificate tree. The IC certifies these under two layouts depending on the
+// API version that produced the certificate:
+//
+//	sharded (new): /canister_ranges/<subnet_id>/<shard>  (/api/v4 call, /api/v3 read_state)
+//	legacy:        /subnet/<subnet_id>/canister_ranges    (/api/v3 call, /api/v2 read_state)
+//
+// The sharded layout splits the ranges across multiple labelled shards, each a
+// non-overlapping CBOR list of ranges keyed by the first canister id in the
+// shard. We union every shard rather than binary-searching for one, since
+// InRange already scans all ranges. The sharded path is tried first, falling
+// back to the legacy single-leaf path, mirroring agent-js.
+func lookupCanisterRanges(tree hashtree.HashTree, subnetID principal.Principal) (CanisterRanges, error) {
+	if shards, err := tree.LookupSubTree(
+		hashtree.Label("canister_ranges"),
+		subnetID.Raw,
+	); err == nil {
+		paths, err := hashtree.AllChildren(shards)
+		if err != nil {
+			return nil, err
+		}
+		var ranges CanisterRanges
+		for _, p := range paths {
+			raw, err := hashtree.Lookup(shards, p.Path...)
+			if err != nil {
+				return nil, err
+			}
+			var shardRanges CanisterRanges
+			if err := cbor.Unmarshal(raw, &shardRanges); err != nil {
+				return nil, err
+			}
+			ranges = append(ranges, shardRanges...)
+		}
+		return ranges, nil
+	}
+
+	rawRanges, err := tree.Lookup(
+		hashtree.Label("subnet"),
+		subnetID.Raw,
+		hashtree.Label("canister_ranges"),
+	)
+	if err != nil {
+		return nil, err
+	}
+	var ranges CanisterRanges
+	if err := cbor.Unmarshal(rawRanges, &ranges); err != nil {
+		return nil, err
+	}
+	return ranges, nil
 }
 
 type CanisterRange struct {
