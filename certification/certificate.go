@@ -182,7 +182,7 @@ func verifyDelegationCertificate(
 		return nil, err
 	}
 
-	canisterRanges, err := lookupCanisterRanges(delegation.Certificate.Tree, delegation.SubnetId)
+	canisterRanges, err := LookupCanisterRanges(delegation.Certificate.Tree, delegation.SubnetId)
 	if err != nil {
 		return nil, err
 	}
@@ -245,7 +245,7 @@ func verifySubnetDelegationCertificate(
 	return PublicBLSKeyFromDER(rawPublicKey)
 }
 
-// lookupCanisterRanges retrieves the subnet's canister ranges from a delegation
+// LookupCanisterRanges retrieves the subnet's canister ranges from a
 // certificate tree. The IC certifies these under two layouts depending on the
 // API version that produced the certificate:
 //
@@ -257,7 +257,7 @@ func verifySubnetDelegationCertificate(
 // shard. We union every shard rather than binary-searching for one, since
 // InRange already scans all ranges. The sharded path is tried first, falling
 // back to the legacy single-leaf path, mirroring agent-js.
-func lookupCanisterRanges(tree hashtree.HashTree, subnetID principal.Principal) (CanisterRanges, error) {
+func LookupCanisterRanges(tree hashtree.HashTree, subnetID principal.Principal) (CanisterRanges, error) {
 	if shards, err := tree.LookupSubTree(
 		hashtree.Label("canister_ranges"),
 		subnetID.Raw,

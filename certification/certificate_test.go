@@ -104,7 +104,7 @@ func TestLookupCanisterRangesLegacy(t *testing.T) {
 		},
 	})
 
-	ranges, err := lookupCanisterRanges(tree, subnetID)
+	ranges, err := LookupCanisterRanges(tree, subnetID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -142,7 +142,7 @@ func TestLookupCanisterRangesSharded(t *testing.T) {
 		},
 	})
 
-	ranges, err := lookupCanisterRanges(tree, subnetID)
+	ranges, err := LookupCanisterRanges(tree, subnetID)
 	if err != nil {
 		t.Fatal(err)
 	}
