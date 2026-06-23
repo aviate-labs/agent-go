@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/aviate-labs/agent-go"
-	"github.com/aviate-labs/agent-go/principal"
 	"github.com/fxamacker/cbor/v2"
+	"github.com/niccolofant/agent-go"
+	"github.com/niccolofant/agent-go/principal"
 )
 
 func recordingClient(t *testing.T, opts ...agent.ClientOption) (agent.Client, *string) {
