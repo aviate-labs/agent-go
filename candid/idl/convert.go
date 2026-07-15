@@ -201,7 +201,7 @@ func typeOfType(t reflect.Type, visited map[reflect.Type]*RecursiveType) (Type, 
 	case reflect.String:
 		return new(TextType), nil
 	case reflect.Slice, reflect.Array:
-		if t == reflect.TypeOf([]byte(nil)) {
+		if t == reflect.TypeFor[[]byte]() {
 			// []byte is the natural Go representation of a candid blob (vec nat8).
 			return NewVectorType(Nat8Type()), nil
 		}
@@ -252,9 +252,9 @@ func typeOfType(t reflect.Type, visited map[reflect.Type]*RecursiveType) (Type, 
 // that TypeOf treats as a primitive rather than a candid record.
 func isSpecialStruct(t reflect.Type) bool {
 	switch t {
-	case reflect.TypeOf(Nat{}), reflect.TypeOf(Int{}),
-		reflect.TypeOf(Reserved{}), reflect.TypeOf(Empty{}),
-		reflect.TypeOf(Null{}), reflect.TypeOf(principal.Principal{}):
+	case reflect.TypeFor[Nat](), reflect.TypeFor[Int](),
+		reflect.TypeFor[Reserved](), reflect.TypeFor[Empty](),
+		reflect.TypeFor[Null](), reflect.TypeFor[principal.Principal]():
 		return true
 	}
 	return false
@@ -272,8 +272,8 @@ func recursiveName(t reflect.Type) string {
 func structType(t reflect.Type, visited map[reflect.Type]*RecursiveType) (Type, error) {
 	variant := false
 	tuple := false
-	for i := range t.NumField() {
-		f := t.Field(i)
+	for f := range t.Fields() {
+		f := f
 		if !f.IsExported() {
 			continue
 		}
@@ -287,8 +287,8 @@ func structType(t reflect.Type, visited map[reflect.Type]*RecursiveType) (Type, 
 	}
 
 	fields := make(map[string]Type)
-	for i := range t.NumField() {
-		f := t.Field(i)
+	for f := range t.Fields() {
+		f := f
 		if !f.IsExported() {
 			continue
 		}

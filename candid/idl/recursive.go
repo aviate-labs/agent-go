@@ -32,8 +32,6 @@ func NewRecursiveType(name string) *RecursiveType {
 
 func (r *RecursiveType) setInner(t Type) { r.inner = t }
 
-func (r *RecursiveType) resolved() Type { return r.inner }
-
 // Used reports whether this placeholder was referenced during type expansion,
 // i.e. whether the type is genuinely recursive.
 func (r *RecursiveType) Used() bool { return r.used }
@@ -59,14 +57,20 @@ func (r *RecursiveType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	if err := r.inner.AddTypeDefinition(tdt); err != nil {
 		return err
 	}
-	// The inner type appended its own definition (under its own String()).
-	// Move those bytes into the reserved slot and point the inner's index at
-	// it too, so both names resolve to one slot.
+	// The inner type appended its own definition (under its own String()) as the
+	// last table entry: a composite adds itself after all its fields, and this
+	// wrapper's inner IS that composite. Move those bytes into the reserved slot
+	// and drop the trailing duplicate so the placeholder and the inner name both
+	// resolve to a single slot with no orphaned definition on the wire.
 	innerIdx, ok := tdt.Indexes[r.inner.String()]
 	if !ok {
 		return fmt.Errorf("recursive inner type not defined: %s", r.inner)
 	}
+	if innerIdx != len(tdt.Types)-1 {
+		return fmt.Errorf("recursive inner type %s not last in table: idx %d of %d", r.inner, innerIdx, len(tdt.Types))
+	}
 	tdt.Types[slot] = tdt.Types[innerIdx]
+	tdt.Types = tdt.Types[:innerIdx]
 	tdt.Indexes[r.inner.String()] = slot
 	return nil
 }

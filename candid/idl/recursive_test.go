@@ -53,13 +53,53 @@ func TestRecursiveEncodeType(t *testing.T) {
 	if _, err := typ.EncodeType(tdt); err != nil {
 		t.Fatalf("EncodeType: %v", err)
 	}
-	// The self-referential record must occupy exactly one table slot.
-	if len(tdt.Types) == 0 {
-		t.Fatal("no type definitions emitted")
+	// A minimal table for `record { next : opt T; value : nat64 }` holds exactly
+	// two definitions: the record and the opt. No duplicate/orphan entries.
+	if len(tdt.Types) != 2 {
+		t.Fatalf("want 2 type definitions, got %d: % x", len(tdt.Types), tdt.Types)
 	}
 	v := selfRef{Value: 7, Next: &selfRef{Value: 8}}
 	if _, err := typ.EncodeValue(v); err != nil {
 		t.Fatalf("EncodeValue: %v", err)
+	}
+}
+
+// The type-definition table must not contain byte-identical duplicate entries;
+// a strict candid decoder emits a minimal table and may reject unreferenced
+// definitions.
+func TestRecursiveNoDuplicateTableEntries(t *testing.T) {
+	typ, err := TypeOf(selfRef{})
+	if err != nil {
+		t.Fatalf("TypeOf: %v", err)
+	}
+	tdt := &TypeDefinitionTable{Indexes: make(map[string]int)}
+	if err := typ.AddTypeDefinition(tdt); err != nil {
+		t.Fatalf("AddTypeDefinition: %v", err)
+	}
+	for i := range tdt.Types {
+		for j := i + 1; j < len(tdt.Types); j++ {
+			if bytes.Equal(tdt.Types[i], tdt.Types[j]) {
+				t.Fatalf("duplicate table entries [%d] and [%d]: % x", i, j, tdt.Types[i])
+			}
+		}
+	}
+}
+
+func TestMutualRecursionNoDuplicateTableEntries(t *testing.T) {
+	typ, err := TypeOf(mutualA{})
+	if err != nil {
+		t.Fatalf("TypeOf: %v", err)
+	}
+	tdt := &TypeDefinitionTable{Indexes: make(map[string]int)}
+	if err := typ.AddTypeDefinition(tdt); err != nil {
+		t.Fatalf("AddTypeDefinition: %v", err)
+	}
+	for i := range tdt.Types {
+		for j := i + 1; j < len(tdt.Types); j++ {
+			if bytes.Equal(tdt.Types[i], tdt.Types[j]) {
+				t.Fatalf("duplicate table entries [%d] and [%d]: % x", i, j, tdt.Types[i])
+			}
+		}
 	}
 }
 
