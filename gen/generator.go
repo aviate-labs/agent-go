@@ -250,7 +250,15 @@ func (g *Generator) dataToString(prefix string, data did.Data) string {
 			if n := field.Name; n != nil {
 				originalName = *n
 				name = funcName("", *n)
-				tuple = false
+				// A field labelled with its own positional index (candid
+				// `record { 0 : t; 1 : u }`, the explicit form of a tuple) is
+				// still a tuple field: keep tuple=true and generate Field<i>.
+				if *n == fmt.Sprintf("%d", i) {
+					originalName = fmt.Sprintf("Field%d", i)
+					name = originalName
+				} else {
+					tuple = false
+				}
 			}
 			if l := len(name); l > sizeName {
 				sizeName = l
