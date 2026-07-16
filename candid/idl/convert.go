@@ -273,7 +273,6 @@ func structType(t reflect.Type, visited map[reflect.Type]*RecursiveType) (Type, 
 	variant := false
 	tuple := false
 	for f := range t.Fields() {
-		f := f
 		if !f.IsExported() {
 			continue
 		}
@@ -288,7 +287,6 @@ func structType(t reflect.Type, visited map[reflect.Type]*RecursiveType) (Type, 
 
 	fields := make(map[string]Type)
 	for f := range t.Fields() {
-		f := f
 		if !f.IsExported() {
 			continue
 		}
