@@ -11,25 +11,6 @@ import (
 	"github.com/aviate-labs/agent-go/leb128"
 )
 
-func isVariantType(value any) bool {
-	v := reflect.ValueOf(value)
-	switch v.Kind() {
-	case reflect.Struct:
-		for i := range v.NumField() {
-			field := v.Type().Field(i)
-			if !field.IsExported() {
-				continue
-			}
-
-			tag := ParseTags(field)
-			if tag.VariantType {
-				return true
-			}
-		}
-	}
-	return false
-}
-
 type Variant struct {
 	Name  string
 	Value any

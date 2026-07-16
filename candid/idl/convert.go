@@ -162,64 +162,157 @@ func TypeOf(v any) (Type, error) {
 			return new(NullType), nil
 		}
 
-		// Specific slices.
-		switch t := reflect.TypeOf(v); t.Kind() {
-		case reflect.Slice, reflect.Array:
-			typ, err := TypeOf(reflect.New(t.Elem()).Elem().Interface())
-			if err != nil {
-				return nil, err
-			}
-			return NewVectorType(typ), nil
-		case reflect.Struct:
-			m, err := StructToMap(v)
-			if err != nil {
-				return nil, err
-			}
-			if isVariantType(v) {
-				fields := make(map[string]Type)
-				for k, v := range m {
-					typ, err := TypeOf(v)
-					if err != nil {
-						return nil, err
-					}
-					switch t := typ.(type) {
-					case *OptionalType:
-						typ = t.Type
-					default:
-						return nil, UnknownValueTypeError{Value: v}
-					}
-					fields[k] = typ
-				}
-				return NewVariantType(fields), nil
-			} else {
-				fields := make(map[string]Type)
-				for k, v := range m {
-					typ, err := TypeOf(v)
-					if err != nil {
-						return nil, err
-					}
-					fields[k] = typ
-				}
-				if isTupleType(v) {
-					return NewTupleType(fields), nil
-				}
-				return NewRecordType(fields), nil
-			}
-		case reflect.Pointer:
-			indirect := reflect.Indirect(reflect.ValueOf(v))
-			if !indirect.IsValid() {
-				indirect = reflect.New(reflect.TypeOf(v).Elem())
-				return TypeOf(indirect.Interface())
-			}
-			typ, err := TypeOf(indirect.Interface())
-			if err != nil {
-				return nil, err
-			}
-			return NewOptionalType(typ), nil
-		default:
-			return nil, UnknownValueTypeError{Value: v}
+		// Derive the type from the reflect.Type rather than from fabricated
+		// values so that self-referential types (a struct with an opt field
+		// pointing transitively back to itself, as in the NNS governance
+		// interface) terminate instead of recursing forever.
+		return typeOfType(reflect.TypeOf(v), map[reflect.Type]*RecursiveType{})
+	}
+}
+
+// typeOfType derives a candid Type from a Go reflect.Type. visited holds the
+// recursive placeholders for struct types currently being expanded on the
+// path from the root, so re-entering a type returns its placeholder instead
+// of descending again.
+func typeOfType(t reflect.Type, visited map[reflect.Type]*RecursiveType) (Type, error) {
+	switch t.Kind() {
+	case reflect.Bool:
+		return new(BoolType), nil
+	case reflect.Uint8:
+		return Nat8Type(), nil
+	case reflect.Uint16:
+		return Nat16Type(), nil
+	case reflect.Uint32:
+		return Nat32Type(), nil
+	case reflect.Uint, reflect.Uint64:
+		return Nat64Type(), nil
+	case reflect.Int8:
+		return Int8Type(), nil
+	case reflect.Int16:
+		return Int16Type(), nil
+	case reflect.Int32:
+		return Int32Type(), nil
+	case reflect.Int, reflect.Int64:
+		return Int64Type(), nil
+	case reflect.Float32:
+		return Float32Type(), nil
+	case reflect.Float64:
+		return Float64Type(), nil
+	case reflect.String:
+		return new(TextType), nil
+	case reflect.Slice, reflect.Array:
+		if t == reflect.TypeFor[[]byte]() {
+			// []byte is the natural Go representation of a candid blob (vec nat8).
+			return NewVectorType(Nat8Type()), nil
+		}
+		elem, err := typeOfType(t.Elem(), visited)
+		if err != nil {
+			return nil, err
+		}
+		return NewVectorType(elem), nil
+	case reflect.Pointer:
+		// A pointer models a candid opt.
+		elem, err := typeOfType(t.Elem(), visited)
+		if err != nil {
+			return nil, err
+		}
+		return NewOptionalType(elem), nil
+	case reflect.Struct:
+		// Special idl value-carrying structs (Nat, Int, Reserved, Empty, Null,
+		// principal.Principal) are primitives, not records: defer to the
+		// value-based TypeOf on a zero value so their canonical types are used.
+		if isSpecialStruct(t) {
+			return TypeOf(reflect.Zero(t).Interface())
+		}
+		if rec, ok := visited[t]; ok {
+			rec.markUsed()
+			return rec, nil // recursive back-reference
+		}
+		rec := NewRecursiveType(recursiveName(t))
+		visited[t] = rec
+		inner, err := structType(t, visited)
+		if err != nil {
+			return nil, err
+		}
+		delete(visited, t)
+		// Only keep the recursive wrapper when the type actually refers back to
+		// itself; otherwise return the plain type so non-recursive structs
+		// encode identically to before.
+		if !rec.Used() {
+			return inner, nil
+		}
+		rec.setInner(inner)
+		return rec, nil
+	default:
+		return nil, fmt.Errorf("unknown reflect type: %s", t)
+	}
+}
+
+// isSpecialStruct reports whether t is one of the idl value-carrying structs
+// that TypeOf treats as a primitive rather than a candid record.
+func isSpecialStruct(t reflect.Type) bool {
+	switch t {
+	case reflect.TypeFor[Nat](), reflect.TypeFor[Int](),
+		reflect.TypeFor[Reserved](), reflect.TypeFor[Empty](),
+		reflect.TypeFor[Null](), reflect.TypeFor[principal.Principal]():
+		return true
+	}
+	return false
+}
+
+// recursiveName is a stable, terminating name for a struct type used as the
+// String() of its recursive placeholder.
+func recursiveName(t reflect.Type) string {
+	if t.Name() != "" {
+		return "rec:" + t.PkgPath() + "." + t.Name()
+	}
+	return "rec:" + t.String()
+}
+
+func structType(t reflect.Type, visited map[reflect.Type]*RecursiveType) (Type, error) {
+	variant := false
+	tuple := false
+	for f := range t.Fields() {
+		if !f.IsExported() {
+			continue
+		}
+		tag := ParseTags(f)
+		if tag.VariantType {
+			variant = true
+		}
+		if tag.TupleType {
+			tuple = true
 		}
 	}
+
+	fields := make(map[string]Type)
+	for f := range t.Fields() {
+		if !f.IsExported() {
+			continue
+		}
+		tag := ParseTags(f)
+		ft, err := typeOfType(f.Type, visited)
+		if err != nil {
+			return nil, err
+		}
+		if variant {
+			// Variant arms are modelled as opt pointer fields; the arm type is
+			// the pointed-to type.
+			if o, ok := ft.(*OptionalType); ok {
+				ft = o.Type
+			} else {
+				return nil, fmt.Errorf("variant field %q must be a pointer", tag.Name)
+			}
+		}
+		fields[tag.Name] = ft
+	}
+	if variant {
+		return NewVariantType(fields), nil
+	}
+	if tuple {
+		return NewTupleType(fields), nil
+	}
+	return NewRecordType(fields), nil
 }
 
 type UnknownTypeError struct {
