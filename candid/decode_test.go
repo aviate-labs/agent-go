@@ -121,3 +121,23 @@ func TestDecode_recordFieldOrdering(t *testing.T) {
 		}
 	})
 }
+
+// An argument the sender omits entirely is null when the receiver expects an
+// option, per the "missing argument" vectors in the upstream test suite.
+func TestUnmarshalMissingTrailingOptArg(t *testing.T) {
+	empty := []byte("DIDL\x00\x00")
+
+	var p *uint64
+	if err := Unmarshal(empty, []any{&p}); err != nil {
+		t.Fatalf("missing opt arg should decode to null, got: %v", err)
+	}
+	if p != nil {
+		t.Fatalf("expected nil, got %d", *p)
+	}
+
+	// A missing non-optional argument is still an error.
+	var n uint64
+	if err := Unmarshal(empty, []any{&n}); err == nil {
+		t.Fatal("expected error for missing nat argument")
+	}
+}

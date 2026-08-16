@@ -2,9 +2,15 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    # Upstream candid conformance vectors, pinned to a release tag. Consumed by
+    # the idl tests via CANDID_TEST_DIR; bump the ref to adopt a newer spec.
+    candid = {
+      url = "github:dfinity/candid/2025-12-18";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, candid }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
@@ -23,6 +29,7 @@
           packages = [ go pkgs.golangci-lint ];
           shellHook = ''
             export GOTOOLCHAIN=local
+            export CANDID_TEST_DIR=${candid}/test
           '';
         };
       });

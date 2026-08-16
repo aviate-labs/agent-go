@@ -1,5 +1,22 @@
 {
   "nodes": {
+    "candid": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1766069143,
+        "narHash": "sha256-hllvzZ/phhWbxuHhA1tME1Nc0ZAT9fMAZgwWsa9BLNs=",
+        "owner": "dfinity",
+        "repo": "candid",
+        "rev": "2e4a2cf6a66593e2cb3289535899eb232635bef2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "dfinity",
+        "ref": "2025-12-18",
+        "repo": "candid",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -36,6 +53,7 @@
     },
     "root": {
       "inputs": {
+        "candid": "candid",
         "flake-utils": "flake-utils",
         "nixpkgs": "nixpkgs"
       }

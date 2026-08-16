@@ -38,7 +38,18 @@ func Unmarshal(data []byte, values []any) error {
 	if err != nil {
 		return err
 	}
-	if len(ts) != len(values) {
+	// The sender may supply fewer arguments than expected: the missing trailing
+	// ones decode as null, but only where null is a valid value of the expected
+	// type. Extra arguments are ignored.
+	if len(ts) < len(values) {
+		for _, v := range values[len(ts):] {
+			if reflect.ValueOf(v).Elem().Kind() != reflect.Pointer {
+				return fmt.Errorf("missing argument: %d of %d", len(ts), len(values))
+			}
+		}
+		values = values[:len(ts)]
+	}
+	if len(ts) > len(values) {
 		return fmt.Errorf("unequal value lengths: %d %d", len(ts), len(values))
 	}
 

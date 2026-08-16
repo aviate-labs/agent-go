@@ -4,7 +4,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-      - run: make test
+      # The dev shell pins both the go toolchain and the upstream candid
+      # conformance vectors (CANDID_TEST_DIR), which the idl tests require.
+      - uses: cachix/install-nix-action@v31
+      - run: nix develop --command make test
