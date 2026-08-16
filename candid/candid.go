@@ -85,6 +85,11 @@ func valueToString(typ idl.Type, value any) (string, error) {
 		if value == nil {
 			return "opt null", nil
 		}
+		// A present option carrying null: the marker has no constituent value to
+		// render, and dispatching on t.Type would print the marker struct itself.
+		if _, ok := value.(idl.Some); ok {
+			return "opt null", nil
+		}
 		s, err := valueToString(t.Type, value)
 		if err != nil {
 			return "", err

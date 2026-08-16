@@ -44,7 +44,16 @@ func (o OptionalType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
+// Some marks a decoded option as present. It only wraps values that would
+// otherwise be indistinguishable from absence: `opt null` and `null` both
+// decode to a bare nil without it.
+type Some struct {
+	Value any
+}
+
 // Decode decodes the value from the given reader into either `nil` or a value (of the subtype of the optional type).
+// A present option whose value is itself nil is returned as Some, so that
+// `opt null` stays distinguishable from `null`.
 func (o OptionalType) Decode(r *bytes.Reader) (any, error) {
 	b, err := r.ReadByte()
 	if err != nil {
@@ -54,7 +63,14 @@ func (o OptionalType) Decode(r *bytes.Reader) (any, error) {
 	case 0x00:
 		return nil, nil
 	case 0x01:
-		return o.Type.Decode(r)
+		v, err := o.Type.Decode(r)
+		if err != nil {
+			return nil, err
+		}
+		if v == nil {
+			return Some{}, nil
+		}
+		return v, nil
 	default:
 		return nil, fmt.Errorf("invalid option value: %x", b)
 	}
@@ -129,11 +145,31 @@ func (o OptionalType) UnmarshalGo(raw any, _v any) error {
 		if k := v.Kind(); k != reflect.Pointer {
 			return NewUnmarshalGoError(raw, _v)
 		}
+		// A present option carrying null: allocate the outer pointer but leave
+		// the inner one nil, without descending.
+		if s, ok := raw.(Some); ok {
+			ptr := reflect.New(v.Type().Elem())
+			if s.Value != nil {
+				if err := UnmarshalGo(o.Type, s.Value, ptr.Interface()); err != nil {
+					v.Set(reflect.Zero(v.Type()))
+					return nil
+				}
+			}
+			v.Set(ptr)
+			return nil
+		}
 		// Any type is a subtype of an option: a value the receiver cannot
 		// interpret (an added variant tag, a changed constituent type) is
 		// seen as null rather than being an error.
 		ptr := reflect.New(v.Type().Elem())
 		if err := UnmarshalGo(o.Type, raw, ptr.Interface()); err != nil {
+			v.Set(reflect.Zero(v.Type()))
+			return nil
+		}
+		// A nested opt degrades in its own frame and reports success. Absent a
+		// Some marker the value was not a received null, so a nil here means the
+		// child dropped it: collapse rather than wrap it in a non-nil pointer.
+		if _, nested := o.Type.(*OptionalType); nested && ptr.Elem().IsNil() {
 			v.Set(reflect.Zero(v.Type()))
 			return nil
 		}

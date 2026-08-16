@@ -1,6 +1,7 @@
 package idl_test
 
 import (
+	"bytes"
 	"errors"
 	"testing"
 
@@ -219,11 +220,6 @@ func TestFixOptTypeChangeDegradesToNull(t *testing.T) {
 // wrapping a nil inner one: the latter nil-derefs any caller that treats a
 // non-nil outer as "value present".
 func TestFixOptNestedTypeChangeDegradesToNull(t *testing.T) {
-	// Blocked on the decode side: OptionalType.Decode returns bare nil for both
-	// `null` (0x00) and `opt null` (0x01 0x00), so UnmarshalGo cannot tell a
-	// degraded value from a legitimately-received inner null.
-	t.Skip("needs a decode-side marker for `present, containing null`")
-
 	type optOptNatRec struct {
 		V **uint64 `ic:"v,omitempty" json:"v,omitempty"`
 	}
@@ -265,5 +261,66 @@ func TestOptNullEncodesDistinctlyFromNull(t *testing.T) {
 	}
 	if string(optNull) == string(null) {
 		t.Fatalf("opt(null) and null encode identically: %x", optNull)
+	}
+}
+
+// The counterpart to the degrade case: an inner null the sender really did
+// transmit must survive as a non-nil outer pointer, not collapse to null.
+func TestOptNullRoundTrips(t *testing.T) {
+	type optOptNatRec struct {
+		V **uint64 `ic:"v,omitempty" json:"v,omitempty"`
+	}
+
+	var inner *uint64
+	bs, err := candid.Marshal([]any{optOptNatRec{V: &inner}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var got optOptNatRec
+	if err := candid.Unmarshal(bs, []any{&got}); err != nil {
+		t.Fatal(err)
+	}
+	if got.V == nil {
+		t.Fatal("opt(null) collapsed to null")
+	}
+	if *got.V != nil {
+		t.Fatalf("expected inner nil, got %d", **got.V)
+	}
+}
+
+// Value bytes from the "nested opt" block of dfinity/candid
+// test/construct.test.did, at type (opt opt bool).
+func TestNestedOptUpstreamVectors(t *testing.T) {
+	oob := idl.NewOptionalType(idl.NewOptionalType(new(idl.BoolType)))
+	f := false
+	pf := &f
+	var pnil *bool
+
+	for _, tc := range []struct {
+		name string
+		val  any
+		enc  []byte
+		raw  any
+	}{
+		{"null", nil, []byte{0x00}, nil},
+		{"opt null", &pnil, []byte{0x01, 0x00}, idl.Some{}},
+		{"opt opt false", &pf, []byte{0x01, 0x01, 0x00}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			bs, err := oob.EncodeValue(tc.val)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !bytes.Equal(bs, tc.enc) {
+				t.Errorf("encode = %x, want %x", bs, tc.enc)
+			}
+			raw, err := oob.Decode(bytes.NewReader(tc.enc))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if raw != tc.raw {
+				t.Errorf("decode = %#v, want %#v", raw, tc.raw)
+			}
+		})
 	}
 }

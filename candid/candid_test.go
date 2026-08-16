@@ -262,3 +262,39 @@ func TestRecordSubtyping(t *testing.T) {
 		}
 	})
 }
+
+// A present option carrying null renders as `opt null`, not as the internal
+// marker value.
+func TestDecodeValueStringOptNull(t *testing.T) {
+	type optOptBoolRec struct {
+		V **bool `ic:"v,omitempty" json:"v,omitempty"`
+	}
+
+	f := false
+	pf := &f
+	var pnil *bool
+
+	for _, tc := range []struct {
+		name string
+		val  **bool
+		want string
+	}{
+		{"null", nil, "(record { 118 = opt null })"},
+		{"opt null", &pnil, "(record { 118 = opt null })"},
+		{"opt opt false", &pf, "(record { 118 = opt opt false })"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			bs, err := candid.Marshal([]any{optOptBoolRec{V: tc.val}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			s, err := candid.DecodeValueString(bs)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if s != tc.want {
+				t.Errorf("got %q, want %q", s, tc.want)
+			}
+		})
+	}
+}
