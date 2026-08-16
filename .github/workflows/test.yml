@@ -6,5 +6,5 @@ jobs:
       - uses: actions/checkout@v4
       # The dev shell pins both the go toolchain and the upstream candid
       # conformance vectors (CANDID_TEST_DIR), which the idl tests require.
-      - uses: cachix/install-nix-action@v31
+      - uses: cachix/install-nix-action@630ae543ea3a38a9a4166f03376c02c50f408342 # v31.11.0
       - run: nix develop --command make test

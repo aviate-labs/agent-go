@@ -1,32 +1,28 @@
-.PHONY: test test-cover gen gen-ic fmt
+.PHONY: test test-cover gen fmt
+
+# The candid conformance tests read CANDID_TEST_DIR, which the dev shell
+# exports along with the pinned go and golangci-lint. Re-enter it unless we are
+# already inside one: CI runs `nix develop --command make ...`, which sets
+# IN_NIX_SHELL.
+ifdef IN_NIX_SHELL
+NIX :=
+else
+NIX := nix develop --command
+endif
 
 test:
-	go test -v -cover ./...
-
-test-registry:
-	REGISTRY_TEST_ENABLE=true go test -v -cover ./clients/registry/...
-
-test-ledger:
-	LEDGER_TEST_ENABLE=true go test -v -cover ./clients/ledger/...
-
-test-all:
-	REGISTRY_TEST_ENABLE=true LEDGER_TEST_ENABLE=true go test -v -cover ./...
-
-check-moc:
-	find ic -type f -name '*.mo' -print0 | xargs -0 $(shell dfx cache show)/moc --check
+	$(NIX) go test -v -cover ./...
 
 test-cover:
-	go test -v -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out
+	$(NIX) go test -v -coverprofile=coverage.out ./...
+	$(NIX) go tool cover -html=coverage.out
 
 gen:
-	cd candid/internal && go generate
-	cd certification/http/certexp && go generate
-	cd clients/ledger && go generate
-	cd clients/registry && go generate
+	cd candid/internal && $(NIX) go generate
+	cd certification/http/certexp && $(NIX) go generate
 
 fmt:
-	go mod tidy
-	gofmt -s -w .
-	go fix ./...
-	golangci-lint run ./...
+	$(NIX) go mod tidy
+	$(NIX) gofmt -s -w .
+	$(NIX) go fix ./...
+	$(NIX) golangci-lint run ./...
