@@ -79,7 +79,14 @@ func (o OptionalType) EncodeValue(v any) ([]byte, error) {
 		if v.IsNil() {
 			return []byte{0x00}, nil
 		}
-		return o.EncodeValue(v.Elem().Interface())
+		// Unwrap one level only: each pointer level corresponds to one opt, so
+		// recursing on o here would let the outer opt swallow the inner one and
+		// encode `opt null` the same as `null`.
+		v_, err := o.Type.EncodeValue(v.Elem().Interface())
+		if err != nil {
+			return nil, err
+		}
+		return append([]byte{0x01}, v_...), nil
 	}
 	v_, err := o.Type.EncodeValue(v)
 	if err != nil {
@@ -122,13 +129,13 @@ func (o OptionalType) UnmarshalGo(raw any, _v any) error {
 		if k := v.Kind(); k != reflect.Pointer {
 			return NewUnmarshalGoError(raw, _v)
 		}
-		if !v.IsNil() {
-			// No need to allocate a new pointer.
-			return UnmarshalGo(o.Type, raw, v.Interface())
-		}
-		ptr := reflect.New(v.Type().Elem()) // Create a new pointer.
+		// Any type is a subtype of an option: a value the receiver cannot
+		// interpret (an added variant tag, a changed constituent type) is
+		// seen as null rather than being an error.
+		ptr := reflect.New(v.Type().Elem())
 		if err := UnmarshalGo(o.Type, raw, ptr.Interface()); err != nil {
-			return err
+			v.Set(reflect.Zero(v.Type()))
+			return nil
 		}
 		v.Set(ptr)
 		return nil
