@@ -62,17 +62,17 @@ func TestRecordType_UnmarshalGo(t *testing.T) {
 	}
 	t.Run("map", func(t *testing.T) {
 		var m map[string]any
-		if err := idl.UnmarshalGo(idl.RecordType{}, make(map[string]any), &m); err != nil {
+		if err := idl.UnmarshalGo(&idl.RecordType{}, make(map[string]any), &m); err != nil {
 			t.Fatal(err)
 		}
-		if err := idl.UnmarshalGo(idl.RecordType{}, struct{}{}, &m); err != nil {
+		if err := idl.UnmarshalGo(&idl.RecordType{}, struct{}{}, &m); err != nil {
 			t.Fatal(err)
 		}
-		if err := idl.UnmarshalGo(idl.RecordType{}, make(map[string]idl.Nat), &m); err != nil {
+		if err := idl.UnmarshalGo(&idl.RecordType{}, make(map[string]idl.Nat), &m); err != nil {
 			t.Fatal(err)
 		}
 
-		rt := idl.RecordType{
+		rt := &idl.RecordType{
 			Fields: []idl.FieldType{
 				{
 					Name: "foo",
@@ -103,11 +103,11 @@ func TestRecordType_UnmarshalGo(t *testing.T) {
 		}
 
 		// Nested records.
-		if err := idl.UnmarshalGo(idl.RecordType{
+		if err := idl.UnmarshalGo(&idl.RecordType{
 			Fields: []idl.FieldType{
 				{
 					Name: "foo",
-					Type: idl.RecordType{
+					Type: &idl.RecordType{
 						Fields: []idl.FieldType{
 							{
 								Name: "bar",
@@ -133,17 +133,17 @@ func TestRecordType_UnmarshalGo(t *testing.T) {
 			Foo string
 			Bar idl.Int
 		}
-		if err := idl.UnmarshalGo(idl.RecordType{}, make(map[string]any), &s); err != nil {
+		if err := idl.UnmarshalGo(&idl.RecordType{}, make(map[string]any), &s); err != nil {
 			t.Fatal(err)
 		}
-		if err := idl.UnmarshalGo(idl.RecordType{}, struct{}{}, &s); err != nil {
+		if err := idl.UnmarshalGo(&idl.RecordType{}, struct{}{}, &s); err != nil {
 			t.Fatal(err)
 		}
-		if err := idl.UnmarshalGo(idl.RecordType{}, make(map[string]idl.Nat), &s); err != nil {
+		if err := idl.UnmarshalGo(&idl.RecordType{}, make(map[string]idl.Nat), &s); err != nil {
 			t.Fatal(err)
 		}
 
-		rt := idl.RecordType{
+		rt := &idl.RecordType{
 			Fields: []idl.FieldType{
 				{
 					Name: "foo",
@@ -173,7 +173,7 @@ func TestRecordType_UnmarshalGo(t *testing.T) {
 			}
 		}
 
-		rn := idl.RecordType{
+		rn := &idl.RecordType{
 			Fields: []idl.FieldType{
 				{
 					Name: "foo",
@@ -181,8 +181,8 @@ func TestRecordType_UnmarshalGo(t *testing.T) {
 				},
 				{
 					Name: "bar",
-					Type: idl.OptionalType{
-						Type: idl.RecordType{},
+					Type: &idl.OptionalType{
+						Type: &idl.RecordType{},
 					},
 				},
 			},
@@ -200,7 +200,7 @@ func TestRecordType_UnmarshalGo(t *testing.T) {
 	})
 
 	var a any
-	expectErr(t, idl.UnmarshalGo(idl.VectorType{
+	expectErr(t, idl.UnmarshalGo(&idl.VectorType{
 		Type: idl.NullType{},
 	}, true, &a))
 }

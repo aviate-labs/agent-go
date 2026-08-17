@@ -68,7 +68,10 @@ func (f FloatType) Base() uint {
 }
 
 // Decode decodes a float value from the given reader.
-func (f FloatType) Decode(r *bytes.Reader) (any, error) {
+func (f FloatType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costValue); err != nil {
+		return nil, err
+	}
 	switch f.size {
 	case 4:
 		v := make([]byte, f.size)

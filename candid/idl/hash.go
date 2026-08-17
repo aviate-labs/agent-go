@@ -8,9 +8,9 @@ func Hash(s string) *big.Int {
 	h := big.NewInt(0)
 	i := big.NewInt(2)
 	i = i.Exp(i, big.NewInt(32), nil)
-	for _, r := range s {
+	for _, b := range []byte(s) {
 		h = h.Mul(h, big.NewInt(223))
-		h = h.Add(h, big.NewInt(int64(r)))
+		h = h.Add(h, big.NewInt(int64(b)))
 		h = h.Mod(h, i)
 	}
 	return h

@@ -39,7 +39,7 @@ func TestVariantType_UnmarshalGo(t *testing.T) {
 		}
 	}
 	t.Run("map", func(t *testing.T) {
-		result := idl.VariantType{
+		result := &idl.VariantType{
 			Fields: []idl.FieldType{
 				{
 					Name: "ok",
@@ -72,7 +72,7 @@ func TestVariantType_UnmarshalGo(t *testing.T) {
 		}
 	})
 	t.Run("struct", func(t *testing.T) {
-		result := idl.VariantType{
+		result := &idl.VariantType{
 			Fields: []idl.FieldType{
 				{
 					Name: "ok",
@@ -130,7 +130,7 @@ func TestVariantType_UnmarshalGo(t *testing.T) {
 	})
 
 	var a any
-	expectErr(t, idl.UnmarshalGo(idl.VectorType{
+	expectErr(t, idl.UnmarshalGo(&idl.VectorType{
 		Type: idl.NullType{},
 	}, true, &a))
 }

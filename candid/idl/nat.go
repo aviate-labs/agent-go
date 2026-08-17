@@ -186,7 +186,10 @@ func (n NatType) Base() uint {
 }
 
 // Decode decodes an unsigned integer from the given reader.
-func (n NatType) Decode(r *bytes.Reader) (any, error) {
+func (n NatType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costValue); err != nil {
+		return nil, err
+	}
 	switch n.size {
 	case 0:
 		bi, err := leb128.DecodeUnsigned(r)

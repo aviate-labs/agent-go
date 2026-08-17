@@ -25,12 +25,15 @@ type RecursiveType struct {
 }
 
 // NewRecursiveType creates an unresolved placeholder with the given name.
-// Call setInner once the real type is built.
+// Call SetInner once the real type is built.
 func NewRecursiveType(name string) *RecursiveType {
 	return &RecursiveType{name: name}
 }
 
-func (r *RecursiveType) setInner(t Type) { r.inner = t }
+func (r *RecursiveType) SetInner(t Type) { r.inner = t }
+
+// Inner returns the resolved type, or nil while still a placeholder.
+func (r *RecursiveType) Inner() Type { return r.inner }
 
 // Used reports whether this placeholder was referenced during type expansion,
 // i.e. whether the type is genuinely recursive.
@@ -75,8 +78,11 @@ func (r *RecursiveType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
-func (r *RecursiveType) Decode(reader *bytes.Reader) (any, error) {
-	return r.inner.Decode(reader)
+func (r *RecursiveType) Decode(reader *bytes.Reader, budget *Budget) (any, error) {
+	if r.inner == nil {
+		return nil, r.unresolved()
+	}
+	return r.inner.Decode(reader, budget)
 }
 
 func (r *RecursiveType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
@@ -87,19 +93,35 @@ func (r *RecursiveType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	if idx, ok := tdt.Indexes[r.String()]; ok {
 		return leb128.EncodeSigned(big.NewInt(int64(idx)))
 	}
+	if r.inner == nil {
+		return nil, r.unresolved()
+	}
 	return r.inner.EncodeType(tdt)
 }
 
 func (r *RecursiveType) EncodeValue(v any) ([]byte, error) {
+	if r.inner == nil {
+		return nil, r.unresolved()
+	}
 	return r.inner.EncodeValue(v)
 }
 
 func (r *RecursiveType) UnmarshalGo(raw any, v any) error {
+	if r.inner == nil {
+		return r.unresolved()
+	}
 	return r.inner.UnmarshalGo(raw, v)
 }
 
 func (r *RecursiveType) Read(reader *bytes.Reader) ([]byte, error) {
+	if r.inner == nil {
+		return nil, r.unresolved()
+	}
 	return r.inner.Read(reader)
+}
+
+func (r *RecursiveType) unresolved() error {
+	return fmt.Errorf("unresolved recursive type: %s", r.name)
 }
 
 func (r *RecursiveType) String() string {

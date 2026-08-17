@@ -9,7 +9,7 @@ import (
 	"github.com/aviate-labs/agent-go/candid/idl"
 )
 
-func ExampleOpt() {
+func ExampleOptionalType() {
 	var optNat = idl.NewOptionalType(new(idl.NatType))
 	test([]idl.Type{optNat}, []any{nil})
 	test([]idl.Type{optNat}, []any{idl.NewNat(uint(1))})
@@ -18,8 +18,8 @@ func ExampleOpt() {
 	// 4449444c016e7d01000101
 }
 
-func ExampleOpt_blob() {
-	var optNatArray = idl.NewOptionalType(idl.VectorType{Type: idl.Nat8Type()})
+func ExampleOptionalType_blob() {
+	var optNatArray = idl.NewOptionalType(&idl.VectorType{Type: idl.Nat8Type()})
 	test([]idl.Type{optNatArray}, []any{nil})
 	test([]idl.Type{optNatArray}, []any{[]byte{0x00}})
 	// Output:
@@ -28,7 +28,7 @@ func ExampleOpt_blob() {
 }
 
 func TestOptionalType_UnmarshalGo(t *testing.T) {
-	if err := idl.UnmarshalGo(idl.OptionalType{
+	if err := idl.UnmarshalGo(&idl.OptionalType{
 		Type: new(idl.NullType),
 	}, nil, new(idl.Null)); err != nil {
 		t.Fatal(err)
@@ -36,7 +36,7 @@ func TestOptionalType_UnmarshalGo(t *testing.T) {
 
 	var nat *idl.Nat
 	for range 3 {
-		if err := idl.UnmarshalGo(idl.OptionalType{
+		if err := idl.UnmarshalGo(&idl.OptionalType{
 			Type: new(idl.NatType),
 		}, uint(1), &nat); err != nil {
 			t.Fatal(err)
@@ -50,7 +50,7 @@ func TestOptionalType_UnmarshalGo(t *testing.T) {
 	}
 
 	var a any
-	if err := idl.UnmarshalGo(idl.OptionalType{
+	if err := idl.UnmarshalGo(&idl.OptionalType{
 		Type: new(idl.NullType),
 	}, "", &a); err == nil {
 		t.Fatal("expected error")
@@ -63,7 +63,7 @@ func TestOptionalType_UnmarshalGo(t *testing.T) {
 
 	t.Run("Blob", func(t *testing.T) {
 		var bs *[]byte
-		if err := idl.UnmarshalGo(idl.OptionalType{
+		if err := idl.UnmarshalGo(&idl.OptionalType{
 			Type: idl.NewVectorType(idl.Nat8Type()),
 		}, []any{byte(0x00)}, &bs); err != nil {
 			t.Error(err)
@@ -314,7 +314,7 @@ func TestNestedOptUpstreamVectors(t *testing.T) {
 			if !bytes.Equal(bs, tc.enc) {
 				t.Errorf("encode = %x, want %x", bs, tc.enc)
 			}
-			raw, err := oob.Decode(bytes.NewReader(tc.enc))
+			raw, err := oob.Decode(bytes.NewReader(tc.enc), nil)
 			if err != nil {
 				t.Fatal(err)
 			}

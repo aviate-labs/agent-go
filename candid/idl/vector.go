@@ -19,7 +19,12 @@ func NewVectorType(t Type) *VectorType {
 	}
 }
 
-func (vec VectorType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+func (vec *VectorType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+	leave, ok := tdt.enter(vec)
+	if !ok {
+		return nil
+	}
+	defer leave()
 	if err := vec.Type.AddTypeDefinition(tdt); err != nil {
 		return err
 	}
@@ -36,14 +41,27 @@ func (vec VectorType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
-func (vec VectorType) Decode(r *bytes.Reader) (any, error) {
-	n, err := decodeLen(r)
+func (vec *VectorType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costComposite); err != nil {
+		return nil, err
+	}
+	zeroWidth := isZeroWidth(vec.Type)
+	n, err := decodeLenOf(r, vec.Type, zeroWidth, budget)
 	if err != nil {
+		return nil, err
+	}
+	// Charge for the elements before allocating for them: a length that no
+	// payload could justify has to fail here, not after the make().
+	charge := func(n int) error { return budget.Spend(n * costVecElem) }
+	if zeroWidth {
+		charge = budget.SpendZeroWidth
+	}
+	if err := charge(n); err != nil {
 		return nil, err
 	}
 	vs := make([]any, n)
 	for i := range vs {
-		v_, err := vec.Type.Decode(r)
+		v_, err := vec.Type.Decode(r, budget)
 		if err != nil {
 			return nil, err
 		}
@@ -52,7 +70,7 @@ func (vec VectorType) Decode(r *bytes.Reader) (any, error) {
 	return vs, nil
 }
 
-func (vec VectorType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
+func (vec *VectorType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	idx, ok := tdt.Indexes[vec.String()]
 	if !ok {
 		return nil, fmt.Errorf("missing type index for: %s", vec)
@@ -60,7 +78,7 @@ func (vec VectorType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	return leb128.EncodeSigned(big.NewInt(int64(idx)))
 }
 
-func (vec VectorType) EncodeValue(v any) ([]byte, error) {
+func (vec *VectorType) EncodeValue(v any) ([]byte, error) {
 	vs_, ok := v.([]any)
 	if !ok {
 		v_ := reflect.ValueOf(v)
@@ -88,7 +106,7 @@ func (vec VectorType) EncodeValue(v any) ([]byte, error) {
 	return append(l, vs...), nil
 }
 
-func (vec VectorType) Read(r *bytes.Reader) ([]byte, error) {
+func (vec *VectorType) Read(r *bytes.Reader) ([]byte, error) {
 	raw, err := readLEB128(r)
 	if err != nil {
 		return nil, err
@@ -112,11 +130,19 @@ func (vec VectorType) Read(r *bytes.Reader) ([]byte, error) {
 	return bs, nil
 }
 
-func (vec VectorType) String() string {
-	return fmt.Sprintf("vec %s", vec.Type)
+func (vec *VectorType) String() string {
+	return typeString(vec, nil)
 }
 
-func (vec VectorType) UnmarshalGo(raw any, _v any) error {
+func (vec *VectorType) elided() string { return "vec" }
+
+// stringSeen keeps the enclosing composites in view: a cycle may run through a
+// vector, and %s on the element would start a fresh walk that never ends.
+func (vec *VectorType) stringSeen(seen []Type) string {
+	return fmt.Sprintf("vec %s", typeString(vec.Type, seen))
+}
+
+func (vec *VectorType) UnmarshalGo(raw any, _v any) error {
 	v, ok := checkIsPtr(_v)
 	if !ok {
 		return NewUnmarshalGoError(raw, _v)

@@ -16,7 +16,7 @@ type EmptyType struct {
 }
 
 // Decode returns an error, as the empty type cannot be decoded.
-func (EmptyType) Decode(*bytes.Reader) (any, error) {
+func (EmptyType) Decode(*bytes.Reader, *Budget) (any, error) {
 	return nil, fmt.Errorf("cannot decode empty type")
 }
 

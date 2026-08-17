@@ -29,7 +29,7 @@ func TestVectorType_UnmarshalGo(t *testing.T) {
 	}
 	t.Run("slice", func(t *testing.T) {
 		var nv = []idl.Null{{}}
-		if err := idl.UnmarshalGo(idl.VectorType{
+		if err := idl.UnmarshalGo(&idl.VectorType{
 			Type: idl.NullType{},
 		}, nil, &nv); err != nil {
 			t.Fatal(err)
@@ -38,7 +38,7 @@ func TestVectorType_UnmarshalGo(t *testing.T) {
 			t.Error(nv)
 		}
 
-		if err := idl.UnmarshalGo(idl.VectorType{
+		if err := idl.UnmarshalGo(&idl.VectorType{
 			Type: idl.NullType{},
 		}, []any{idl.Null{}, nil}, &nv); err != nil {
 			t.Fatal(err)
@@ -47,7 +47,7 @@ func TestVectorType_UnmarshalGo(t *testing.T) {
 			t.Error(nv)
 		}
 
-		if err := idl.UnmarshalGo(idl.VectorType{
+		if err := idl.UnmarshalGo(&idl.VectorType{
 			Type: idl.NullType{},
 		}, [1]idl.Null{{}}, &nv); err != nil {
 			t.Fatal(err)
@@ -57,42 +57,42 @@ func TestVectorType_UnmarshalGo(t *testing.T) {
 		}
 
 		var a any
-		expectErr(t, idl.UnmarshalGo(idl.VectorType{
+		expectErr(t, idl.UnmarshalGo(&idl.VectorType{
 			Type: idl.NullType{},
 		}, true, &a))
 	})
 	t.Run("array", func(t *testing.T) {
 		var nv = [1]idl.Int{}
-		if err := idl.UnmarshalGo(idl.VectorType{
+		if err := idl.UnmarshalGo(&idl.VectorType{
 			Type: idl.IntType{},
 		}, nil, &nv); err != nil {
 			t.Fatal(err)
 		}
 
-		if err := idl.UnmarshalGo(idl.VectorType{
+		if err := idl.UnmarshalGo(&idl.VectorType{
 			Type: idl.IntType{},
 		}, []any{0}, &nv); err != nil {
 			t.Fatal(err)
 		}
 
-		if err := idl.UnmarshalGo(idl.VectorType{
+		if err := idl.UnmarshalGo(&idl.VectorType{
 			Type: idl.IntType{},
 		}, [1]idl.Int{idl.NewInt(0)}, &nv); err != nil {
 			t.Fatal(err)
 		}
 
-		expectErr(t, idl.UnmarshalGo(idl.VectorType{
+		expectErr(t, idl.UnmarshalGo(&idl.VectorType{
 			Type: idl.IntType{},
 		}, []any{}, &nv))
 
-		expectErr(t, idl.UnmarshalGo(idl.VectorType{
+		expectErr(t, idl.UnmarshalGo(&idl.VectorType{
 			Type: idl.IntType{},
 		}, [2]any{}, &nv))
 	})
 }
 
 func TestVectorType_empty(t *testing.T) {
-	typ := idl.VectorType{Type: idl.Nat8Type()}
+	typ := &idl.VectorType{Type: idl.Nat8Type()}
 
 	var x []byte
 	t.Run("non-nil", func(t *testing.T) {

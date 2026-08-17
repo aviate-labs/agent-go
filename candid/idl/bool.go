@@ -13,7 +13,10 @@ type BoolType struct {
 }
 
 // Decode decodes a bool value from the given reader.
-func (b BoolType) Decode(r *bytes.Reader) (any, error) {
+func (b BoolType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costValue); err != nil {
+		return nil, err
+	}
 	v, err := r.ReadByte()
 	if err != nil {
 		return nil, err
@@ -24,7 +27,7 @@ func (b BoolType) Decode(r *bytes.Reader) (any, error) {
 	case 0x01:
 		return true, nil
 	default:
-		return nil, fmt.Errorf("invalid bool values: %x", b)
+		return nil, fmt.Errorf("invalid bool values: %x", v)
 	}
 }
 

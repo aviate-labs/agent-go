@@ -67,33 +67,11 @@ func convertService(n *parser.Node) Service {
 				if isComment(n) {
 					continue
 				}
-
-				cs := n.Children()
-
-				name := nameValue(cs[0])
-				switch n := cs[len(cs)-1]; n.Name {
-				case candid.FuncType.Name:
-					f := convertFunc(n)
-					actor.Methods = append(
-						actor.Methods,
-						Method{
-							Name: name,
-							Func: &f,
-						},
-					)
-				case candid.Id.Name, candid.Text.Name:
-					id := n.Value()
-					actor.Methods = append(
-						actor.Methods,
-						Method{
-							Name: name,
-							ID:   &id,
-						},
-					)
-				default:
-					panic(n)
-				}
+				actor.Methods = append(actor.Methods, convertMethod(n))
 			}
+		case candid.MethType.Name:
+			// A bare method list, without the surrounding actor type.
+			actor.Methods = append(actor.Methods, convertMethod(n))
 		default:
 			panic(n)
 		}
@@ -115,4 +93,19 @@ func (a Service) String() string {
 		s += fmt.Sprintf("  %s;\n", m.String())
 	}
 	return s + "}"
+}
+
+func convertMethod(n *parser.Node) Method {
+	cs := n.Children()
+	name := nameValue(cs[0])
+	switch n := cs[len(cs)-1]; n.Name {
+	case candid.FuncType.Name:
+		f := convertFunc(n)
+		return Method{Name: name, Func: &f}
+	case candid.Id.Name, candid.Text.Name:
+		id := n.Value()
+		return Method{Name: name, ID: &id}
+	default:
+		panic(n)
+	}
 }

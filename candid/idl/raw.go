@@ -17,7 +17,7 @@ func (r RawMessage) Unmarshal(_v any) error {
 	if err != nil {
 		return err
 	}
-	vs, err := t.Decode(bytes.NewReader(r))
+	vs, err := t.Decode(bytes.NewReader(r), NewBudget(DefaultDecodingQuota))
 	if err != nil {
 		return err
 	}

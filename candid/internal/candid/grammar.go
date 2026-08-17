@@ -15,9 +15,9 @@ var (
 	Actor            = op.Capture{Name: "Actor", Value: op.And{"service", op.Optional{Value: op.And{Sp, Id}}, OSp, ':', Sp, op.Optional{Value: op.And{TupType, Sp, "->", OWs}}, op.Or{ActorType, Id}}}
 	ActorType        = op.Capture{Name: "ActorType", Value: op.And{'{', OWs, op.Optional{Value: op.And{MethType, op.ZeroOrMore{Value: op.And{';', OWs, MethType}}, op.Optional{Value: ';'}, OWs}}, '}'}}
 	MethType         = op.Capture{Name: "MethType", Value: op.And{Name, OSp, ':', OWs, op.Or{FuncType, Id}}}
-	FuncType         = op.Capture{Name: "FuncType", Value: op.And{TupType, op.Optional{Value: op.And{Sp, "->", OWs, TupType, op.Optional{Value: op.And{Sp, FuncAnn}}}}}}
+	FuncType         = op.Capture{Name: "FuncType", Value: op.And{TupType, op.Optional{Value: op.And{OWs, "->", OWs, TupType, op.Optional{Value: op.And{Sp, FuncAnn}}}}}}
 	FuncAnn          = op.Capture{Name: "FuncAnn", Value: op.Or{"oneway", "query", "composite_query"}}
-	TupType          = op.Capture{Name: "TupType", Value: op.Or{op.And{'(', OWs, op.Optional{Value: op.And{ArgType, op.ZeroOrMore{Value: op.And{',', Sp, ArgType}}, op.Optional{Value: op.And{',', OWs}}}}, OWs, ')'}, ArgType}}
+	TupType          = op.Capture{Name: "TupType", Value: op.Or{op.And{'(', OWs, op.Optional{Value: op.And{ArgType, op.ZeroOrMore{Value: op.And{',', OWs, ArgType}}, op.Optional{Value: op.And{',', OWs}}}}, OWs, ')'}, ArgType}}
 	ArgType          = op.Capture{Name: "ArgType", Value: op.And{op.Optional{Value: op.And{Name, OSp, ':', Sp}}, DataType}}
 	FieldType        = op.Capture{Name: "FieldType", Value: op.Or{op.And{op.Optional{Value: op.And{op.Or{Nat, Name}, OSp, ':', OWs}}, DataType}, Nat, Name}}
 	DataType         = op.Or{ConsType, RefType, PrimType, Id}
@@ -32,7 +32,7 @@ var (
 	Fields           = op.And{op.Reference{Name: "FieldType"}, op.ZeroOrMore{Value: op.And{';', OWs, op.Reference{Name: "FieldType"}}}, op.Optional{Value: ';'}}
 	RefType          = op.Or{Func, Service, Principal}
 	Func             = op.Capture{Name: "Func", Value: op.And{"func", OSp, op.Reference{Name: "FuncType"}}}
-	Service          = op.Capture{Name: "Service", Value: op.And{"service", Sp, op.Reference{Name: "ActorType"}}}
+	Service          = op.Capture{Name: "Service", Value: op.And{"service", OSp, op.Reference{Name: "ActorType"}}}
 	Principal        = op.Capture{Name: "Principal", Value: "principal"}
 	Name             = op.Or{Id, Text}
 	Id               = op.Capture{Name: "Id", Value: op.And{op.Or{Letter, '_'}, op.ZeroOrMore{Value: op.Or{Letter, Digit, '_'}}}}
@@ -42,8 +42,7 @@ var (
 	HexNum           = op.And{Hex, op.ZeroOrMore{Value: op.And{op.Optional{Value: '_'}, Hex}}}
 	Nat              = op.Capture{Name: "Nat", Value: op.Or{op.And{"0x", HexNum}, Num}}
 	Utf              = op.Or{Ascii, UtfEnc}
-	UtfEnc           = op.Or{op.And{op.RuneRange{Min: 0xC2, Max: 0xDF}, Utfcont}, op.And{rune(0xE0), op.RuneRange{Min: 0xA0, Max: 0xBF}, Utfcont}, op.And{rune(0xED), op.RuneRange{Min: 0x80, Max: 0x9F}, Utfcont}, op.And{op.RuneRange{Min: 0xE1, Max: 0xEC}, op.Repeat{Min: 2, Max: 2, Value: Utfcont}}, op.And{op.RuneRange{Min: 0xEE, Max: 0xEF}, op.Repeat{Min: 2, Max: 2, Value: Utfcont}}, op.And{rune(0xF0), op.RuneRange{Min: 0x90, Max: 0xBF}, op.Repeat{Min: 2, Max: 2, Value: Utfcont}}, op.And{rune(0xF4), op.RuneRange{Min: 0x80, Max: 0x8F}, op.Repeat{Min: 2, Max: 2, Value: Utfcont}}, op.And{op.RuneRange{Min: 0xF1, Max: 0xF3}, op.Repeat{Min: 3, Max: 3, Value: Utfcont}}}
-	Utfcont          = op.RuneRange{Min: 0x80, Max: 0xBF}
+	UtfEnc           = op.Or{op.RuneRange{Min: 0x7F, Max: 0xD7FF}, op.RuneRange{Min: 0xE000, Max: 0x10FFFF}}
 	Ascii            = op.Or{op.RuneRange{Min: 0x20, Max: 0x21}, op.RuneRange{Min: 0x23, Max: 0x5B}, op.RuneRange{Min: 0x5D, Max: 0x7E}}
 	Escape           = op.Or{'n', 'r', 't', ESC, rune(0x22), rune(0x27)}
 	Letter           = op.Or{op.RuneRange{Min: 0x41, Max: 0x5A}, op.RuneRange{Min: 0x61, Max: 0x7A}}

@@ -46,7 +46,7 @@ func TestRecursiveEncodeType(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TypeOf: %v", err)
 	}
-	tdt := &TypeDefinitionTable{Indexes: make(map[string]int)}
+	tdt := NewTypeDefinitionTable()
 	if err := typ.AddTypeDefinition(tdt); err != nil {
 		t.Fatalf("AddTypeDefinition: %v", err)
 	}
@@ -72,7 +72,7 @@ func TestRecursiveNoDuplicateTableEntries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TypeOf: %v", err)
 	}
-	tdt := &TypeDefinitionTable{Indexes: make(map[string]int)}
+	tdt := NewTypeDefinitionTable()
 	if err := typ.AddTypeDefinition(tdt); err != nil {
 		t.Fatalf("AddTypeDefinition: %v", err)
 	}
@@ -90,7 +90,7 @@ func TestMutualRecursionNoDuplicateTableEntries(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TypeOf: %v", err)
 	}
-	tdt := &TypeDefinitionTable{Indexes: make(map[string]int)}
+	tdt := NewTypeDefinitionTable()
 	if err := typ.AddTypeDefinition(tdt); err != nil {
 		t.Fatalf("AddTypeDefinition: %v", err)
 	}
@@ -108,7 +108,7 @@ func TestRecursiveRoundTrip(t *testing.T) {
 	if err != nil {
 		t.Fatalf("TypeOf: %v", err)
 	}
-	tdt := &TypeDefinitionTable{Indexes: make(map[string]int)}
+	tdt := NewTypeDefinitionTable()
 	if err := typ.AddTypeDefinition(tdt); err != nil {
 		t.Fatalf("AddTypeDefinition: %v", err)
 	}
@@ -118,11 +118,28 @@ func TestRecursiveRoundTrip(t *testing.T) {
 		t.Fatalf("EncodeValue: %v", err)
 	}
 	// Reading back the value bytes with the same type must consume them cleanly.
-	dec, err := typ.Decode(bytes.NewReader(enc))
+	dec, err := typ.Decode(bytes.NewReader(enc), nil)
 	if err != nil {
 		t.Fatalf("Decode: %v", err)
 	}
 	if dec == nil {
 		t.Fatal("decoded nil")
+	}
+}
+
+// Every method must report an unresolved placeholder instead of panicking.
+func TestRecursiveUnresolved(t *testing.T) {
+	r := NewRecursiveType("rec_0")
+	if _, err := r.Read(bytes.NewReader([]byte{0x00})); err == nil {
+		t.Error("Read: expected an error")
+	}
+	if _, err := r.EncodeValue(nil); err == nil {
+		t.Error("EncodeValue: expected an error")
+	}
+	if err := r.UnmarshalGo(nil, new(any)); err == nil {
+		t.Error("UnmarshalGo: expected an error")
+	}
+	if _, err := r.EncodeType(NewTypeDefinitionTable()); err == nil {
+		t.Error("EncodeType: expected an error")
 	}
 }

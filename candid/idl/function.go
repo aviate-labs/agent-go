@@ -50,7 +50,12 @@ func NewFunctionType(argumentTypes []FunctionParameter, returnTypes []FunctionPa
 	}
 }
 
-func (f FunctionType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+func (f *FunctionType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+	leave, ok := tdt.enter(f)
+	if !ok {
+		return nil
+	}
+	defer leave()
 	for _, t := range f.ArgumentParameters {
 		if err := t.Type.AddTypeDefinition(tdt); err != nil {
 			return err
@@ -82,9 +87,11 @@ func (f FunctionType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	for _, t := range f.Annotations {
 		switch t {
 		case "query":
-			vs = []byte{0x01}
+			vs = append(vs, 0x01)
 		case "oneway":
-			vs = []byte{0x02}
+			vs = append(vs, 0x02)
+		case "composite_query":
+			vs = append(vs, 0x03)
 		default:
 			return fmt.Errorf("invalid function annotation: %s", t)
 		}
@@ -94,7 +101,10 @@ func (f FunctionType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
-func (f FunctionType) Decode(r *bytes.Reader) (any, error) {
+func (f *FunctionType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costValue); err != nil {
+		return nil, err
+	}
 	bs := make([]byte, 2)
 	n, err := r.Read(bs)
 	if err != nil {
@@ -103,7 +113,7 @@ func (f FunctionType) Decode(r *bytes.Reader) (any, error) {
 	if n != 2 || bs[0] != 0x01 || bs[1] != 0x01 {
 		return nil, fmt.Errorf("invalid func reference: %d", bs)
 	}
-	l, err := decodeLen(r)
+	l, err := DecodeLen(r)
 	if err != nil {
 		return nil, err
 	}
@@ -117,7 +127,7 @@ func (f FunctionType) Decode(r *bytes.Reader) (any, error) {
 			return nil, fmt.Errorf("invalid principal id: %s", principal.Principal{Raw: pid})
 		}
 	}
-	ml, err := decodeLen(r)
+	ml, err := DecodeLen(r)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +147,7 @@ func (f FunctionType) Decode(r *bytes.Reader) (any, error) {
 	}, nil
 }
 
-func (f FunctionType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
+func (f *FunctionType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	idx, ok := tdt.Indexes[f.String()]
 	if !ok {
 		return nil, fmt.Errorf("missing type index for: %s", f)
@@ -145,7 +155,7 @@ func (f FunctionType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	return leb128.EncodeSigned(big.NewInt(int64(idx)))
 }
 
-func (f FunctionType) EncodeValue(v any) ([]byte, error) {
+func (f *FunctionType) EncodeValue(v any) ([]byte, error) {
 	pm, ok := v.(*PrincipalMethod)
 	if !ok {
 		return nil, NewEncodeValueError(v, FuncOpCode)
@@ -161,7 +171,7 @@ func (f FunctionType) EncodeValue(v any) ([]byte, error) {
 	return concat([]byte{0x01, 0x01}, l, pm.Principal.Raw, lm, []byte(pm.Method)), nil
 }
 
-func (f FunctionType) Read(r *bytes.Reader) ([]byte, error) {
+func (f *FunctionType) Read(r *bytes.Reader) ([]byte, error) {
 	bs := make([]byte, 2)
 	n, err := r.Read(bs)
 	if err != nil {
@@ -217,14 +227,22 @@ func (f FunctionType) Read(r *bytes.Reader) ([]byte, error) {
 	return concat(bs, raw, pid, rawl, m), nil
 }
 
-func (f FunctionType) String() string {
+func (f *FunctionType) String() string {
+	return typeString(f, nil)
+}
+
+func (f *FunctionType) elided() string { return "func" }
+
+// stringSeen keeps the enclosing composites in view: a cycle may run through a
+// func's parameters, and %s on one would start a fresh walk that never ends.
+func (f *FunctionType) stringSeen(seen []Type) string {
 	var args []string
 	for _, t := range f.ArgumentParameters {
-		args = append(args, t.Type.String())
+		args = append(args, typeString(t.Type, seen))
 	}
 	var rets []string
 	for _, t := range f.ReturnParameters {
-		rets = append(rets, t.Type.String())
+		rets = append(rets, typeString(t.Type, seen))
 	}
 	var ann string
 	if len(f.Annotations) != 0 {
@@ -233,7 +251,7 @@ func (f FunctionType) String() string {
 	return fmt.Sprintf("(%s) -> (%s)%s", strings.Join(args, ", "), strings.Join(rets, ", "), ann)
 }
 
-func (f FunctionType) UnmarshalGo(raw any, _v any) error {
+func (f *FunctionType) UnmarshalGo(raw any, _v any) error {
 	pm, ok := raw.(*PrincipalMethod)
 	if !ok {
 		return NewUnmarshalGoError(raw, _v)
@@ -242,7 +260,7 @@ func (f FunctionType) UnmarshalGo(raw any, _v any) error {
 	if !ok {
 		return NewUnmarshalGoError(raw, _v)
 	}
-	v.Types = f
+	v.Types = *f
 	v.Method = *pm
 	return nil
 }

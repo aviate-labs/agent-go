@@ -3,6 +3,7 @@ package idl
 import (
 	"bytes"
 	"fmt"
+	"io"
 
 	"github.com/aviate-labs/agent-go/leb128"
 )
@@ -16,8 +17,11 @@ type FutureType struct {
 	OpCode OpCode
 }
 
-func (FutureType) Decode(r *bytes.Reader) (any, error) {
-	m, err := decodeLen(r)
+func (FutureType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costValue); err != nil {
+		return nil, err
+	}
+	m, err := DecodeLen(r)
 	if err != nil {
 		return nil, err
 	}
@@ -25,7 +29,7 @@ func (FutureType) Decode(r *bytes.Reader) (any, error) {
 		return nil, err
 	}
 	skip := make([]byte, m)
-	if _, err := r.Read(skip); err != nil {
+	if _, err := io.ReadFull(r, skip); err != nil {
 		return nil, err
 	}
 	return nil, nil
@@ -53,7 +57,7 @@ func (FutureType) Read(r *bytes.Reader) ([]byte, error) {
 		return nil, err
 	}
 	body := make([]byte, ml)
-	if _, err := r.Read(body); err != nil {
+	if _, err := io.ReadFull(r, body); err != nil {
 		return nil, err
 	}
 	mEnc, _ := leb128.EncodeUnsigned(m)

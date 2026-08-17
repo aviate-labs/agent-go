@@ -51,7 +51,12 @@ func NewRecordType(fields map[string]Type) *RecordType {
 	return &rec
 }
 
-func (record RecordType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+func (record *RecordType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+	leave, ok := tdt.enter(record)
+	if !ok {
+		return nil
+	}
+	defer leave()
 	for _, f := range record.Fields {
 		if err := f.Type.AddTypeDefinition(tdt); err != nil {
 			return err
@@ -89,10 +94,13 @@ func (record RecordType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
-func (record RecordType) Decode(r *bytes.Reader) (any, error) {
+func (record *RecordType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costComposite); err != nil {
+		return nil, err
+	}
 	rec := make(map[string]any)
 	for _, f := range record.Fields {
-		v, err := f.Type.Decode(r)
+		v, err := f.Type.Decode(r, budget)
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +112,7 @@ func (record RecordType) Decode(r *bytes.Reader) (any, error) {
 	return rec, nil
 }
 
-func (record RecordType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
+func (record *RecordType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	idx, ok := tdt.Indexes[record.String()]
 	if !ok {
 		return nil, fmt.Errorf("missing type index for: %s", record)
@@ -112,7 +120,7 @@ func (record RecordType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	return leb128.EncodeSigned(big.NewInt(int64(idx)))
 }
 
-func (record RecordType) EncodeValue(v any) ([]byte, error) {
+func (record *RecordType) EncodeValue(v any) ([]byte, error) {
 	if v == nil {
 		return nil, nil
 	}
@@ -142,7 +150,7 @@ func (record RecordType) EncodeValue(v any) ([]byte, error) {
 	return vs, nil
 }
 
-func (record RecordType) Read(r *bytes.Reader) ([]byte, error) {
+func (record *RecordType) Read(r *bytes.Reader) ([]byte, error) {
 	var raw []byte
 	for _, f := range record.Fields {
 		bs, err := f.Type.Read(r)
@@ -154,19 +162,25 @@ func (record RecordType) Read(r *bytes.Reader) ([]byte, error) {
 	return raw, nil
 }
 
-func (record RecordType) String() string {
+func (record *RecordType) String() string {
+	return typeString(record, nil)
+}
+
+func (record *RecordType) elided() string { return "record {...}" }
+
+func (record *RecordType) stringSeen(seen []Type) string {
 	var s []string
 	for _, f := range record.Fields {
 		if f.Name == "" {
-			s = append(s, f.Type.String())
+			s = append(s, typeString(f.Type, seen))
 			continue
 		}
-		s = append(s, fmt.Sprintf("%s:%s", f.Name, f.Type.String()))
+		s = append(s, fmt.Sprintf("%s:%s", f.Name, typeString(f.Type, seen)))
 	}
 	return fmt.Sprintf("record {%s}", strings.Join(s, "; "))
 }
 
-func (record RecordType) UnmarshalGo(raw any, _v any) error {
+func (record *RecordType) UnmarshalGo(raw any, _v any) error {
 	if raw == nil && record.Fields == nil {
 		return nil // Empty record.
 	}

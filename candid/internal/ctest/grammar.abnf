@@ -1,5 +1,14 @@
 ; Entry Point
-TestData = 1*(Comment / Test / EndLine)
+; Per the upstream README the root is <def>;* <test>;*.
+TestData = 1*(Comment / Def / Test / EndLine / " " / %x09)
+
+; DataType is the candid grammar's rule, bound by NewTestParser: the abnf
+; generator cannot reference another grammar. Declared self-referentially here
+; so it is emitted as a reference rather than inlined; the body is never used.
+Def      = "type" 1*" " DefId *" " "=" Ws DefType *" " ";"
+DefId    = (%x41-5A / %x61-7A / "_") *(%x41-5A / %x61-7A / %x30-39 / "_")
+DefType  = DataType
+DataType = DataType
 
 ; Comments
 Comment      = ("/*" Ws MultiComment Ws "*/") 
@@ -10,31 +19,27 @@ MultiComment  = *(%x00-29 / %x2B-10FFFF / (%x2A (%x00-2E / %x30-10FFFF)) / EndLi
 Ws      = *(" " / %x09 / EndLine)
 EndLine = %x0A / %x0D / (%x0D %x0A)
 
-Test         = "assert " Input Ws (TestGoodTmpl / TestBadTmpl / TestTest) [1*" " Description] ";"
+; TestNotTmpl precedes TestBadTmpl: "!=" and "!:" share a prefix.
+Test         = "assert " Input Ws (TestGoodTmpl / TestNotTmpl / TestBadTmpl / TestTest) [1*" " Description] ";"
 
-; A Candid service description, with valid candid syntax. Implementations should be able to parse them.
+; The input decodes at the given type.
 TestGoodTmpl = ":" Ws TestGood
 TestGood     = ValuesBr
 
-; A Candid service description, with invalid candid syntax. Implementations should reject parsing them.
+; The input does not decode at the given type.
 TestBadTmpl  = "!:" Ws TestBad
 TestBad      = ValuesBr
 
-; A set of Candid tests, written in a grammar that extends the Candid type and value grammar.
+; Both inputs decode at the given type, and the results are equal.
 TestTest     = "==" Ws Input Ws ":" Ws ValuesBr
-ValuesBr     = "()" / "(" Values *(", " Values) ")"
-Values       = Null / Bool / Nat / Int / Float / Text / Reserved / Empty / Opt
 
-Null  = "null"
-Bool  = "bool"
-Nat   = "nat" [Base]
-Int   = "int" [Base]
-Float = "float" Base
-Base  = 1*digit
-Text  = "text"
-Reserved = "reserved"
-Empty    = "empty"
-Opt      = "opt " Values
+; Both inputs decode at the given type, and the results differ.
+TestNotTmpl  = "!=" Ws TestNot
+TestNot      = Input Ws ":" Ws ValuesBr
+
+; The type an assertion is made at, in the full candid type language.
+ValuesBr     = "()" / "(" Ws AnnType *("," Ws AnnType) Ws ")"
+AnnType      = DataType
 
 Input         = BlobInputTmpl / TextInputTmpl
 TextInputTmpl = %x22 TextInput %x22
@@ -42,7 +47,8 @@ TextInput     = String
 
 BlobInputTmpl = "blob " %x22 BlobInput %x22
 BlobInput     = *(BlobAlpha / "\" BlobHex)
-BlobAlpha = 1*(%x41-5A / %x61-7A) ; A-Z / a-z
+; Any printable literal byte except the quote and the escape introducer.
+BlobAlpha = 1*(%x20-21 / %x23-5B / %x5D-7E)
 BlobHex   = 2*2(%x30-39 / %x41-46 / %x61-66) ; 0-9 / A-F / a-f
 
 Description = %x22 String %x22 ; "
