@@ -3,14 +3,24 @@ package candid
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"math/big"
 	"reflect"
+	"slices"
+	"unicode/utf8"
 
 	"github.com/aviate-labs/agent-go/candid/idl"
 	"github.com/aviate-labs/agent-go/leb128"
 )
 
+// Decode decodes with DefaultDecodingQuota; use DecodeWithQuota to set it.
 func Decode(bs []byte) ([]idl.Type, []any, error) {
+	return DecodeWithQuota(bs, idl.NewBudget(idl.DefaultDecodingQuota))
+}
+
+// DecodeWithQuota is Decode with an explicit budget. Pass
+// idl.NewUnlimitedBudget to lift the ceiling entirely.
+func DecodeWithQuota(bs []byte, budget *idl.Budget) ([]idl.Type, []any, error) {
 	ts, r, err := decodeTypes(bs)
 	if err != nil {
 		return nil, nil, err
@@ -19,7 +29,7 @@ func Decode(bs []byte) ([]idl.Type, []any, error) {
 	var vs []any
 	{ // M
 		for i := range ts {
-			v, err := ts[i].Decode(r)
+			v, err := ts[i].Decode(r, budget)
 			if err != nil {
 				return nil, nil, err
 			}
@@ -33,7 +43,16 @@ func Decode(bs []byte) ([]idl.Type, []any, error) {
 	return ts, vs, nil
 }
 
+// Unmarshal decodes with DefaultDecodingQuota. Its signature is deliberately
+// plain so it stays usable as a func([]byte, []any) error value; use
+// UnmarshalWithQuota to set the quota.
 func Unmarshal(data []byte, values []any) error {
+	return UnmarshalWithQuota(data, values, idl.NewBudget(idl.DefaultDecodingQuota))
+}
+
+// UnmarshalWithQuota is Unmarshal with an explicit budget. Pass
+// idl.NewUnlimitedBudget to lift the ceiling entirely.
+func UnmarshalWithQuota(data []byte, values []any, budget *idl.Budget) error {
 	ts, r, err := decodeTypes(data)
 	if err != nil {
 		return err
@@ -62,7 +81,7 @@ func Unmarshal(data []byte, values []any) error {
 			}
 			*v = bs
 		default:
-			vs, err := ts[i].Decode(r)
+			vs, err := ts[i].Decode(r, budget)
 			if err != nil {
 				return err
 			}
@@ -161,12 +180,12 @@ func decodeTypes(bs []byte) ([]idl.Type, *bytes.Reader, error) {
 				if o >= 0 {
 					return nil, nil, fmt.Errorf("invalid opcode: %d", o)
 				}
-				count, err := leb128.DecodeUnsigned(r)
+				count, err := idl.DecodeLen(r)
 				if err != nil {
 					return nil, nil, err
 				}
-				skip := make([]byte, count.Int64())
-				if _, err := r.Read(skip); err != nil {
+				skip := make([]byte, count)
+				if _, err := io.ReadFull(r, skip); err != nil {
 					return nil, nil, err
 				}
 				tds = append(tds, &idl.FutureType{OpCode: o})
@@ -280,6 +299,19 @@ func decodeTypes(bs []byte) ([]idl.Type, *bytes.Reader, error) {
 					return nil, nil, fmt.Errorf("unable to resolve func: %v", t)
 				}
 			}
+		}
+
+		// Decoding one overflows the stack, which Go cannot recover from.
+		for i, t := range tds {
+			if isEmptyType(t, nil) {
+				tds[i] = new(idl.EmptyType)
+			}
+		}
+	}
+
+	for _, t := range tds {
+		if err := idl.CheckSize(t); err != nil {
+			return nil, nil, err
 		}
 	}
 
@@ -410,17 +442,26 @@ func (tc *typeCache) decodeFuncOpCode(r *bytes.Reader, tds []idl.Type) (idl.Type
 		}
 	}
 
-	l, err := leb128.DecodeUnsigned(r)
+	al, err := idl.DecodeLen(r)
 	if err != nil {
 		return nil, err
 	}
-	ann := make([]byte, l.Int64())
-	if _, err := r.Read(ann); err != nil {
+	ann := make([]byte, al)
+	if _, err := io.ReadFull(r, ann); err != nil {
 		return nil, err
 	}
 	var anns []string
-	if len(ann) != 0 {
-		anns = append(anns, string(ann))
+	for _, a := range ann {
+		switch a {
+		case 0x01:
+			anns = append(anns, "query")
+		case 0x02:
+			anns = append(anns, "oneway")
+		case 0x03:
+			anns = append(anns, "composite_query")
+		default:
+			return nil, fmt.Errorf("invalid function annotation: %d", a)
+		}
 	}
 
 	return &idl.FunctionType{
@@ -467,42 +508,61 @@ func (tc *typeCache) decodeServiceOpCode(r *bytes.Reader, tds []idl.Type) (idl.T
 	if err != nil {
 		return nil, err
 	}
-	var methods []idl.Method
+	var (
+		methods []idl.Method
+		opcodes []idl.OpCode
+	)
 	for i := 0; i < int(l.Int64()); i++ {
-		lm, err := leb128.DecodeUnsigned(r)
+		lm, err := idl.DecodeLen(r)
 		if err != nil {
 			return nil, err
 		}
-		name := make([]byte, lm.Int64())
-		n, err := r.Read(name)
-		if err != nil {
+		name := make([]byte, lm)
+		if _, err := io.ReadFull(r, name); err != nil {
 			return nil, err
 		}
-		if n != int(lm.Int64()) {
-			return nil, fmt.Errorf("invalid method name: %s", name)
+		if !utf8.Valid(name) {
+			return nil, fmt.Errorf("invalid utf8 in method name")
+		}
+		// Methods are sorted by name, so this also rejects duplicates.
+		if len(methods) != 0 && methods[len(methods)-1].Name >= string(name) {
+			return nil, fmt.Errorf("method name %s duplicate or not sorted", name)
 		}
 
 		tid, err := leb128.DecodeSigned(r)
 		if err != nil {
 			return nil, err
 		}
-		o := idl.OpCode(tid.Int64())
-		v, err := o.GetType(tds)
-		if err != nil {
-			return nil, err
-		}
-		f, ok := v.(*idl.FunctionType)
-		if !ok {
-			return nil, fmt.Errorf("invalid method type: %s", reflect.TypeOf(v))
-		}
-		methods = append(methods, idl.Method{
-			Name: string(name),
-			Func: f,
-		})
+		methods = append(methods, idl.Method{Name: string(name)})
+		opcodes = append(opcodes, idl.OpCode(tid.Int64()))
 	}
-	return &idl.Service{
-		Methods: methods,
-	}, nil
+
+	s := &idl.ServiceType{Methods: methods}
+	// A method may refer to a type defined later in the table, so resolve the
+	// signatures once the whole table is known. Commit only once every method
+	// landed: a partial retry would leave nil Funcs behind.
+	f := func(tds []idl.Type) (idl.Type, error) {
+		resolved := make([]idl.Method, len(methods))
+		copy(resolved, methods)
+		for i, o := range opcodes {
+			v, err := o.GetType(tds)
+			if err != nil {
+				return nil, err
+			}
+			fn, ok := v.(*idl.FunctionType)
+			if !ok {
+				return nil, fmt.Errorf("invalid method type: %s", reflect.TypeOf(v))
+			}
+			resolved[i].Func = fn
+		}
+		s.Methods = resolved
+		return s, nil
+	}
+	if v, err := f(tds); err == nil {
+		return v, nil
+	}
+	tc.cache = append(tc.cache, delayType{index: len(tds), f: f})
+	return nil, nil
 }
 
 func (tc *typeCache) decodeVarOpCode(r *bytes.Reader, tds []idl.Type) (idl.Type, error) {
@@ -552,9 +612,59 @@ func (tc *typeCache) resolve(tds []idl.Type) error {
 			}
 		}
 		if !resolved {
-			return fmt.Errorf("failed to resolve all types")
+			// A cycle: what is left refers to a slot that is itself pending.
+			// Placeholders let the rest resolve, then get filled in; restore them
+			// on failure so no inner is left nil.
+			prev := make([]idl.Type, len(tc.cache))
+			var recs []*idl.RecursiveType
+			for i, d := range tc.cache {
+				prev[i] = tds[d.index]
+				rec := idl.NewRecursiveType(fmt.Sprintf("rec_%d", d.index))
+				tds[d.index] = rec
+				recs = append(recs, rec)
+			}
+			for i, d := range tc.cache {
+				v, err := d.f(tds)
+				if v == nil || err != nil {
+					for j, d := range tc.cache {
+						tds[d.index] = prev[j]
+					}
+					return fmt.Errorf("failed to resolve all types")
+				}
+				recs[i].SetInner(v)
+			}
+			tc.cache = nil
+			return nil
 		}
 	}
 
 	return nil
+}
+
+// isEmptyType reports a record that reaches itself through records only: it
+// has no finite value. An opt or vec on the path breaks the cycle.
+func isEmptyType(t idl.Type, seen []idl.Type) bool {
+	if slices.Contains(seen, t) {
+		return true
+	}
+	// resolve() breaks cycles with a RecursiveType, so a record cycle reaches
+	// itself through one rather than directly.
+	if rec, ok := t.(*idl.RecursiveType); ok {
+		inner := rec.Inner()
+		if inner == nil {
+			return false
+		}
+		return isEmptyType(inner, append(seen, t))
+	}
+	rec, ok := t.(*idl.RecordType)
+	if !ok {
+		return false
+	}
+	seen = append(seen, t)
+	for _, f := range rec.Fields {
+		if isEmptyType(f.Type, seen) {
+			return true
+		}
+	}
+	return false
 }

@@ -8,9 +8,9 @@ Actor     = "service" [Sp Id] OSp ":" Sp [TupType Sp "->" OWs] (ActorType / Id)
 
 ActorType = "{" OWs [MethType *(";" OWs MethType) [";"] OWs] "}"
 MethType  = Name OSp ":" OWs (FuncType / Id)
-FuncType  = TupType [Sp "->" OWs TupType [Sp FuncAnn]]
+FuncType  = TupType [OWs "->" OWs TupType [Sp FuncAnn]]
 FuncAnn   = "oneway" / "query" / "composite_query"
-TupType   = "(" OWs [ArgType *("," Sp ArgType) ["," OWs]] OWs ")" / ArgType
+TupType   = "(" OWs [ArgType *("," OWs ArgType) ["," OWs]] OWs ")" / ArgType
 ArgType   = [Name OSp ":" Sp] DataType
 FieldType = [(Nat / Name) OSp ":" OWs] DataType / Nat / Name
 DataType  = ConsType / RefType / PrimType / Id
@@ -36,7 +36,7 @@ Fields    = FieldType *(";" OWs FieldType) [";"]
 
 RefType   = Func / Service / Principal
 Func      = "func" OSp FuncType
-Service   = "service" Sp ActorType
+Service   = "service" OSp ActorType
 Principal = "principal"
 
 Name  = Id / Text
@@ -51,16 +51,10 @@ Num     = digit *(["_"] digit)
 HexNum  = hex *(["_"] hex)
 Nat     = "0x" HexNum / Num
 
+; Code points, not bytes: the parser consumes runes, so a byte-oriented UtfEnc
+; matched nothing. Surrogates excluded.
 Utf       = ascii / UtfEnc
-UtfEnc    = %xC2-DF utfcont
-          / %xE0 %xA0-BF utfcont
-          / %xED %x80-9F utfcont
-          / %xE1-EC 2*2utfcont
-          / %xEE-EF 2*2utfcont
-          / %xF0 %x90-BF 2*2utfcont
-          / %xF4 %x80-8F 2*2utfcont
-          / %xF1-F3 3*3utfcont
-utfcont   = %x80-BF
+UtfEnc    = %x7F-D7FF / %xE000-10FFFF
 
 ascii    = %x20-21 / %x23-5B / %x5D-7E
 escape   = "n" / "r" / "t"

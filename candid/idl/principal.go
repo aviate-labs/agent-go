@@ -3,6 +3,7 @@ package idl
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"math/big"
 
 	"github.com/aviate-labs/agent-go/leb128"
@@ -13,7 +14,10 @@ type PrincipalType struct {
 	primType
 }
 
-func (PrincipalType) Decode(r *bytes.Reader) (any, error) {
+func (PrincipalType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costValue); err != nil {
+		return nil, err
+	}
 	b, err := r.ReadByte()
 	if err != nil {
 		return nil, err
@@ -21,15 +25,15 @@ func (PrincipalType) Decode(r *bytes.Reader) (any, error) {
 	if b != 0x01 {
 		return nil, fmt.Errorf("cannot decode principal")
 	}
-	l, err := leb128.DecodeUnsigned(r)
+	l, err := DecodeLen(r)
 	if err != nil {
 		return nil, err
 	}
-	if l.Uint64() == 0 {
+	if l == 0 {
 		return principal.Principal{Raw: []byte{}}, nil
 	}
-	v := make([]byte, l.Uint64())
-	if _, err := r.Read(v); err != nil {
+	v := make([]byte, l)
+	if _, err := io.ReadFull(r, v); err != nil {
 		return nil, err
 	}
 	return principal.Principal{Raw: v}, nil
@@ -70,8 +74,14 @@ func (PrincipalType) Read(r *bytes.Reader) ([]byte, error) {
 	if l.Uint64() == 0 {
 		return append([]byte{b}, raw...), nil
 	}
-	bs := make([]byte, 1+len(raw)+int(l.Uint64()))
-	if _, err := r.Read(bs[len(raw)+2:]); err != nil {
+	n, err := checkLen(l, r)
+	if err != nil {
+		return nil, err
+	}
+	bs := make([]byte, 1+len(raw)+n)
+	bs[0] = b
+	copy(bs[1:], raw)
+	if _, err := io.ReadFull(r, bs[1+len(raw):]); err != nil {
 		return nil, err
 	}
 	return bs, nil

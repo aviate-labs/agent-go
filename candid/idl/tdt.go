@@ -9,6 +9,12 @@ type TypeDefinitionTable struct {
 	Indexes map[string]int
 }
 
+// NewTypeDefinitionTable returns a table ready to Add to: the zero value has a
+// nil Indexes map, which Add writes to unconditionally.
+func NewTypeDefinitionTable() *TypeDefinitionTable {
+	return &TypeDefinitionTable{Indexes: make(map[string]int)}
+}
+
 func (tdt *TypeDefinitionTable) Add(t Type, bs []byte) {
 	if i := slices.IndexFunc(tdt.Types, func(typ []byte) bool {
 		return slices.Equal(typ, bs)

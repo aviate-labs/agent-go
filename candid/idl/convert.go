@@ -241,7 +241,7 @@ func typeOfType(t reflect.Type, visited map[reflect.Type]*RecursiveType) (Type, 
 		if !rec.Used() {
 			return inner, nil
 		}
-		rec.setInner(inner)
+		rec.SetInner(inner)
 		return rec, nil
 	default:
 		return nil, fmt.Errorf("unknown reflect type: %s", t)

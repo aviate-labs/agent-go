@@ -89,10 +89,13 @@ func (record RecordType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
-func (record RecordType) Decode(r *bytes.Reader) (any, error) {
+func (record RecordType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costComposite); err != nil {
+		return nil, err
+	}
 	rec := make(map[string]any)
 	for _, f := range record.Fields {
-		v, err := f.Type.Decode(r)
+		v, err := f.Type.Decode(r, budget)
 		if err != nil {
 			return nil, err
 		}
@@ -155,13 +158,19 @@ func (record RecordType) Read(r *bytes.Reader) ([]byte, error) {
 }
 
 func (record RecordType) String() string {
+	return typeString(&record, nil)
+}
+
+func (record *RecordType) elided() string { return "record {...}" }
+
+func (record *RecordType) stringSeen(seen []Type) string {
 	var s []string
 	for _, f := range record.Fields {
 		if f.Name == "" {
-			s = append(s, f.Type.String())
+			s = append(s, typeString(f.Type, seen))
 			continue
 		}
-		s = append(s, fmt.Sprintf("%s:%s", f.Name, f.Type.String()))
+		s = append(s, fmt.Sprintf("%s:%s", f.Name, typeString(f.Type, seen)))
 	}
 	return fmt.Sprintf("record {%s}", strings.Join(s, "; "))
 }

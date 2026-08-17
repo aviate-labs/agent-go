@@ -12,7 +12,10 @@ type ReservedType struct {
 	primType
 }
 
-func (ReservedType) Decode(*bytes.Reader) (any, error) {
+func (ReservedType) Decode(_ *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costValue); err != nil {
+		return nil, err
+	}
 	return nil, nil
 }
 

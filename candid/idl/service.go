@@ -3,6 +3,7 @@ package idl
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"math/big"
 	"sort"
 	"strings"
@@ -16,12 +17,12 @@ type Method struct {
 	Func *FunctionType
 }
 
-type Service struct {
+type ServiceType struct {
 	Methods []Method
 }
 
-func NewServiceType(methods map[string]*FunctionType) *Service {
-	var service Service
+func NewServiceType(methods map[string]*FunctionType) *ServiceType {
+	var service ServiceType
 	for k, v := range methods {
 		service.Methods = append(service.Methods, Method{
 			Name: k,
@@ -34,7 +35,7 @@ func NewServiceType(methods map[string]*FunctionType) *Service {
 	return &service
 }
 
-func (s Service) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+func (s ServiceType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	for _, f := range s.Methods {
 		if err := f.Func.AddTypeDefinition(tdt); err != nil {
 			return err
@@ -67,7 +68,10 @@ func (s Service) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
-func (s Service) Decode(r *bytes.Reader) (any, error) {
+func (s ServiceType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costValue); err != nil {
+		return nil, err
+	}
 	{
 		bs := make([]byte, 1)
 		n, err := r.Read(bs)
@@ -78,22 +82,18 @@ func (s Service) Decode(r *bytes.Reader) (any, error) {
 			return nil, fmt.Errorf("invalid func reference: %d", bs)
 		}
 	}
-	l, err := decodeLen(r)
+	l, err := DecodeLen(r)
 	if err != nil {
 		return nil, err
 	}
 	pid := make([]byte, l)
-	n, err := r.Read(pid)
-	if err != nil {
+	if _, err := io.ReadFull(r, pid); err != nil {
 		return nil, err
-	}
-	if n != l {
-		return nil, fmt.Errorf("invalid principal id: %d", pid)
 	}
 	return &principal.Principal{Raw: pid}, nil
 }
 
-func (s Service) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
+func (s ServiceType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	idx, ok := tdt.Indexes[s.String()]
 	if !ok {
 		return nil, fmt.Errorf("missing type index for: %s", s)
@@ -101,7 +101,7 @@ func (s Service) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	return leb128.EncodeSigned(big.NewInt(int64(idx)))
 }
 
-func (s Service) EncodeValue(v any) ([]byte, error) {
+func (s ServiceType) EncodeValue(v any) ([]byte, error) {
 	p, ok := v.(principal.Principal)
 	if !ok {
 		return nil, NewEncodeValueError(v, ServiceOpCode)
@@ -113,7 +113,7 @@ func (s Service) EncodeValue(v any) ([]byte, error) {
 	return concat([]byte{0x01}, l, []byte(p.Raw)), nil
 }
 
-func (s Service) Read(r *bytes.Reader) ([]byte, error) {
+func (s ServiceType) Read(r *bytes.Reader) ([]byte, error) {
 	b, err := r.ReadByte()
 	if err != nil {
 		return nil, err
@@ -146,14 +146,26 @@ func (s Service) Read(r *bytes.Reader) ([]byte, error) {
 	return concat([]byte{b}, raw, pid), nil
 }
 
-func (s Service) String() string {
+func (s ServiceType) String() string {
+	return typeString(&s, nil)
+}
+
+func (s *ServiceType) elided() string { return "service" }
+
+// stringSeen keeps the enclosing composites in view: a cycle may run through a
+// method signature, and %s on one would start a fresh walk that never ends.
+func (s *ServiceType) stringSeen(seen []Type) string {
 	var methods []string
 	for _, m := range s.Methods {
-		methods = append(methods, fmt.Sprintf("%s:%s", m.Name, m.Func.String()))
+		if m.Func == nil {
+			methods = append(methods, fmt.Sprintf("%s:?", m.Name))
+			continue
+		}
+		methods = append(methods, fmt.Sprintf("%s:%s", m.Name, typeString(m.Func, seen)))
 	}
 	return fmt.Sprintf("service {%s}", strings.Join(methods, "; "))
 }
 
-func (Service) UnmarshalGo(raw any, _v any) error {
+func (ServiceType) UnmarshalGo(raw any, _v any) error {
 	return NewUnmarshalGoError(raw, _v)
 }

@@ -15,8 +15,11 @@ type TextType struct {
 }
 
 // Decode decodes the value from the given reader into a string.
-func (TextType) Decode(r *bytes.Reader) (any, error) {
-	n, err := decodeLen(r)
+func (TextType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costValue); err != nil {
+		return nil, err
+	}
+	n, err := DecodeLen(r)
 	if err != nil {
 		return nil, err
 	}

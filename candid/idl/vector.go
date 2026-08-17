@@ -36,14 +36,22 @@ func (vec VectorType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
-func (vec VectorType) Decode(r *bytes.Reader) (any, error) {
-	n, err := decodeLen(r)
+func (vec VectorType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costComposite); err != nil {
+		return nil, err
+	}
+	n, err := decodeLenOf(r, vec.Type, budget)
 	if err != nil {
+		return nil, err
+	}
+	// Charge for the elements before allocating for them: a length that no
+	// payload could justify has to fail here, not after the make().
+	if err := budget.Spend(n * costVecElem); err != nil {
 		return nil, err
 	}
 	vs := make([]any, n)
 	for i := range vs {
-		v_, err := vec.Type.Decode(r)
+		v_, err := vec.Type.Decode(r, budget)
 		if err != nil {
 			return nil, err
 		}
@@ -113,7 +121,15 @@ func (vec VectorType) Read(r *bytes.Reader) ([]byte, error) {
 }
 
 func (vec VectorType) String() string {
-	return fmt.Sprintf("vec %s", vec.Type)
+	return typeString(&vec, nil)
+}
+
+func (vec *VectorType) elided() string { return "vec" }
+
+// stringSeen keeps the enclosing composites in view: a cycle may run through a
+// vector, and %s on the element would start a fresh walk that never ends.
+func (vec *VectorType) stringSeen(seen []Type) string {
+	return fmt.Sprintf("vec %s", typeString(vec.Type, seen))
 }
 
 func (vec VectorType) UnmarshalGo(raw any, _v any) error {

@@ -6,7 +6,7 @@ import (
 	"github.com/aviate-labs/agent-go/candid/idl"
 )
 
-func ExampleBool() {
+func ExampleBoolType() {
 	test([]idl.Type{new(idl.BoolType)}, []any{true})
 	test([]idl.Type{new(idl.BoolType)}, []any{false})
 	test([]idl.Type{new(idl.BoolType)}, []any{0})

@@ -166,8 +166,9 @@ type Type interface {
 	// AddTypeDefinition adds itself to the definition table if it is not a primitive type.
 	AddTypeDefinition(*TypeDefinitionTable) error
 
-	// Decode decodes the value from the reader.
-	Decode(*bytes.Reader) (any, error)
+	// Decode decodes the value from the reader, charging the work against the
+	// budget shared by the whole decode. A nil budget is unmetered.
+	Decode(*bytes.Reader, *Budget) (any, error)
 
 	// EncodeType encodes the type.
 	EncodeType(*TypeDefinitionTable) ([]byte, error)

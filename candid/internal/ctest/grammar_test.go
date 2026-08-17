@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/aviate-labs/agent-go/candid/internal/ctest"
@@ -12,17 +13,28 @@ import (
 func TestData(t *testing.T) {
 	dir := os.Getenv("CANDID_TEST_DIR")
 	if dir == "" {
-		t.Fatal("CANDID_TEST_DIR unset: run tests via `nix develop`")
+		t.Skip("CANDID_TEST_DIR unset: run via `nix develop` for the conformance vectors")
 	}
-	rawDid, err := os.ReadFile(filepath.Join(dir, "prim.test.did"))
+	files, err := filepath.Glob(filepath.Join(dir, "*.test.did"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := ctest.NewParser(bytes.Runes(rawDid))
-	if err != nil {
-		t.Fatal(err)
+	if len(files) == 0 {
+		t.Fatal("no conformance vectors found")
 	}
-	if _, err := p.ParseEOF(ctest.TestData); err != nil {
-		t.Fatal(err)
+	for _, f := range files {
+		t.Run(strings.TrimSuffix(filepath.Base(f), ".test.did"), func(t *testing.T) {
+			raw, err := os.ReadFile(f)
+			if err != nil {
+				t.Fatal(err)
+			}
+			p, err := ctest.NewTestParser(bytes.Runes(raw))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if _, err := p.ParseEOF(ctest.TestData); err != nil {
+				t.Error(err)
+			}
+		})
 	}
 }

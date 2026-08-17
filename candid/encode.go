@@ -14,9 +14,7 @@ func Encode(argumentTypes []idl.Type, arguments []any) ([]byte, error) {
 	}
 
 	// T
-	tdt := &idl.TypeDefinitionTable{
-		Indexes: make(map[string]int),
-	}
+	tdt := idl.NewTypeDefinitionTable()
 	for _, t := range argumentTypes {
 		if err := t.AddTypeDefinition(tdt); err != nil {
 			return nil, err

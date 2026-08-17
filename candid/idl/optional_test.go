@@ -9,7 +9,7 @@ import (
 	"github.com/aviate-labs/agent-go/candid/idl"
 )
 
-func ExampleOpt() {
+func ExampleOptionalType() {
 	var optNat = idl.NewOptionalType(new(idl.NatType))
 	test([]idl.Type{optNat}, []any{nil})
 	test([]idl.Type{optNat}, []any{idl.NewNat(uint(1))})
@@ -18,7 +18,7 @@ func ExampleOpt() {
 	// 4449444c016e7d01000101
 }
 
-func ExampleOpt_blob() {
+func ExampleOptionalType_blob() {
 	var optNatArray = idl.NewOptionalType(idl.VectorType{Type: idl.Nat8Type()})
 	test([]idl.Type{optNatArray}, []any{nil})
 	test([]idl.Type{optNatArray}, []any{[]byte{0x00}})
@@ -314,7 +314,7 @@ func TestNestedOptUpstreamVectors(t *testing.T) {
 			if !bytes.Equal(bs, tc.enc) {
 				t.Errorf("encode = %x, want %x", bs, tc.enc)
 			}
-			raw, err := oob.Decode(bytes.NewReader(tc.enc))
+			raw, err := oob.Decode(bytes.NewReader(tc.enc), nil)
 			if err != nil {
 				t.Fatal(err)
 			}

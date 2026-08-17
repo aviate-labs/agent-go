@@ -33,7 +33,7 @@ func TestDecode_MalformedLength_NoPanic(t *testing.T) {
 					t.Fatalf("PANIC decoding malformed %s: %v", tc.name, rec)
 				}
 			}()
-			if _, err := tc.typ.Decode(bytes.NewReader(tc.body)); err == nil {
+			if _, err := tc.typ.Decode(bytes.NewReader(tc.body), nil); err == nil {
 				t.Errorf("expected error for malformed %s length, got nil", tc.name)
 			}
 		})

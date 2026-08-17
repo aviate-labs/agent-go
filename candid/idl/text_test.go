@@ -6,7 +6,7 @@ import (
 	"github.com/aviate-labs/agent-go/candid/idl"
 )
 
-func ExampleText() {
+func ExampleTextType() {
 	test([]idl.Type{new(idl.TextType)}, []any{""})
 	test([]idl.Type{new(idl.TextType)}, []any{"Motoko"})
 	test([]idl.Type{new(idl.TextType)}, []any{"Hi ☃\n"})

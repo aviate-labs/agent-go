@@ -149,6 +149,11 @@ func convertField(n *parser.Node) Field {
 	case candid.Id.Name:
 		v := n.Value()
 		field.NameData = &v
+	case candid.Text.Name:
+		// A payload-less variant tag named with quoted text: the last child is
+		// the name, not a data type.
+		v := nameValue(n)
+		field.NameData = &v
 	default:
 		data := convertData(n)
 		field.Data = &data

@@ -67,7 +67,10 @@ func (variant VariantType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
-func (variant VariantType) Decode(r *bytes.Reader) (any, error) {
+func (variant VariantType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costComposite); err != nil {
+		return nil, err
+	}
 	id, err := leb128.DecodeUnsigned(r)
 	if err != nil {
 		return nil, err
@@ -76,7 +79,7 @@ func (variant VariantType) Decode(r *bytes.Reader) (any, error) {
 		return nil, fmt.Errorf("invalid variant index: %v", id)
 	}
 	f := variant.Fields[int(id.Int64())]
-	v_, err := f.Type.Decode(r)
+	v_, err := f.Type.Decode(r, budget)
 	if err != nil {
 		return nil, err
 	}
@@ -141,9 +144,15 @@ func (variant VariantType) Read(r *bytes.Reader) ([]byte, error) {
 }
 
 func (variant VariantType) String() string {
+	return typeString(&variant, nil)
+}
+
+func (variant *VariantType) elided() string { return "variant {...}" }
+
+func (variant *VariantType) stringSeen(seen []Type) string {
 	var s []string
 	for _, f := range variant.Fields {
-		s = append(s, fmt.Sprintf("%s:%s", f.Name, f.Type.String()))
+		s = append(s, fmt.Sprintf("%s:%s", f.Name, typeString(f.Type, seen)))
 	}
 	return fmt.Sprintf("variant {%s}", strings.Join(s, "; "))
 }

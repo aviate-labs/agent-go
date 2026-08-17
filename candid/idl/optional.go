@@ -54,7 +54,10 @@ type Some struct {
 // Decode decodes the value from the given reader into either `nil` or a value (of the subtype of the optional type).
 // A present option whose value is itself nil is returned as Some, so that
 // `opt null` stays distinguishable from `null`.
-func (o OptionalType) Decode(r *bytes.Reader) (any, error) {
+func (o OptionalType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+	if err := budget.Spend(costComposite); err != nil {
+		return nil, err
+	}
 	b, err := r.ReadByte()
 	if err != nil {
 		return nil, err
@@ -63,7 +66,7 @@ func (o OptionalType) Decode(r *bytes.Reader) (any, error) {
 	case 0x00:
 		return nil, nil
 	case 0x01:
-		v, err := o.Type.Decode(r)
+		v, err := o.Type.Decode(r, budget)
 		if err != nil {
 			return nil, err
 		}
@@ -132,7 +135,13 @@ func (o OptionalType) Read(r *bytes.Reader) ([]byte, error) {
 
 // String returns the string representation of the type.
 func (o OptionalType) String() string {
-	return fmt.Sprintf("opt %s", o.Type)
+	return typeString(&o, nil)
+}
+
+func (o *OptionalType) elided() string { return "opt" }
+
+func (o *OptionalType) stringSeen(seen []Type) string {
+	return fmt.Sprintf("opt %s", typeString(o.Type, seen))
 }
 
 func (o OptionalType) UnmarshalGo(raw any, _v any) error {
