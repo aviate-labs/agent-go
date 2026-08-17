@@ -87,13 +87,11 @@ func TestStringConcurrent(t *testing.T) {
 	want := r.String()
 	var wg sync.WaitGroup
 	for range 50 {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			if got := r.String(); got != want {
 				t.Errorf("concurrent String() mismatch")
 			}
-		}()
+		})
 	}
 	wg.Wait()
 }
