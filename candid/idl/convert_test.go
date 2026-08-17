@@ -61,3 +61,14 @@ func TestTypeOf_nonInterfaceSlice(t *testing.T) {
 		t.Error(typ)
 	}
 }
+
+// An empty slice has no element to infer a type from.
+func TestTypeOfEmptySlice(t *testing.T) {
+	typ, err := idl.TypeOf([]any{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if typ.String() != "vec null" {
+		t.Fatalf("got %s, want vec null", typ)
+	}
+}

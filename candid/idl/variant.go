@@ -35,7 +35,12 @@ func NewVariantType(fields map[string]Type) *VariantType {
 	return &variant
 }
 
-func (variant VariantType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+func (variant *VariantType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+	leave, ok := tdt.enter(variant)
+	if !ok {
+		return nil
+	}
+	defer leave()
 	for _, f := range variant.Fields {
 		if err := f.Type.AddTypeDefinition(tdt); err != nil {
 			return err
@@ -67,7 +72,7 @@ func (variant VariantType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
-func (variant VariantType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+func (variant *VariantType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
 	if err := budget.Spend(costComposite); err != nil {
 		return nil, err
 	}
@@ -90,7 +95,7 @@ func (variant VariantType) Decode(r *bytes.Reader, budget *Budget) (any, error) 
 	}, nil
 }
 
-func (variant VariantType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
+func (variant *VariantType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	idx, ok := tdt.Indexes[variant.String()]
 	if !ok {
 		return nil, fmt.Errorf("missing type index for: %s", variant)
@@ -98,7 +103,7 @@ func (variant VariantType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) 
 	return leb128.EncodeSigned(big.NewInt(int64(idx)))
 }
 
-func (variant VariantType) EncodeValue(value any) ([]byte, error) {
+func (variant *VariantType) EncodeValue(value any) ([]byte, error) {
 	fs, ok := value.(Variant)
 	if !ok {
 		v, err := variant.structToVariant(value)
@@ -123,7 +128,7 @@ func (variant VariantType) EncodeValue(value any) ([]byte, error) {
 	return nil, fmt.Errorf("unknown variant: %v", value)
 }
 
-func (variant VariantType) Read(r *bytes.Reader) ([]byte, error) {
+func (variant *VariantType) Read(r *bytes.Reader) ([]byte, error) {
 	raw, err := readLEB128(r)
 	if err != nil {
 		return nil, err
@@ -143,8 +148,8 @@ func (variant VariantType) Read(r *bytes.Reader) ([]byte, error) {
 	return append(raw, bs...), nil
 }
 
-func (variant VariantType) String() string {
-	return typeString(&variant, nil)
+func (variant *VariantType) String() string {
+	return typeString(variant, nil)
 }
 
 func (variant *VariantType) elided() string { return "variant {...}" }
@@ -157,7 +162,7 @@ func (variant *VariantType) stringSeen(seen []Type) string {
 	return fmt.Sprintf("variant {%s}", strings.Join(s, "; "))
 }
 
-func (variant VariantType) UnmarshalGo(raw any, _v any) error {
+func (variant *VariantType) UnmarshalGo(raw any, _v any) error {
 	var (
 		name  string
 		value any

@@ -302,9 +302,31 @@ func decodeTypes(bs []byte) ([]idl.Type, *bytes.Reader, error) {
 		}
 
 		// Decoding one overflows the stack, which Go cannot recover from.
+		// Replacing the slot is not enough: a field elsewhere still holds the
+		// original, so substitute through the references too.
+		empty := make(map[idl.Type]bool)
 		for i, t := range tds {
 			if isEmptyType(t, nil) {
+				empty[t] = true
 				tds[i] = new(idl.EmptyType)
+			}
+		}
+		if len(empty) != 0 {
+			for _, t := range tds {
+				switch t := t.(type) {
+				case *idl.RecordType:
+					for i, f := range t.Fields {
+						if empty[f.Type] {
+							t.Fields[i].Type = new(idl.EmptyType)
+						}
+					}
+				case *idl.VariantType:
+					for i, f := range t.Fields {
+						if empty[f.Type] {
+							t.Fields[i].Type = new(idl.EmptyType)
+						}
+					}
+				}
 			}
 		}
 	}

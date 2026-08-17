@@ -2,6 +2,7 @@ package idl_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/aviate-labs/agent-go/candid/idl"
 )
@@ -36,5 +37,30 @@ func TestSubtypeServiceNilFunc(t *testing.T) {
 				t.Fatal("expected an error for an unresolved signature")
 			}
 		})
+	}
+}
+
+// A deep option chain is finite and must be accepted; only one with no end is
+// rejected. A depth cap cannot tell them apart.
+func TestSubtypeDeepOptChain(t *testing.T) {
+	var deep idl.Type = new(idl.NatType)
+	for range 70 {
+		deep = idl.NewOptionalType(deep)
+	}
+	if err := idl.Subtype(new(idl.BoolType), deep); err != nil {
+		t.Fatalf("70-deep opt chain rejected: %v", err)
+	}
+
+	rec := idl.NewRecursiveType("Opt")
+	rec.SetInner(idl.NewOptionalType(rec))
+	done := make(chan error, 1)
+	go func() { done <- idl.Subtype(new(idl.BoolType), rec) }()
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("expected `type Opt = opt Opt` to be rejected")
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("Subtype did not terminate")
 	}
 }

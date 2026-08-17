@@ -131,3 +131,17 @@ func TestStringCyclicFuncNoResults(t *testing.T) {
 		t.Fatal("String() did not terminate")
 	}
 }
+
+// A decoded type can hold a raw structural cycle with no RecursiveType to break
+// it. AddTypeDefinition walks the same graph as String() and must terminate too.
+func TestAddTypeDefinitionCyclic(t *testing.T) {
+	r := &idl.RecordType{}
+	r.Fields = []idl.FieldType{{Name: "x", Type: idl.NewVectorType(r)}}
+	done := make(chan error, 1)
+	go func() { done <- r.AddTypeDefinition(idl.NewTypeDefinitionTable()) }()
+	select {
+	case <-done: // an error is fine; not terminating is not
+	case <-time.After(5 * time.Second):
+		t.Fatal("AddTypeDefinition did not terminate")
+	}
+}

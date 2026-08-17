@@ -19,7 +19,7 @@ func ExampleOptionalType() {
 }
 
 func ExampleOptionalType_blob() {
-	var optNatArray = idl.NewOptionalType(idl.VectorType{Type: idl.Nat8Type()})
+	var optNatArray = idl.NewOptionalType(&idl.VectorType{Type: idl.Nat8Type()})
 	test([]idl.Type{optNatArray}, []any{nil})
 	test([]idl.Type{optNatArray}, []any{[]byte{0x00}})
 	// Output:
@@ -28,7 +28,7 @@ func ExampleOptionalType_blob() {
 }
 
 func TestOptionalType_UnmarshalGo(t *testing.T) {
-	if err := idl.UnmarshalGo(idl.OptionalType{
+	if err := idl.UnmarshalGo(&idl.OptionalType{
 		Type: new(idl.NullType),
 	}, nil, new(idl.Null)); err != nil {
 		t.Fatal(err)
@@ -36,7 +36,7 @@ func TestOptionalType_UnmarshalGo(t *testing.T) {
 
 	var nat *idl.Nat
 	for range 3 {
-		if err := idl.UnmarshalGo(idl.OptionalType{
+		if err := idl.UnmarshalGo(&idl.OptionalType{
 			Type: new(idl.NatType),
 		}, uint(1), &nat); err != nil {
 			t.Fatal(err)
@@ -50,7 +50,7 @@ func TestOptionalType_UnmarshalGo(t *testing.T) {
 	}
 
 	var a any
-	if err := idl.UnmarshalGo(idl.OptionalType{
+	if err := idl.UnmarshalGo(&idl.OptionalType{
 		Type: new(idl.NullType),
 	}, "", &a); err == nil {
 		t.Fatal("expected error")
@@ -63,7 +63,7 @@ func TestOptionalType_UnmarshalGo(t *testing.T) {
 
 	t.Run("Blob", func(t *testing.T) {
 		var bs *[]byte
-		if err := idl.UnmarshalGo(idl.OptionalType{
+		if err := idl.UnmarshalGo(&idl.OptionalType{
 			Type: idl.NewVectorType(idl.Nat8Type()),
 		}, []any{byte(0x00)}, &bs); err != nil {
 			t.Error(err)

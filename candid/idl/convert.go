@@ -72,7 +72,7 @@ func EmptyOf(t Type) (any, error) {
 		for _, field := range t.Fields {
 			v, err := EmptyOf(field.Type)
 			if err != nil {
-				return nil, UnknownTypeError{Type: t}
+				return nil, UnknownTypeError{Type: &t}
 			}
 			fields[field.Name] = v
 		}
@@ -80,7 +80,7 @@ func EmptyOf(t Type) (any, error) {
 	case VariantType:
 		if len(t.Fields) == 0 {
 			return Variant{
-				Type: t,
+				Type: &t,
 			}, nil
 		}
 		field := t.Fields[0]
@@ -88,7 +88,7 @@ func EmptyOf(t Type) (any, error) {
 			return Variant{
 				Name:  field.Name,
 				Value: v,
-				Type:  t,
+				Type:  &t,
 			}, nil
 		}
 	}
@@ -132,6 +132,11 @@ func TypeOf(v any) (Type, error) {
 	case Empty:
 		return new(EmptyType), nil
 	case []any:
+		// An empty slice carries no element to infer from; null is the only
+		// element type every empty vector is assignable to.
+		if len(v) == 0 {
+			return NewVectorType(new(NullType)), nil
+		}
 		typ, err := TypeOf(v[0])
 		if err != nil {
 			return nil, err

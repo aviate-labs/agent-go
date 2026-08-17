@@ -73,12 +73,9 @@ func subtypeOpt(t Type, u *OptionalType, gamma []typePair) error {
 	if _, ok := t.(*NullType); ok {
 		return nil
 	}
-	if o, ok := t.(*OptionalType); ok {
-		if err := subtype(o.Type, u.Type, gamma); err == nil {
-			return nil
-		}
-		// "any type is a subtype of an option": an unreadable constituent is
-		// seen as null rather than an error.
+	// "any type is a subtype of an option": an unreadable constituent is seen as
+	// null rather than an error, so opt-vs-opt always holds.
+	if _, ok := t.(*OptionalType); ok {
 		return nil
 	}
 	if err := subtype(t, u.Type, gamma); err == nil && !acceptsNull(u.Type) {
@@ -94,18 +91,22 @@ func subtypeOpt(t Type, u *OptionalType, gamma []typePair) error {
 }
 
 // optDepth counts nested options, returning -1 when there is no end to them.
+// A depth cap would reject a merely deep chain, so the chain is walked until it
+// either ends or revisits a type it has already been through.
 func optDepth(t Type, n int) int {
-	if n > maxOptDepth {
-		return -1
-	}
+	return optDepthSeen(t, n, nil)
+}
+
+func optDepthSeen(t Type, n int, seen []Type) int {
 	o, ok := unwrapRec(t).(*OptionalType)
 	if !ok {
 		return n
 	}
-	return optDepth(o.Type, n+1)
+	if slices.Contains(seen, Type(o)) {
+		return -1
+	}
+	return optDepthSeen(o.Type, n+1, append(seen, o))
 }
-
-const maxOptDepth = 64
 
 func subtypeRecord(t Type, u *RecordType, gamma []typePair) error {
 	r, ok := t.(*RecordType)

@@ -35,7 +35,12 @@ func NewServiceType(methods map[string]*FunctionType) *ServiceType {
 	return &service
 }
 
-func (s ServiceType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+func (s *ServiceType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+	leave, ok := tdt.enter(s)
+	if !ok {
+		return nil
+	}
+	defer leave()
 	for _, f := range s.Methods {
 		if err := f.Func.AddTypeDefinition(tdt); err != nil {
 			return err
@@ -68,7 +73,7 @@ func (s ServiceType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
 	return nil
 }
 
-func (s ServiceType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+func (s *ServiceType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
 	if err := budget.Spend(costValue); err != nil {
 		return nil, err
 	}
@@ -93,7 +98,7 @@ func (s ServiceType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
 	return &principal.Principal{Raw: pid}, nil
 }
 
-func (s ServiceType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
+func (s *ServiceType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	idx, ok := tdt.Indexes[s.String()]
 	if !ok {
 		return nil, fmt.Errorf("missing type index for: %s", s)
@@ -101,7 +106,7 @@ func (s ServiceType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	return leb128.EncodeSigned(big.NewInt(int64(idx)))
 }
 
-func (s ServiceType) EncodeValue(v any) ([]byte, error) {
+func (s *ServiceType) EncodeValue(v any) ([]byte, error) {
 	p, ok := v.(principal.Principal)
 	if !ok {
 		return nil, NewEncodeValueError(v, ServiceOpCode)
@@ -113,7 +118,7 @@ func (s ServiceType) EncodeValue(v any) ([]byte, error) {
 	return concat([]byte{0x01}, l, []byte(p.Raw)), nil
 }
 
-func (s ServiceType) Read(r *bytes.Reader) ([]byte, error) {
+func (s *ServiceType) Read(r *bytes.Reader) ([]byte, error) {
 	b, err := r.ReadByte()
 	if err != nil {
 		return nil, err
@@ -146,8 +151,8 @@ func (s ServiceType) Read(r *bytes.Reader) ([]byte, error) {
 	return concat([]byte{b}, raw, pid), nil
 }
 
-func (s ServiceType) String() string {
-	return typeString(&s, nil)
+func (s *ServiceType) String() string {
+	return typeString(s, nil)
 }
 
 func (s *ServiceType) elided() string { return "service" }

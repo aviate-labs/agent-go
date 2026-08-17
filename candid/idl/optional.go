@@ -27,7 +27,12 @@ func NewOptionalType(t Type) *OptionalType {
 }
 
 // AddTypeDefinition adds the type definition to the table.
-func (o OptionalType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+func (o *OptionalType) AddTypeDefinition(tdt *TypeDefinitionTable) error {
+	leave, ok := tdt.enter(o)
+	if !ok {
+		return nil
+	}
+	defer leave()
 	if err := o.Type.AddTypeDefinition(tdt); err != nil {
 		return err
 	}
@@ -54,7 +59,7 @@ type Some struct {
 // Decode decodes the value from the given reader into either `nil` or a value (of the subtype of the optional type).
 // A present option whose value is itself nil is returned as Some, so that
 // `opt null` stays distinguishable from `null`.
-func (o OptionalType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
+func (o *OptionalType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
 	if err := budget.Spend(costComposite); err != nil {
 		return nil, err
 	}
@@ -80,7 +85,7 @@ func (o OptionalType) Decode(r *bytes.Reader, budget *Budget) (any, error) {
 }
 
 // EncodeType encodes the type into a byte array.
-func (o OptionalType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
+func (o *OptionalType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 	idx, ok := tdt.Indexes[o.String()]
 	if !ok {
 		return nil, fmt.Errorf("missing type index for: %v", o)
@@ -90,7 +95,7 @@ func (o OptionalType) EncodeType(tdt *TypeDefinitionTable) ([]byte, error) {
 
 // EncodeValue encodes the value into a byte array.
 // Accepts `nil` or a value (of the subtype of the optional type).
-func (o OptionalType) EncodeValue(v any) ([]byte, error) {
+func (o *OptionalType) EncodeValue(v any) ([]byte, error) {
 	if v == nil {
 		return []byte{0x00}, nil
 	}
@@ -114,7 +119,7 @@ func (o OptionalType) EncodeValue(v any) ([]byte, error) {
 	return append([]byte{0x01}, v_...), nil
 }
 
-func (o OptionalType) Read(r *bytes.Reader) ([]byte, error) {
+func (o *OptionalType) Read(r *bytes.Reader) ([]byte, error) {
 	b, err := r.ReadByte()
 	if err != nil {
 		return nil, err
@@ -134,8 +139,8 @@ func (o OptionalType) Read(r *bytes.Reader) ([]byte, error) {
 }
 
 // String returns the string representation of the type.
-func (o OptionalType) String() string {
-	return typeString(&o, nil)
+func (o *OptionalType) String() string {
+	return typeString(o, nil)
 }
 
 func (o *OptionalType) elided() string { return "opt" }
@@ -144,7 +149,7 @@ func (o *OptionalType) stringSeen(seen []Type) string {
 	return fmt.Sprintf("opt %s", typeString(o.Type, seen))
 }
 
-func (o OptionalType) UnmarshalGo(raw any, _v any) error {
+func (o *OptionalType) UnmarshalGo(raw any, _v any) error {
 	if raw == nil {
 		// Optional value is `nil`.
 		return nil

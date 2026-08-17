@@ -133,28 +133,23 @@ func CheckSize(t Type) error {
 }
 
 // decodeLenOf reads an element count. A zero-width element type carries no
-// bytes, so the remaining input cannot bound the count and the decode budget is
-// the only limit; anything else is still bounded by bytes remaining. The length
-// is clamped to the budget before being returned as an int, so the caller's
+// bytes, so the remaining input cannot bound the count and the zero-width
+// ceiling is the only limit; anything else is still bounded by bytes remaining.
+// The length is clamped before being returned as an int, so the caller's
 // per-element charge cannot overflow.
-func decodeLenOf(r *bytes.Reader, elem Type, budget *Budget) (int, error) {
-	if !isZeroWidth(elem) {
+func decodeLenOf(r *bytes.Reader, elem Type, zeroWidth bool, budget *Budget) (int, error) {
+	if !zeroWidth {
 		return DecodeLen(r)
 	}
 	l, err := leb128.DecodeUnsigned(r)
 	if err != nil {
 		return 0, err
 	}
-	if !l.IsInt64() || l.Int64() < 0 {
+	if !l.IsInt64() || l.Int64() < 0 || l.Int64() > math.MaxInt32 {
 		return 0, fmt.Errorf("invalid length %s", l)
 	}
-	if rem, bounded := budget.Remaining(); bounded && l.Int64() > int64(rem) {
-		return 0, fmt.Errorf("length %s exceeds decoding quota", l)
-	}
-	if !l.IsInt64() || l.Int64() > math.MaxInt32 {
-		// Unbounded budget: keep the count addressable so the caller's
-		// per-element charge cannot overflow.
-		return 0, fmt.Errorf("invalid length %s", l)
+	if rem, bounded := budget.RemainingZeroWidth(); bounded && l.Int64() > int64(rem) {
+		return 0, fmt.Errorf("length %s exceeds the zero-width limit", l)
 	}
 	return int(l.Int64()), nil
 }
@@ -260,74 +255,17 @@ type cyclicStringer interface {
 	elided() string
 }
 
-// typeString renders t, eliding a composite that encloses itself. Tracking the
-// path rather than a depth keeps a deep-but-acyclic type intact, which matters
-// because TypeDefinitionTable keys on String().
-//
-// Identity has to survive a copy: String() has a value receiver, so the seed is
-// a different pointer than the one a field holds. sameNode compares the parts a
-// copy shares with its original instead.
+// typeString renders t, eliding a composite that encloses itself. Every
+// composite is reached through a pointer, so a cycle is the same pointer twice
+// on the path. Tracking the path rather than a depth keeps a deep-but-acyclic
+// type intact, which matters because TypeDefinitionTable keys on String().
 func typeString(t Type, seen []Type) string {
 	c, ok := t.(cyclicStringer)
 	if !ok {
 		return t.String()
 	}
-	for _, s := range seen {
-		if sameNode(s, t) {
-			return c.elided()
-		}
+	if slices.Contains(seen, t) {
+		return c.elided()
 	}
 	return c.stringSeen(append(seen, t))
-}
-
-// sameNode reports whether a and b are the same composite, comparing the slice
-// or element a copy shares with its original rather than the pointers.
-func sameNode(a, b Type) bool {
-	switch a := a.(type) {
-	case *RecordType:
-		b, ok := b.(*RecordType)
-		return ok && sameFields(a.Fields, b.Fields)
-	case *VariantType:
-		b, ok := b.(*VariantType)
-		return ok && sameFields(a.Fields, b.Fields)
-	case *FunctionType:
-		// Every non-empty slice has to match, so two funcs that merely share one
-		// of them are still distinct. Comparing only the non-empty ones keeps a
-		// func with no results identifiable by its arguments alone.
-		b, ok := b.(*FunctionType)
-		if !ok {
-			return false
-		}
-		args := sameParams(a.ArgumentParameters, b.ArgumentParameters)
-		rets := sameParams(a.ReturnParameters, b.ReturnParameters)
-		if len(a.ArgumentParameters) == 0 || len(a.ReturnParameters) == 0 {
-			return args || rets
-		}
-		return args && rets
-	case *ServiceType:
-		b, ok := b.(*ServiceType)
-		return ok && sameMethods(a.Methods, b.Methods)
-	case *VectorType:
-		b, ok := b.(*VectorType)
-		return ok && a.Type == b.Type
-	case *OptionalType:
-		b, ok := b.(*OptionalType)
-		return ok && a.Type == b.Type
-	default:
-		return a == b
-	}
-}
-
-// sameFields reports whether both slices share a backing array, i.e. they are
-// the same composite reached again rather than an equal-looking one.
-func sameFields(a, b []FieldType) bool {
-	return len(a) != 0 && len(b) != 0 && &a[0] == &b[0]
-}
-
-func sameParams(a, b []FunctionParameter) bool {
-	return len(a) != 0 && len(b) != 0 && &a[0] == &b[0]
-}
-
-func sameMethods(a, b []Method) bool {
-	return len(a) != 0 && len(b) != 0 && &a[0] == &b[0]
 }

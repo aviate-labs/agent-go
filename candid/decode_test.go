@@ -430,3 +430,17 @@ func TestDecodeUnboundedTypeTableLengths(t *testing.T) {
 		})
 	}
 }
+
+// A blob at the IC message ceiling must decode: the work quota has to scale with
+// the payload, and vec nat8 is the densest legal shape.
+func TestDecodeLargeBlob(t *testing.T) {
+	for _, n := range []int{1 << 20, 2 << 20, 3 << 20} {
+		payload, err := Marshal([]any{make([]byte, n)})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, _, err := Decode(payload); err != nil {
+			t.Errorf("%d-byte blob: %v", n, err)
+		}
+	}
+}
